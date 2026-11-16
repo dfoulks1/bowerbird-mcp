@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]  # 77 reads the SPDX `license = "Apache-2.0"` below
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "bowerbird-mcp"
 version = "2.0.0"
-description = "Keep a Markdown collection in order, and search and answer from it: an MCP server and CLI for Open Knowledge Format (OKF) v0.2."
+description = "Manage knowledge, retrieve it, and verify it: keyword and semantic search over Markdown, ADR and MADR, OKF, SKOS and AsciiDoc (ADOC), and a human review (seal) bound to the exact text. An MCP server and CLI."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{name = "Bowerbird contributors"}]
-keywords = ["mcp", "model-context-protocol", "okf", "open-knowledge-format", "markdown", "knowledge-base", "rag", "lint"]
+keywords = ["mcp", "model-context-protocol", "okf", "open-knowledge-format", "markdown", "knowledge-base", "knowledge-management", "retrieval", "verification", "rag", "lint", "seal", "human-in-the-loop", "semantic-search", "search-index", "adr", "madr", "skos", "asciidoc", "adoc"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
