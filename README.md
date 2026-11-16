@@ -15,6 +15,8 @@ as Markdown in a folder or repository. It works on knowledgebases in [Open Knowl
 (OKF) v0.2: one Markdown file per *concept*, each starting with a small header of
 facts (its type, a description, where it came from, who checked it). A *bundle* is
 a folder of concepts; a knowledgebase is a bundle, or a folder of bundles.
+It can also search a plain Markdown folder (ADR and MADR records among them) and
+SKOS thesauri: one `format:` line in `kbmcp.yaml` picks which ([Formats](#formats)).
 
 It is an MCP server (MCP, the Model Context Protocol, is how AI assistants call
 tools) and a command line. It
@@ -56,34 +58,66 @@ from a checkout of this repository (or beside a saved copy of that one file).
 To run the latest unreleased code instead of the PyPI release, give uv the repository:
 `uvx --from git+https://github.com/dfoulks1/bowerbird-mcp bowerbird-mcp help`.
 
-A `kbmcp.yaml` at the root of a knowledgebase (not in a bundle) marks its base
-and configures it, so any `bowerbird-mcp` server knows where the
-knowledgebase and its assets (index, archive, bundles) are, and the server
-needs no env block. The tool finds the file from the current directory up, or
-you name it with `--config`. It replaces the old `KB_ROOT` variable, which is
-now refused. `KB_USER`, `KB_AI_PRODUCERS` and `KB_ROLE` still override it.
-It is local config, never committed: each person or machine has its own, and a
-fresh clone has none until `bowerbird-mcp config apply=true` writes one from
-a built-in example (every setting commented out at its default). That also
-lists `kbmcp.yaml` in the `.gitignore` beside it, and it never overwrites an
-existing file. `lint` flags a `kbmcp.yaml` anywhere below the root
-(`nested_config`): a second one would make that folder a second knowledgebase.
+### Settings: kbmcp.yaml
+
+A `kbmcp.yaml` is the knowledgebase's configuration, and **any folder that holds one is a knowledgebase**: its
+base, with its index, archive and bundles. Commit it. It sits at the root, not in a bundle. The tool finds the
+nearest one from the current directory up, or you name it with `--config`, so a server needs no env block. A
+folder inside a knowledgebase with its own `kbmcp.yaml` is another knowledgebase, and the outer one skips it.
+`init` writes a mostly filled-in one (see below); `config apply=true` writes the all-commented example, and
+neither overwrites a file. The old `KB_ROOT` variable is gone and is refused: the base is wherever `kbmcp.yaml` is.
 
 ```yaml
-about: Engineering runbooks.   # shown to the agent; tells knowledgebases apart when several are loaded
-user: your-id         # prefills your id in confirmation prompts (KB_USER)
+about: Engineering runbooks.   # shown to the agent; tells knowledgebases apart
+user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
+format: okf           # okf | markdown | skos: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
-semantic: false       # also match by meaning. `uvx bowerbird-mcp` carries what it needs; the bare script needs
-                      # `uv run --with fastembed`. The model (~65 MB) downloads once into
-                      # ~/.cache/bowerbird-mcp/models; passages are embedded and kept in the index
+semantic: false       # also match by meaning (see Reading the knowledgebase)
 semantic_model: BAAI/bge-small-en-v1.5
 min_similarity: 0.6   # how close in meaning a passage must be
-index: .kbmcp/index.db   # one SQLite file: passages, BM25 index, links, vectors; "" = in memory
-build: auto           # auto: passages keeps the index current; manual: only `reindex` does, passages reads
-roles: [read, write, structure, lifecycle]   # roles the MCP server may offer; drop one to turn it off (see Register)
+vector_index: scan    # scan | sqlite-vec | hnsw: how semantic search finds neighbours
+index: .kbmcp/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
+build: auto           # auto: passages keeps the index current; manual: only `reindex`
+roles: [read, write, structure, lifecycle]   # roles the server may offer (see Register)
 ```
+
+### Overrides: .env and the environment
+
+`kbmcp.yaml` is shared, so what is yours alone does not go in it. [`env.example`](https://github.com/dfoulks1/bowerbird-mcp/blob/main/env.example)
+lists every override as a `KB_<KEY>` variable (`KB_USER`, `KB_ABOUT`, `KB_SEMANTIC`, `KB_VECTOR_INDEX`, `KB_BUILD`,
+and so on; lists are comma separated). Copy it to `.env` beside `kbmcp.yaml` and uncomment what you change: `.env` is
+not committed (`init` and `config` list it in `.gitignore`). Precedence, last wins: `kbmcp.yaml`, then `.env`, then
+real environment variables. `format` is the knowledgebase's own and no override touches it. `KB_ROLE` (singular)
+is the same as `--role`.
+
+`init` fills in what it can: `format` is guessed from the folder (thesaurus files mean `skos`, Markdown with no OKF
+types means `markdown`, else `okf`), and it asks for what it cannot know: `about`, your `user` id (kept in `.env`)
+and `holds` (the format, to confirm). Over MCP it asks the human with a prompt; at a terminal it asks on the
+command line; or pass them (`init about="Runbooks." holds=markdown user=you apply=true`). An `okf` folder also
+gets its first bundle; `markdown` and `skos` get only the configuration.
+
+### Formats
+
+`format` in `kbmcp.yaml` says what the folder holds.
+
+- `okf` (the default): OKF bundles. Every tool is available.
+- `markdown`: any folder of Markdown, no frontmatter needed; `index.md` and
+  `log.md` are ordinary files. A numbered file name (`0007-use-queue.md`) or a
+  path through `adr`, `adrs` or `decisions` makes a hit type `adr`, with its
+  `status` read from MADR frontmatter, a `## Status` section (Nygard) or a
+  `* Status:` line (MADR 2).
+- `skos`: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (`*.ttl`,
+  `*.rdf`, `*.jsonld`, `*.nt`, `*.n3`; needs `pip install rdflib`). One passage
+  per concept, headed by its broader chain, with its labels, notes and
+  broader, narrower and related concepts in the text.
+
+Outside `okf` only `passages` and `reindex` are offered, and every hit is
+`unverified`: there are no trust fields to read. The agent's instructions follow
+the format.
+
+### The index
 
 With no `kbmcp.yaml` the defaults apply. The index is a cache derived from
 the concepts: safe to delete, never committed (a new `.kbmcp/` folder ignores
@@ -109,6 +143,8 @@ repos:
         stages: [pre-commit, post-merge, post-checkout]
 ```
 
+### Where tools look
+
 A knowledgebase is where its `kbmcp.yaml` is: the tool looks for one from the
 current directory up (or takes `--config path/to/kbmcp.yaml`) and treats that
 file's folder as the base. With none, it uses the current directory. It is one bundle at its root, or a set of sibling bundles. A
@@ -128,6 +164,8 @@ path within it (`bundle=eng file=runbooks/deploy.md`), in every input and
 output. On the command line, without `bundle=`, paths are relative to where
 you are. Write tools act in the bundle the file belongs to. In a git work
 tree, files git ignores are skipped.
+
+### Running a tool
 
 ```sh
 wget https://raw.githubusercontent.com/dfoulks1/bowerbird-mcp/main/bowerbird_mcp.py
@@ -396,12 +434,17 @@ repos:
   ```
 
 - `passages` answers a question. It cuts concepts at
-  headings and returns the best sections, each with file, line, heading,
+  headings (a long section is cut again at blank lines, each piece repeating the
+  last short paragraph of the one before) and returns the best sections, each with file, line, heading,
   trust tier and staleness, so the answer can cite and qualify its sources.
   Ranking is BM25 (rarer words count more; any one word may match; no
   stemming), with title, tags, type and description counting too, and
   concepts many others link to a little higher (`hubs`). With `semantic` on,
-  passages are also matched by meaning and the two rankings are fused. No hit
+  passages are also matched by meaning and the two rankings are fused.
+  `vector_index` picks how: `scan` (exact, in Python; fine to a few thousand
+  passages), `sqlite-vec` (exact, in C; `pip install sqlite-vec`) or `hnsw`
+  (approximate, for 100K+; `pip install hnswlib`; it keeps the top 500 before the
+  type, tag and dir filters). No hit
   returns `gap: true`: say the knowledgebase has nothing, don't guess. Passages
   are indexed in one SQLite file (`index` in `kbmcp.yaml`), updated from the
   files that changed. `reindex` builds it ahead of time, for a hook, and with
@@ -439,6 +482,8 @@ repos:
 - OKF makes `okf_version` optional; here it is how a bundle is found. An
   undeclared bundle is any folder until you pass it as `bundle=`.
 - `ingest` does not convert other formats or check licenses. Its plan says so.
+- With `format: skos`, links between concepts are not counted, so `hubs` does
+  nothing, and a file that does not parse is skipped without an error.
 - `passages` has no stemming ("rolling" will not match "roll"), and with
   `build: manual` it does not notice files changed since the last `reindex`.
   Semantic search downloads its model (~65 MB) once into

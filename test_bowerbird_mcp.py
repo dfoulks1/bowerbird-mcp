@@ -26,6 +26,10 @@ sys.argv[1:] = ["--config", str(kb / "kbmcp.yaml")]
 sys.path.insert(0, str(HERE))
 import bowerbird_mcp as k
 
+
+def init(**kw):
+    return asyncio.run(k.init(**kw))
+
 del sys.argv[1:]
 k.CFG_DIR = None  # the tests swap KB_ROOT around; keep each one's index inside its own root
 
@@ -55,8 +59,8 @@ def cli(*argv):
 
 
 # init: a new bundle is conformant and clean; a second init refuses.
-assert k.init()["would_edit"] == {".": ["index.md", "log.md"]}
-k.init(apply=True)
+assert init()["would_edit"] == {".": ["index.md", "log.md"]}
+init(apply=True)
 assert k.lint()["ok"] and k.lint()["conformant"], k.lint()
 raises(k.init, apply=True)
 
@@ -358,7 +362,7 @@ shutil.rmtree(kb / "tags")
 u, saved = kb.parent / "uses", k.KB_ROOT
 u.mkdir()
 k.KB_ROOT = kb.parent
-k.init(apply=True, bundle="uses")
+init(apply=True, bundle="uses")
 k.create("t/src.md", "Reference", description="s.", bundle="uses", resource="https://example.com/x")
 k.create("t/m.md", "Metric", description="m.", body="[later](/t/unwritten.md)", bundle="uses")
 (u / "t/m.md").write_text((u / "t/m.md").read_text().replace("type: Metric", "type: Metric\nsources: [{id: s, resource: /t/src.md}]"))
@@ -415,7 +419,7 @@ k.KB_ROOT = saved
 one = Path(tempfile.mkdtemp()) / "solo"
 one.mkdir()
 k.KB_ROOT = one
-k.init(apply=True)
+init(apply=True)
 k.create("x.md", "Note", description="x.", bundle=".")
 k.archive("x.md", bundle=".", apply=True)
 assert (one / "archive/solo/x.md").exists() and "nested_bundle" not in kinds() and not (one / "x.md").exists()
@@ -427,8 +431,8 @@ k.KB_ROOT = saved
 saved, cwd, ws = k.KB_ROOT, os.getcwd(), (kb.parent / "ws").resolve()
 ws.mkdir()
 k.KB_ROOT = ws
-k.init(apply=True, bundle="a")
-k.init(apply=True, bundle="b")
+init(apply=True, bundle="a")
+init(apply=True, bundle="b")
 assert (ws / ".gitattributes").read_text() == "log.md merge=union\nindex.md merge=union\n"
 (ws / "a/sub").mkdir()
 (ws / "a/sub/c.md").write_text("---\ntype: x\ndescription: c.\nsources: [{id: n, resource: /n.md}]\n---\n[n](/n.md)\n")
@@ -513,7 +517,7 @@ assert k.upgrade()["would_edit"] == {} and not k.declares(ws / "index.md")  # th
 assert (ws / "index.md").read_text().count("* [") == 3 and "* [b](b/)" in (ws / "index.md").read_text()
 assert k.knowledgebase(ws / "a/sub") == ws and k.knowledgebase(ws) == ws
 (ws / "c").mkdir()
-k.init(apply=True, bundle="c")
+init(apply=True, bundle="c")
 assert "index_stale" in kinds() and k.fix(apply=True)["remaining"]["ok"] and "* [c](c/)" in (ws / "index.md").read_text()
 os.chdir(cwd)
 k.KB_ROOT = saved
@@ -668,7 +672,7 @@ assert k.permalink(src, src.resolve()) is None
 # Ranked search, dirs, vocab, demand; new lint kinds and only/ignore.
 saved, rk = k.KB_ROOT, Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = rk
-k.init(apply=True)
+init(apply=True)
 long = "Plenty of words here, comfortably past the stub threshold for body text."
 (rk / "ops").mkdir()
 (rk / "ops/deploy.md").write_text(f"---\ntype: Playbook\ntitle: Deploy\ndescription: How we ship.\ntags: [ops]\n---\n"
@@ -704,9 +708,9 @@ assert ("island1.md", "island") in L and ("island1.md", "unused_ref") in L and n
 assert {x for _, x in kinds_of(only=["stub"])} == {"stub"} and "stub" not in {x for _, x in kinds_of(ignore=["stub"])}
 raises(k.lint, only=["nope"])
 (rk / "kbmcp.yaml").write_text(k.EXAMPLE_CONFIG)  # at the knowledgebase root: right
-assert not any(x == "nested_config" for _, x in kinds_of())
-(rk / "ops/kbmcp.yaml").write_text("")  # below it: a second knowledgebase, as far as a server can tell
-assert ("ops/kbmcp.yaml", "nested_config") in kinds_of() and ("kbmcp.yaml", "nested_config") not in kinds_of()
+assert any(f.startswith("ops/") for f, _ in kinds_of())
+(rk / "ops/kbmcp.yaml").write_text("")  # any folder holding a kbmcp.yaml is its own knowledgebase: this one skips it
+assert not any(f.startswith("ops/") for f, _ in kinds_of()) and not any(x == "nested_config" for _, x in kinds_of())
 (rk / "ops/kbmcp.yaml").unlink()
 (rk / "kbmcp.yaml").unlink()
 src = Path(k.__file__).read_text()
@@ -721,6 +725,12 @@ top = P["hits"][0]
 assert top["file"] == "ops/runbook.md" and top["heading"].endswith("Rollback") and top["line"] == 9, top
 assert {"tier", "stale", "status", "text"} <= set(top) and not P["gap"]
 assert [c[0].split(" > ")[-1] for c in k.chunks((rk / "ops/runbook.md").read_text(), "T")] == ["T", "Rollback", "Deploy"]
+long = "# T\n\n" + "\n\n".join(f"para{i} " + "x" * 200 for i in range(12)) + "\n"
+cs = [c[2] for c in k.chunks(long, "T")]
+assert len(cs) > 1 and all(f"para{i} " in "".join(cs) for i in range(12))
+assert all(cs[j].split("\n\n")[-1] in cs[j + 1] for j in range(len(cs) - 1)), "pieces overlap by one paragraph"
+ls = [c[1] for c in k.chunks(long, "T")]
+assert ls[1] == ls[0] + 2 * (len(cs[0].split("\n\n")) - 1), "an overlapped piece starts at its repeated paragraph"
 G = k.passages("zzzunseen")
 assert G["gap"] and G["total"] == 0 and k.passages("tag", tag="nope")["total"] == 0
 raises(k.passages, "   ")
@@ -739,7 +749,7 @@ try:
 except SystemExit as e:
     assert "unknown key bogus" in str(e)
 # flat passage settings: types and values are checked.
-for bad, msg in (("semantic: 3", "semantic must be a bool"), ("build: sometimes", "must be auto or manual"),
+for bad, msg in (("semantic: 3", "semantic must be a bool"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, skos"), ("build: sometimes", "must be auto or manual"),
                  ("min_similarity: high", "must be a float"), ("index: {path: x}", "index must be a str"), ("nope: 1", "unknown key nope")):
     (cfg / "kbmcp.yaml").write_text(bad + "\n")
     try:
@@ -786,6 +796,23 @@ n_first = sum(calls)
 k.passages("reverse")
 assert sum(calls) == n_first + 1 and (rk / ".kbmcp/.gitignore").is_file()  # only the query was embedded again
 assert k.passages("zzzunseen")["gap"]
+# vector_index: each backend that is installed returns what scan returns (hnsw is approximate, but exact at this size).
+k.EMBEDDERS["unit"] = lambda texts: [[1.0, 0.1] if ("release" in t.lower() or "reverse" in t.lower()) else [0.1, 1.0] for t in texts]
+k.OPTS |= {"semantic_model": "unit", "min_similarity": 0.5, "vector_index": "scan"}
+want = [(h["file"], h["match"]) for h in k.passages("reverse")["hits"]]
+assert want and want[0][0] == "sem.md", want
+for mode, mod in (("sqlite-vec", "sqlite_vec"), ("hnsw", "hnswlib")):
+    try:
+        __import__(mod)
+        k.sqlite3.connect(":memory:").enable_load_extension
+    except (ImportError, AttributeError):
+        print(f"skipped vector_index={mode}: {mod} not usable")
+        continue
+    k.OPTS["vector_index"] = mode
+    assert [(h["file"], h["match"]) for h in k.passages("reverse")["hits"]] == want, mode
+    assert [(h["file"], h["match"]) for h in k.passages("reverse", dir="nope")["hits"]] == [], mode
+    k.reindex()
+k.OPTS |= {"vector_index": "scan", "semantic_model": "fake", "min_similarity": 0.5}
 k.OPTS["semantic"] = False
 assert k.passages("reverse")["gap"]
 # reindex builds the one file at the chosen path; build: manual makes passages read it and nothing else.
@@ -871,26 +898,68 @@ for key in k.CONFIG_KEYS:
 cf, ck, k.CFG_DIR = k.CFG_DIR, k.KB_ROOT, None
 k.KB_ROOT = Path(tempfile.mkdtemp()).resolve()
 C = k.config()
-assert not C["written"] and not (k.KB_ROOT / "kbmcp.yaml").exists() and C["content"] == eg
+assert not C["written"] and not (k.KB_ROOT / "kbmcp.yaml").exists() and C["content"] == {"kbmcp.yaml": eg, "env.example": k.ENV_EXAMPLE}
 assert k.config(apply=True)["written"] and (k.KB_ROOT / "kbmcp.yaml").read_text() == eg
-assert "exists" in raises(k.config)
+assert "exist" in raises(k.config)
 assert k.load_config(k.KB_ROOT) == (k.KB_ROOT, {}) and C["gitignore"] == "not a git work tree"
 code, text = cli("config")
-assert code == 2, (code, text)  # the CLI refuses too: it exists now
-# in a git work tree: kbmcp.yaml is listed in .gitignore (local config), and a stray one there is still linted.
+assert code == 2, (code, text)  # the CLI refuses too: both exist now
+# in a git work tree: init writes a filled kbmcp.yaml and env.example, lists .env in .gitignore, and asks for what it lacks.
 gr = Path(tempfile.mkdtemp()).resolve()
 subprocess.run(["git", "init", "-q", str(gr)], check=True)
 (gr / ".gitignore").write_text("build/")  # no trailing newline: kept
 k.KB_ROOT = gr
-k.init(apply=True)
-assert k.config()["gitignore"] == ".gitignore gets kbmcp.yaml" and (gr / ".gitignore").read_text() == "build/"
-assert k.config(apply=True)["written"] and (gr / ".gitignore").read_text() == "build/\nkbmcp.yaml\n"
+P = init()
+assert P["config"]["files"][:2] == ["kbmcp.yaml", "env.example"] and P["config"]["gitignore"] == ".gitignore gets .env", P  # .env too if a user id is known
+assert "about" in P["config"]["missing"] and not (gr / "kbmcp.yaml").exists(), P  # apply=false writes nothing
+P = init(apply=True)
+assert (gr / ".gitignore").read_text() == "build/\n.env\n" and (gr / "env.example").read_text() == k.ENV_EXAMPLE
+got = k.load_config(gr)[1]
+assert got == {"format": "okf", "passages": True, "hubs": True, "semantic": False, "semantic_model": k.DEFAULTS["semantic_model"],
+               "min_similarity": k.DEFAULTS["min_similarity"], "index": k.DEFAULTS["index"]}, got
+assert k.declares(gr / "index.md") and (gr / "log.md").is_file()  # okf: a bundle too
+# given values fill it in; markdown and skos start no bundle; nothing is overwritten.
+md = Path(tempfile.mkdtemp()).resolve()
+k.KB_ROOT = md
+P = init(apply=True, about="Decisions.", holds="markdown", user="dfoulks")
+assert k.load_config(md)[1]["about"] == "Decisions." and k.load_config(md)[1]["format"] == "markdown", P
+assert (md / ".env").read_text() == "KB_USER=dfoulks\n" and not (md / "index.md").exists() and P["config"]["missing"] == []
+raises(init, holds="rst")
+# guessing: thesaurus files mean skos, markdown without OKF types means markdown, an empty folder means okf.
+g = Path(tempfile.mkdtemp()).resolve()
+assert k.detect_holds(g) == "okf"
+(g / "t.ttl").write_text("@prefix : <http://x/> .\n")
+assert k.detect_holds(g) == "skos"
+(g / "adr").mkdir()
+(g / "adr/0001-x.md").write_text("# Use x\n")
+assert k.detect_holds(g) == "markdown"
+(g / "adr/0001-x.md").write_text("---\ntype: Note\n---\nx\n")
+assert k.detect_holds(g) == "okf"
+# init asks a human (elicitation) for what it could not know, and goes on without an answer.
+class Ask:
+    def __init__(self, action="accept", **data):
+        self.action, self.data = action, data
+        self.asked = []
+
+    async def elicit(self, message, schema):
+        self.asked.append(message)
+        return SimpleNamespace(action=self.action, data=schema(**{**{"about": "", "holds": "markdown", "user": ""}, **self.data}))
+a1 = Path(tempfile.mkdtemp()).resolve()
+k.KB_ROOT = a1
+ask = Ask(about="Ops notes.", holds="markdown", user="me")
+asyncio.run(k.init(apply=True, ctx=ask))
+assert len(ask.asked) == 1 and "about" in ask.asked[0]
+assert k.load_config(a1)[1]["about"] == "Ops notes." and (a1 / ".env").read_text() == "KB_USER=me\n"
+a2 = Path(tempfile.mkdtemp()).resolve()
+k.KB_ROOT = a2
+assert asyncio.run(k.init(apply=True, ctx=Ask("decline")))["config"]["missing"]  # no answer: written with what it has
+assert "about" not in k.load_config(a2)[1]
+# a folder holding its own kbmcp.yaml is another knowledgebase: the parent's lint does not see inside it.
+k.KB_ROOT = gr
 (gr / "sub").mkdir()
-(gr / "sub/kbmcp.yaml").write_text("")  # git-ignored by the pattern above, flagged anyway
-assert any(f["kind"] == "nested_config" and f["file"] == "sub/kbmcp.yaml" for f in k.lint(limit=0)["findings"])
-(gr / "kbmcp.yaml").unlink()
-(gr / ".gitignore").write_text("/kbmcp.yaml\n")
-assert k.config()["gitignore"] == ".gitignore already lists it"
+(gr / "sub/kbmcp.yaml").write_text("")
+(gr / "sub/n.md").write_text("---\ntype: Note\n---\nx\n")
+assert not any(f["file"].startswith("sub/") for f in k.lint(limit=0)["findings"])
 k.KB_ROOT, k.CFG_DIR = ck, cf
 # lint always says it ran: a verdict line (with what it checked) on success and failure, text and github.
 L = k.lint()
@@ -924,8 +993,86 @@ assert "next" not in k.create("hintless", type="Note")  # rk is not a git work t
 gr2 = Path(tempfile.mkdtemp()).resolve()
 subprocess.run(["git", "init", "-q", str(gr2)], check=True)
 k.KB_ROOT = gr2
-assert "next" in k.init(apply=True)  # a git work tree: there is a diff to review
+assert "next" in init(apply=True)  # a git work tree: there is a diff to review
 k.KB_ROOT = rk
+# format: markdown indexes ADRs and MADR records with no OKF frontmatter, and offers only passages and reindex.
+ar, was = Path(tempfile.mkdtemp()).resolve(), (k.KB_ROOT, dict(k.OPTS))
+(ar / "docs/adr").mkdir(parents=True)
+(ar / "docs/adr/0001-record-decisions.md").write_text("# 1. Record architecture decisions\n\nDate: 2016-02-12\n\n## Status\n\n"
+                                                      "Accepted\n\n## Context\n\nWe need to record zebra decisions.\n")
+(ar / "docs/adr/0002-use-postgres.md").write_text("---\nstatus: superseded by [ADR-0005](0005-x.md)\ndate: 2024-05-01\n---\n"
+                                                  "# Use PostgreSQL\n\n## Context and Problem Statement\n\nWhich database for the narwhal?\n")
+(ar / "docs/adr/0003-use-queue.md").write_text("# Use a queue\n\n* Status: proposed\n* Date: 2020-01-01\n\n## Context\n\nThe platypus needs a queue.\n")
+(ar / "docs/index.md").write_text("# Docs home\n\nWelcome, wombat readers.\n")
+k.KB_ROOT = ar
+k.OPTS |= {"format": "markdown", "semantic": False, "index": ""}
+got = {h["file"]: h for q in ("zebra", "narwhal", "platypus", "wombat") for h in k.passages(q)["hits"]}
+assert set(got) == {"docs/adr/0001-record-decisions.md", "docs/adr/0002-use-postgres.md", "docs/adr/0003-use-queue.md",
+                    "docs/index.md"}, set(got)
+assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-decisions"), (2, "use-postgres"), (3, "use-queue"))] \
+    == ["Accepted", "superseded by ADR-0005", "proposed"], got
+assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
+assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
+assert k.offered() == {"passages", "reindex"}
+k.OPTS["format"] = "okf"
+assert k.passages("zebra")["gap"], "okf mode skips files without frontmatter"
+k.KB_ROOT = was[0]
+k.OPTS.update(was[1])
+
+# format: skos indexes a thesaurus: one passage per concept, headed by its broader chain.
+try:
+    import rdflib
+except ImportError:
+    print("skipped format=skos: rdflib not installed")
+else:
+    sr = Path(tempfile.mkdtemp()).resolve()
+    (sr / "animals.ttl").write_text("""@prefix : <http://ex.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+:scheme a skos:ConceptScheme ; dct:title "Animals" .
+:animal a skos:Concept ; skos:prefLabel "Animal"@en ; skos:narrower :dog .
+:dog a skos:Concept ; skos:prefLabel "Dog"@en ; skos:altLabel "hound"@en ;
+  skos:definition "A domesticated carnivore kept by humans."@en ; skos:broader :animal ; skos:related :wolf .
+:wolf a skos:Concept ; skos:prefLabel "Wolf"@en .
+""")
+    (sr / "broken.ttl").write_text("this is not turtle {{{")
+    k.KB_ROOT = sr
+    k.OPTS |= {"format": "skos", "semantic": False, "index": ""}
+    P = k.passages("hound")
+    h = P["hits"][0]
+    assert [x["file"] for x in P["hits"]] == ["animals.ttl"] and h["heading"] == "Animals > Animal > Dog", P
+    assert h["type"] == "skos" and h["title"] == "Animals" and h["tier"] == "unverified" and h["line"] == 6, h
+    assert "Broader: Animal" in h["text"] and "Related: Wolf" in h["text"] and "carnivore" in h["text"], h["text"]
+    assert [x["heading"] for x in k.passages("animal")["hits"]][0].endswith("Animal")  # narrower links back to broader
+    assert k.passages("turtle")["gap"] and k.offered() == {"passages", "reindex"}
+    k.KB_ROOT = was[0]
+    k.OPTS.update(was[1])
+
+# KB_* overrides: kbmcp.yaml < .env < the environment; `format` is never overridden; env.example lists every key.
+assert k.env_overrides({"KB_SEMANTIC": "true", "KB_MIN_SIMILARITY": "0.7", "KB_ROLES": "read, write", "KB_ABOUT": "x",
+                        "KB_USER": "me", "KB_AI_PRODUCERS": "zed,foo", "KB_FORMAT": "skos"}) == {
+    "semantic": True, "min_similarity": 0.7, "roles": ["read", "write"], "about": "x", "user": "me", "ai_producers": ["zed", "foo"]}
+for bad in ({"KB_SEMANTIC": "maybe"}, {"KB_MIN_SIMILARITY": "high"}, {"KB_BUILD": "sometimes"}, {"KB_ROLES": "root"}):
+    try:
+        k.env_overrides(bad)
+        raise AssertionError(bad)
+    except SystemExit as e:
+        assert next(iter(bad)) in str(e) or "KB_* environment" in str(e), (bad, str(e))
+de = Path(tempfile.mkdtemp()) / ".env"
+de.write_text("# comment\nKB_ABOUT='quoted value'\nexport KB_BUILD=manual # inline\nOTHER=1\nKB_HUBS=\"false\"\nnot a line\n")
+assert k.read_dotenv(de) == {"KB_ABOUT": "quoted value", "KB_BUILD": "manual", "KB_HUBS": "false"} and k.read_dotenv(de.parent / "x") == {}
+ex = (HERE / "env.example").read_text()
+assert ex == k.ENV_EXAMPLE and all(f"# KB_{key.upper()}=" in ex for key in k.CONFIG_KEYS - k.SHARED_ONLY) and "KB_FORMAT" not in ex
+pe = Path(tempfile.mkdtemp()).resolve()
+(pe / "kbmcp.yaml").write_text("about: from yaml\nbuild: auto\n")
+(pe / ".env").write_text("KB_ABOUT=from dotenv\nKB_BUILD=manual\n")
+probe = "import bowerbird_mcp as k; print(k.OPTS['about'], '|', k.OPTS['build'])"
+env = {key: v for key, v in os.environ.items() if not key.startswith("KB_")} | {"PYTHONPATH": str(HERE)}
+r1 = subprocess.run([sys.executable, "-c", probe], cwd=pe, env=env, capture_output=True, text=True, check=False)
+assert r1.stdout.strip() == "from dotenv | manual", r1
+r2 = subprocess.run([sys.executable, "-c", probe], cwd=pe, env=env | {"KB_ABOUT": "from env"}, capture_output=True, text=True, check=False)
+assert r2.stdout.strip() == "from env | manual", r2
+
 k.KB_ROOT = saved
 
 print("ok")

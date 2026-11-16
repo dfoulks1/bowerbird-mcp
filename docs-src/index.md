@@ -2,7 +2,7 @@
   <img class="logo-light" src="img/logo-v2.svg" alt="Bowerbird: a bower of sticks rising from an open book, with a small bird" width="240" height="175">
   <img class="logo-dark" src="img/logo-dark-v2.svg" alt="Bowerbird: a bower of sticks rising from an open book, with a small bird" width="240" height="175">
   <h1 id="bowerbird-mcp">Bowerbird</h1>
-  <p class="lead">Keep an <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">Open Knowledge Format</a> knowledgebase in order: checked, maintained and imported, by agents and people alike. It cares how a concept is written, never what it says.</p>
+  <p class="lead">Keep an <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">Open Knowledge Format</a> knowledgebase in order: checked, maintained and imported, by agents and people alike. It cares how a concept is written, never what it says. Not using OKF? One line in <code>kbmcp.yaml</code> points it at <a href="guide/#formats">plain Markdown, ADR and MADR records, or SKOS thesauri</a> instead.</p>
   <p>
     <a class="btn btn-brand me-2" href="guide/">Get started</a>
     <a class="btn btn-outline-secondary" href="https://github.com/dfoulks1/bowerbird-mcp">View on GitHub</a>
@@ -58,8 +58,8 @@ Then add it to your MCP client's servers file (`.mcp.json` for Claude Code;
 ```
 
 A `kbmcp.yaml` marks the base of a knowledgebase: the server finds it from the
-project folder up (or take `--config path`), and it sets your id, what the
-knowledgebase is about, and the search settings. It is local config, kept out of git (`config apply=true` writes one and ignores it); everyone has their own ([the guide](guide.md#run) has every key). To give an agent fewer
+project folder up (or take `--config path`), and it sets what the
+knowledgebase holds and the search settings. Commit it: any folder holding one is a knowledgebase. Your own overrides go in a `.env` file or `KB_*` variables, not committed (`init` writes a filled-in one; [the guide](guide.md#run) has every key). To give an agent fewer
 tools, register the server with a role: `read` (find and read, nothing written), `structure`
 (reorganize), `write` (author and check) or `lifecycle` (keep it current). [The guide](guide.md#roles-a-smaller-tool-list-per-agent) has the lists.
 

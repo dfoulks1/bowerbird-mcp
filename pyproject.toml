@@ -26,6 +26,11 @@ classifiers = [
 ]
 dependencies = ["mcp>=1.10,<2", "pyyaml", "fastembed"]  # fastembed: semantic search, off until `semantic: true`; not in the script's own header, so `uv run bowerbird_mcp.py` stays light
 
+[project.optional-dependencies]  # vector_index in kbmcp.yaml: sqlite-vec (exact, in C) or hnsw (approximate); scan needs neither
+sqlite-vec = ["sqlite-vec"]
+hnsw = ["hnswlib"]
+skos = ["rdflib"]  # format: skos
+
 [project.urls]
 Homepage = "https://bowerbird.voltpop.com/"
 Documentation = "https://bowerbird.voltpop.com/getting-started/"

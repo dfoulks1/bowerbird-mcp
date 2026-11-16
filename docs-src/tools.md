@@ -29,7 +29,7 @@ uv run bowerbird_mcp.py baseline apply=true
 |---|---|---|
 | `path` | `str` | `'.okf-baseline.json'` |
 | `apply` | `bool` | `False` |
-| `all` | `Union` | `None` |
+| `all` | `bool or None` | `None` |
 | `bundle` | `str` | `''` |
 
 ## bundles
@@ -60,16 +60,16 @@ uv run bowerbird_mcp.py cite db.md resource=https://www.postgresql.org/docs/rele
 | `title` | `str` | `''` |
 | `server` | `str` | `''` |
 | `tool` | `str` | `''` |
-| `args` | `Union` | `None` |
+| `args` | `dict or None` | `None` |
 | `stale_days` | `int` | `0` |
 | `author` | `str` | `''` |
-| `usage_count` | `Union` | `None` |
+| `usage_count` | `int or None` | `None` |
 | `last_modified` | `str` | `''` |
 | `bundle` | `str` | `''` |
 
 ## config
 
-Write a kbmcp.yaml at the root of the knowledgebase from the built-in example: every setting, commented out at its default, so the file's presence marks the base and you uncomment what you change. Never overwrites one. In a git work tree it also lists kbmcp.yaml in the .gitignore beside it: the file is local to you. apply=false shows what would change.
+Write a kbmcp.yaml at the root of the knowledgebase from the built-in example (every setting commented out at its default; commit it, it is the knowledgebase's shared configuration, and any folder holding one is a knowledgebase) and an env.example beside it that lists every KB_* override (copy it to .env, which is not committed and which this lists in the .gitignore beside it in a git work tree). Never overwrites a file; one that exists is skipped. apply=false shows what would change.
 
 ```sh
 uv run bowerbird_mcp.py config
@@ -95,7 +95,7 @@ uv run bowerbird_mcp.py create runbooks/deploy type=Playbook description="How we
 | `title` | `str` | `''` |
 | `description` | `str` | `''` |
 | `resource` | `str` | `''` |
-| `tags` | `Union` | `None` |
+| `tags` | `list[str] or None` | `None` |
 | `status` | `str` | `''` |
 | `body` | `str` | `''` |
 | `by` | `str` | `''` |
@@ -125,7 +125,7 @@ uv run bowerbird_mcp.py fix apply=true
 | Argument | Type | Default |
 |---|---|---|
 | `apply` | `bool` | `False` |
-| `all` | `Union` | `None` |
+| `all` | `bool or None` | `None` |
 | `bundle` | `str` | `''` |
 
 ## get
@@ -139,7 +139,7 @@ uv run bowerbird_mcp.py get db.md bundle=eng format=text
 | Argument | Type | Default |
 |---|---|---|
 | `file` | `str` | `''` |
-| `files` | `Union` | `None` |
+| `files` | `list[str] or None` | `None` |
 | `offset` | `int` | `0` |
 | `limit` | `int` | `0` |
 | `bundle` | `str` | `''` |
@@ -186,7 +186,7 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true
 |---|---|---|
 | `source` | `str` | required |
 | `bundle` | `str` | `''` |
-| `rules` | `Union` | `None` |
+| `rules` | `dict or None` | `None` |
 | `status` | `str` | `'draft'` |
 | `stale_days` | `int` | `0` |
 | `keep_okf` | `bool` | `False` |
@@ -197,7 +197,7 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true
 
 ## init
 
-Start a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Refuses if index.md exists. Then add concepts (any .md with `type:` frontmatter) and lint.
+Start a knowledgebase: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; `holds` is okf, markdown or skos, guessed from the folder), an env.example, your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with `type:` frontmatter) and lint.
 
 ```sh
 uv run bowerbird_mcp.py init bundle=eng apply=true
@@ -207,6 +207,9 @@ uv run bowerbird_mcp.py init bundle=eng apply=true
 |---|---|---|
 | `apply` | `bool` | `False` |
 | `bundle` | `str` | `''` |
+| `about` | `str` | `''` |
+| `holds` | `str` | `''` |
+| `user` | `str` | `''` |
 
 ## links
 
@@ -239,11 +242,11 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github
 | `offset` | `int` | `0` |
 | `baseline` | `str` | `''` |
 | `since` | `str` | `''` |
-| `all` | `Union` | `None` |
+| `all` | `bool or None` | `None` |
 | `file` | `str` | `''` |
-| `files` | `Union` | `None` |
-| `only` | `Union` | `None` |
-| `ignore` | `Union` | `None` |
+| `files` | `list[str] or None` | `None` |
+| `only` | `list[str] or None` | `None` |
+| `ignore` | `list[str] or None` | `None` |
 | `bundle` | `str` | `''` |
 
 ## list
@@ -312,7 +315,7 @@ uv run bowerbird_mcp.py move runbooks/deploy.md runbooks/ship.md bundle=eng appl
 
 ## passages
 
-The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section, ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused. Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the knowledgebase has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by `reindex` when build is manual; semantic mode also downloads its model once.
+The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section (a long one is cut again, each piece repeating the last short paragraph of the one before; with format: skos each skos:Concept is a passage), ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused (vector_index in kbmcp.yaml picks scan, sqlite-vec or hnsw). Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the knowledgebase has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by `reindex` when build is manual; semantic mode also downloads its model once.
 
 ```sh
 uv run bowerbird_mcp.py passages 'how do we roll back a deploy' format=text
@@ -341,7 +344,7 @@ uv run bowerbird_mcp.py provenance apply=true --attest
 | Argument | Type | Default |
 |---|---|---|
 | `apply` | `bool` | `False` |
-| `skip` | `Union` | `None` |
+| `skip` | `list[str] or None` | `None` |
 | `bundle` | `str` | `''` |
 
 ## recheck_apply
@@ -354,7 +357,7 @@ uv run bowerbird_mcp.py recheck_apply db.md bundle=eng --attest
 
 | Argument | Type | Default |
 |---|---|---|
-| `results` | `Union` | `None` |
+| `results` | `list[dict] or None` | `None` |
 | `by` | `str` | `''` |
 | `stale_days` | `int` | `0` |
 | `bundle` | `str` | `''` |
@@ -435,7 +438,7 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks format
 | `type` | `str` | `''` |
 | `tag` | `str` | `''` |
 | `dir` | `str` | `''` |
-| `fields` | `Union` | `None` |
+| `fields` | `list[str] or None` | `None` |
 | `limit` | `int` | `30` |
 | `offset` | `int` | `0` |
 | `bundle` | `str` | `''` |
@@ -452,7 +455,7 @@ uv run bowerbird_mcp.py set db.md status=deprecated tags=[db,ops] bundle=eng app
 |---|---|---|
 | `fields` | `dict` | required |
 | `file` | `str` | `''` |
-| `files` | `Union` | `None` |
+| `files` | `list[str] or None` | `None` |
 | `apply` | `bool` | `False` |
 | `bundle` | `str` | `''` |
 

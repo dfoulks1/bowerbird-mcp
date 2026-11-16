@@ -186,17 +186,17 @@ a note should expire, set `stale_after` in its header, and `passages` will flag 
 
 ## 6. Connect an AI assistant
 
-First, give the knowledgebase a settings file. `kbmcp.yaml` sits at the root of the knowledgebase and is what
-tells any server where it is:
+First, the settings file. `kbmcp.yaml` sits at the root of the knowledgebase, tells any server where it is, and is
+committed with your notes. `kb init apply=true` (step 1) already wrote one. If your folder predates it, or you want the
+all-commented example, run:
 
 ```sh
 kb config apply=true format=text
 ```
 
-It writes a file where every setting is commented out at its default, and adds `kbmcp.yaml` to your
-`.gitignore` if the folder is a git repository, because it is local to you. Uncomment `about:` and write a
-sentence on what this knowledgebase holds. That matters most when you load several at once, because the
-assistant is told it.
+Open `kbmcp.yaml` and check `about:`, a sentence on what this knowledgebase holds. That matters most when you load
+several at once, because the assistant is told it. Anything personal (your id, a different search setting on your
+machine) goes in a `.env` file instead: copy `env.example` to `.env`, which is not committed.
 
 Then add the tool to your assistant's servers file (`.mcp.json` in your project for Claude Code; the same entry
 works in `claude_desktop_config.json` for Claude Desktop and `.cursor/mcp.json` for Cursor):
@@ -224,6 +224,10 @@ assistant only what it needs by adding `"--role", "read"` (find and read only, 1
 about a quarter of the total. You can register the same
 knowledgebase several times, one per role, and you can load several different knowledgebases side by side, each
 with its own `--config`. [The guide](guide.md#roles-a-smaller-tool-list-per-agent) has the tool lists.
+
+Not an OKF knowledgebase? A plain folder of Markdown (ADR and MADR records among them) or a set of SKOS
+thesauri works too: set `format: markdown` or `format: skos` in `kbmcp.yaml`, and the server offers `passages`
+and `reindex` over it. [The guide](guide.md#formats) has the details.
 
 ## 7. Keep it checked automatically
 

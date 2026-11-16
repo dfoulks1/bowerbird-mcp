@@ -1,5 +1,41 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- `format: skos` indexes SKOS thesauri (Turtle, RDF/XML, JSON-LD, N-Triples, N3; optional extra `bowerbird-mcp[skos]`, needs
+  `rdflib`): one passage per `skos:Concept`, headed by its broader chain, with labels, notes and broader/narrower/
+  related neighbours in the text. No hub boost, since a concept's links stay inside its file.
+- `format: markdown` in kbmcp.yaml indexes any folder of markdown, no OKF frontmatter needed, so `passages` works on
+  ADR and MADR records. A numbered file name or a path through adr/decisions gets type `adr` and its `status`
+  (MADR 3 frontmatter, a Nygard `## Status` section, or MADR 2's `* Status:` line). Only `passages` and `reindex` are
+  offered, `index.md` and `log.md` are ordinary files, and every hit is `unverified`.
+- `vector_index` in kbmcp.yaml picks how semantic search finds neighbours: `scan` (default, exact, Python),
+  `sqlite-vec` (exact, in C, same results as scan, faster from about 10K passages) or `hnsw` (approximate, a graph
+  file beside the index, seeded and single-threaded so builds repeat). Both are optional extras
+  (`bowerbird-mcp[sqlite-vec]`, `bowerbird-mcp[hnsw]`). `hnsw` keeps the top 500 before the type/tag/dir filters.
+
+### Changed
+- `kbmcp.yaml` is now the knowledgebase's committed, shared configuration, and any folder holding one is a
+  knowledgebase. `config` no longer lists it in `.gitignore`; a folder inside a knowledgebase that has its own
+  `kbmcp.yaml` is skipped by the outer one, and `lint` no longer reports `nested_config`.
+- Personal and machine overrides: every key but `format` has a `KB_<KEY>` variable. `env.example` lists them; copy it to
+  `.env` (not committed; `init` and `config` ignore it). Precedence: `kbmcp.yaml`, then `.env`, then real environment
+  variables. `config` also writes `env.example`.
+- `init` writes a mostly filled-in `kbmcp.yaml`: `format` is guessed from the folder, and `about`, `user` (into
+  `.env`) and `holds` (okf, markdown or skos) are asked for in an MCP prompt or at a terminal, or passed as arguments.
+  `markdown` and `skos` start no bundle. `init` is now async.
+- The `KB_ROOT` refusal message no longer tells you to set a `root:` key (there is none).
+- The server instructions are built from the settings: they follow `format` (OKF workflow, or read-only search for
+  `markdown` and `skos`), mention semantic search when it is on, and point at `kbmcp.yaml`.
+- `reindex` prints `embedding n/total` to stderr on the command line during a long first semantic build. Over MCP
+  there is no progress yet (`reindex` is not async).
+- Docs: README, guide, home page and getting-started cover `format`, `vector_index` and the new loaders; the guide has
+  headings for settings, formats, the index and where tools look; `tools.md` is regenerated.
+- Passages cut from a long section now overlap: a cut repeats the last paragraph (if short) at the head of the next
+  piece, so an answer split at the seam is still found whole. Existing indexes rebuild once on first use; with
+  `semantic: true` that re-embeds everything.
+
 ## 1.0.1 (2026-11-13)
 
 ### Renamed
