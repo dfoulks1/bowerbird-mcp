@@ -329,8 +329,12 @@ all-commented example, run:</p>
 <p>Open <code>kbmcp.yaml</code> and check <code>about:</code>, a sentence on what this knowledgebase holds. That matters most when you load
 several at once, because the assistant is told it. Anything personal (your id, a different search setting on your
 machine) goes in a <code>.env</code> file instead: copy <code>env.example</code> to <code>.env</code>, which is not committed.</p>
-<p>Then add the tool to your assistant's servers file (<code>.mcp.json</code> in your project for Claude Code; the same entry
-works in <code>claude_desktop_config.json</code> for Claude Desktop and <code>.cursor/mcp.json</code> for Cursor):</p>
+<p><code>kb init</code> also wrote a <code>.mcp.json</code> at the root of the knowledgebase. <strong>Commit it</strong>: anyone who clones the repository
+then has the tools, with nothing to set up on their own machine (Claude Code asks once to approve a project's
+server; <code>/mcp</code> shows it). The knowledgebase is the repository: its settings, its reviews and its client
+configuration all travel with it. If your folder has no <code>.mcp.json</code>, or you use another assistant, add the tool to
+your assistant's servers file (<code>.mcp.json</code> in your project for Claude Code; the same entry works in
+<code>claude_desktop_config.json</code> for Claude Desktop and <code>.cursor/mcp.json</code> for Cursor):</p>
 <pre class="highlight"><code class="language-json">{
   "mcpServers": {
     "notes": {
@@ -343,7 +347,7 @@ works in <code>claude_desktop_config.json</code> for Claude Desktop and <code>.c
 <p>Restart the assistant (in Claude Code, <code>/mcp</code> reconnects). It now has the tools and a short instruction on how to
 use them: look at <code>dirs</code>, then <code>passages</code>, then <code>get</code> only what it needs, cite the file and line, and say so
 when the answer is a gap or the passage is unverified or stale.</p>
-<p>All 35 tools cost an assistant about 7,200 tokens of tool definitions (an estimate: each tool's name, description and
+<p>All 35 tools cost an assistant about 7,250 tokens of tool definitions (an estimate: each tool's name, description and
 argument schema, in characters divided by four) before it has said a word. Give each
 assistant only what it needs by adding <code>"--role", "read"</code> (find and read only, 10 tools, safe to auto-approve),
 <code>write</code> (write a concept and check it), <code>structure</code> (reorganize) or <code>lifecycle</code> (keep it current). Each role is

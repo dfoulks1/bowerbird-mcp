@@ -406,7 +406,9 @@ only enforcement: the files are plain files, so an editor or a commit can still
 change them. It works whether the knowledgebase root is a set of bundles or a
 bundle itself.</p>
 <h2 id="register-with-an-mcp-client">Register with an MCP client<a class="headerlink" href="#register-with-an-mcp-client" title="Link to this section">#</a></h2>
-<p>Add this to your MCP client's servers file: <code>.mcp.json</code> in the project for
+<p><code>init</code> writes a <code>.mcp.json</code> at the root of the knowledgebase: commit it, and whoever clones the repository has the
+tools with nothing to register on their own machine (Claude Code asks once to approve a project's server). For
+another client, or a folder without one, add this to the client's servers file: <code>.mcp.json</code> in the project for
 Claude Code, <code>claude_desktop_config.json</code> for Claude Desktop, <code>.cursor/mcp.json</code>
 for Cursor. VS Code's <code>.vscode/mcp.json</code> takes the same entry under <code>"servers"</code>.</p>
 <pre class="highlight"><code class="language-json">{
@@ -427,7 +429,7 @@ the agent what that knowledgebase holds. Each keeps its own index.</p>
 <p>The client loads the tool list at start. After editing the script, restart
 the client or reconnect the server (<code>/mcp</code> in Claude Code).</p>
 <h3 id="roles-a-smaller-tool-list-per-agent">Roles: a smaller tool list per agent<a class="headerlink" href="#roles-a-smaller-tool-list-per-agent" title="Link to this section">#</a></h3>
-<p>All 35 tools cost an agent about 7,200 tokens of schema (an estimate: each tool's name, description and argument
+<p>All 35 tools cost an agent about 7,250 tokens of schema (an estimate: each tool's name, description and argument
 schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
 script more than once, each with a role (<code>--role</code>, or <code>KB_ROLE</code>; several with
 commas), and each server offers only that role's tools:</p>
@@ -447,18 +449,18 @@ commas), and each server offers only that role's tools:</p>
 </tr>
 <tr>
 <td><code>structure</code></td>
-<td>shape and reorganization: <code>archive</code> <code>bundles</code> <code>dirs</code> <code>ingest</code> <code>migrate</code> <code>move</code> <code>rename</code> <code>split</code> <code>unarchive</code> <code>web</code></td>
-<td>10, ~1,700 tokens</td>
+<td>shape, repair and reorganization: <code>archive</code> <code>bundles</code> <code>dirs</code> <code>fix</code> <code>ingest</code> <code>migrate</code> <code>move</code> <code>rename</code> <code>split</code> <code>unarchive</code> <code>web</code></td>
+<td>11, ~1,900 tokens</td>
 </tr>
 <tr>
 <td><code>write</code></td>
-<td>write a concept and check it: <code>cite</code> <code>create</code> <code>fix</code> <code>lint</code> <code>record</code> <code>seal</code> <code>set</code></td>
-<td>7, ~2,050 tokens</td>
+<td>write a concept and check it: <code>cite</code> <code>create</code> <code>lint</code> <code>record</code> <code>seal</code> <code>set</code></td>
+<td>6, ~1,850 tokens</td>
 </tr>
 <tr>
 <td><code>lifecycle</code></td>
 <td>keep it current: <code>baseline</code> <code>config</code> <code>index</code> <code>init</code> <code>provenance</code> <code>recheck_apply</code> <code>recheck_plan</code> <code>reindex</code> <code>upgrade</code></td>
-<td>9, ~1,750 tokens</td>
+<td>9, ~1,800 tokens</td>
 </tr>
 </tbody>
 </table>

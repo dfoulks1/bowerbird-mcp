@@ -207,8 +207,12 @@ Open `kbmcp.yaml` and check `about:`, a sentence on what this knowledgebase hold
 several at once, because the assistant is told it. Anything personal (your id, a different search setting on your
 machine) goes in a `.env` file instead: copy `env.example` to `.env`, which is not committed.
 
-Then add the tool to your assistant's servers file (`.mcp.json` in your project for Claude Code; the same entry
-works in `claude_desktop_config.json` for Claude Desktop and `.cursor/mcp.json` for Cursor):
+`kb init` also wrote a `.mcp.json` at the root of the knowledgebase. **Commit it**: anyone who clones the repository
+then has the tools, with nothing to set up on their own machine (Claude Code asks once to approve a project's
+server; `/mcp` shows it). The knowledgebase is the repository: its settings, its reviews and its client
+configuration all travel with it. If your folder has no `.mcp.json`, or you use another assistant, add the tool to
+your assistant's servers file (`.mcp.json` in your project for Claude Code; the same entry works in
+`claude_desktop_config.json` for Claude Desktop and `.cursor/mcp.json` for Cursor):
 
 ```json
 {
@@ -226,7 +230,7 @@ Restart the assistant (in Claude Code, `/mcp` reconnects). It now has the tools 
 use them: look at `dirs`, then `passages`, then `get` only what it needs, cite the file and line, and say so
 when the answer is a gap or the passage is unverified or stale.
 
-All 35 tools cost an assistant about 7,200 tokens of tool definitions (an estimate: each tool's name, description and
+All 35 tools cost an assistant about 7,250 tokens of tool definitions (an estimate: each tool's name, description and
 argument schema, in characters divided by four) before it has said a word. Give each
 assistant only what it needs by adding `"--role", "read"` (find and read only, 10 tools, safe to auto-approve),
 `write` (write a concept and check it), `structure` (reorganize) or `lifecycle` (keep it current). Each role is

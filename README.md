@@ -289,7 +289,9 @@ bundle itself.
 <!-- --8<-- [start:register] -->
 ## Register with an MCP client
 
-Add this to your MCP client's servers file: `.mcp.json` in the project for
+`init` writes a `.mcp.json` at the root of the knowledgebase: commit it, and whoever clones the repository has the
+tools with nothing to register on their own machine (Claude Code asks once to approve a project's server). For
+another client, or a folder without one, add this to the client's servers file: `.mcp.json` in the project for
 Claude Code, `claude_desktop_config.json` for Claude Desktop, `.cursor/mcp.json`
 for Cursor. VS Code's `.vscode/mcp.json` takes the same entry under `"servers"`.
 
@@ -321,7 +323,7 @@ the client or reconnect the server (`/mcp` in Claude Code).
 
 ### Roles: a smaller tool list per agent
 
-All 35 tools cost an agent about 7,200 tokens of schema (an estimate: each tool's name, description and argument
+All 35 tools cost an agent about 7,250 tokens of schema (an estimate: each tool's name, description and argument
 schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
 script more than once, each with a role (`--role`, or `KB_ROLE`; several with
 commas), and each server offers only that role's tools:
@@ -329,9 +331,9 @@ commas), and each server offers only that role's tools:
 | Role | Tools | Schema |
 |---|---|---|
 | `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~1,750 tokens |
-| `structure` | shape and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~1,700 tokens |
-| `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `seal` `set` | 7, ~2,050 tokens |
-| `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,750 tokens |
+| `structure` | shape, repair and reorganization: `archive` `bundles` `dirs` `fix` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 11, ~1,900 tokens |
+| `write` | write a concept and check it: `cite` `create` `lint` `record` `seal` `set` | 6, ~1,850 tokens |
+| `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,800 tokens |
 
 ```json
 {

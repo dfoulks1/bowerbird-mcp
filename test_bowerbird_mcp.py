@@ -926,6 +926,9 @@ got = k.load_config(gr)[1]
 assert got == {"format": "okf", "passages": True, "hubs": True, "semantic": False, "semantic_model": k.DEFAULTS["semantic_model"],
                "min_similarity": k.DEFAULTS["min_similarity"], "index": k.DEFAULTS["index"]}, got
 assert k.declares(gr / "index.md") and (gr / "log.md").is_file()  # okf: a bundle too
+# init also writes a .mcp.json (commit it: a clone has the tools with nothing to register), and never overwrites one.
+mj = json.loads((gr / ".mcp.json").read_text())
+assert mj == k.MCP_JSON and mj["mcpServers"]["bowerbird"]["command"] == "uvx" and "--role" not in mj["mcpServers"]["bowerbird"]["args"]
 # given values fill it in; markdown and skos start no bundle; nothing is overwritten.
 md = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = md

@@ -773,7 +773,7 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="init">init<a class="headerlink" href="#init" title="Link to this section">#</a></h2>
-<p>Start a knowledgebase: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; <code>holds</code> is okf, markdown, adr or skos, guessed from the folder), an env.example, your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with <code>type:</code> frontmatter) and lint.</p>
+<p>Start a knowledgebase: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; <code>holds</code> is okf, markdown, adr or skos, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with <code>type:</code> frontmatter) and lint.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py init bundle=eng apply=true</code></pre>
 <table>
 <thead>

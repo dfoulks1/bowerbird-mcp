@@ -63,11 +63,13 @@ FORMATS = ("okf", "markdown", "adr", "skos")  # what `format` in kbmcp.yaml may 
 SKOS_FILES = ("*.ttl", "*.rdf", "*.jsonld", "*.nt", "*.n3")
 ROLES = {  # who needs which tools; the MCP server offers the union of its roles (the CLI always has them all)
     "read": {"dirs", "get", "heatmap", "links", "list", "log", "passages", "search", "status", "vocab"},  # read-only
-    "structure": {"archive", "bundles", "dirs", "ingest", "migrate", "move", "rename", "split", "unarchive", "web"},
-    "write": {"cite", "create", "fix", "lint", "record", "seal", "set"},  # author a concept, and check it
+    "structure": {"archive", "bundles", "dirs", "fix", "ingest", "migrate", "move", "rename", "split", "unarchive", "web"},
+    "write": {"cite", "create", "lint", "record", "seal", "set"},  # author a concept, and check it
     "lifecycle": {"baseline", "config", "index", "init", "provenance", "recheck_apply", "recheck_plan", "reindex",
                   "upgrade"}}  # each role is about a quarter of the tool descriptions (tests keep every tool in one)
 CONFIG_KEYS = {"user", "ai_producers", *DEFAULTS}
+MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "git+https://github.com/dfoulks1/bowerbird-mcp", "bowerbird-mcp"]}}}
+# shortcut: the repository, until a PyPI release carries seal and `format`; then "args": ["bowerbird-mcp"]
 LEDGER = "verifications.yaml"  # reviews of files in the markdown, adr and skos formats (okf keeps them in frontmatter); committed
 SHARED_ONLY = {"format", "seal"}  # what the folder is, and who must review it: only kbmcp.yaml sets these, never .env or the environment
 NOT_IN_DEFAULTS = {"user": "", "ai_producers": []}  # types of the keys DEFAULTS does not hold (for KB_USER, KB_AI_PRODUCERS)
@@ -2141,7 +2143,8 @@ async def init(apply: bool = False, bundle: str = "", about: str = "", holds: st
                ctx: Context = None) -> dict:
     """Start a knowledgebase: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it
     could not know: pass them, or a human is asked in a prompt, or at a terminal; `holds` is okf, markdown, adr or skos,
-    guessed from the folder), an env.example, your id in .env (not committed), and, for okf, a bundle: a root index.md
+    guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to
+    approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md
     declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses
     only if the bundle's index.md exists. Then add concepts (any .md with `type:` frontmatter) and lint."""
     d = CFG_DIR or KB_ROOT
@@ -2173,7 +2176,8 @@ async def init(apply: bool = False, bundle: str = "", about: str = "", holds: st
         text = filled_config({**({"about": vals["about"]} if vals["about"] else {}), "format": holds, "passages": True,
                               "hubs": True, "semantic": False, "semantic_model": DEFAULTS["semantic_model"],
                               "min_similarity": DEFAULTS["min_similarity"], "index": DEFAULTS["index"]})
-        cfg = {CONFIG: text, **({} if (d / "env.example").exists() else {"env.example": ENV_EXAMPLE})}
+        cfg = {CONFIG: text, **({} if (d / "env.example").exists() else {"env.example": ENV_EXAMPLE}),
+               **({} if (d / ".mcp.json").exists() else {".mcp.json": json.dumps(MCP_JSON, indent=2) + "\n"})}
         if vals["user"] and not (d / ".env").exists():
             cfg[".env"] = f"KB_USER={vals['user']}\n"
     if (holds or OPTS["format"]) != "okf":  # only okf starts a bundle

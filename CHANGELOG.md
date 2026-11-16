@@ -25,6 +25,10 @@
   (`bowerbird-mcp[sqlite-vec]`, `bowerbird-mcp[hnsw]`). `hnsw` keeps the top 500 before the type/tag/dir filters.
 
 ### Changed
+- `init` also writes a `.mcp.json` (commit it): whoever clones the repository has the tools, with nothing to register
+  on their own machine (Claude Code asks once to approve a project's server). The knowledgebase's settings, reviews and
+  client configuration all travel with the repository.
+- The roles are evened out by moving `fix` from `write` to `structure`: about 1,750, 1,900, 1,850 and 1,800 tokens.
 - `kbmcp.yaml` is now the knowledgebase's committed, shared configuration, and any folder holding one is a
   knowledgebase. `config` no longer lists it in `.gitignore`; a folder inside a knowledgebase that has its own
   `kbmcp.yaml` is skipped by the outer one, and `lint` no longer reports `nested_config`.
