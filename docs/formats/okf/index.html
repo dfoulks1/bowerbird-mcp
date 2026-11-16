@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Understanding OKF · Bowerbird</title>
-  <link rel="icon" href="../img/favicon.png" type="image/png">
-  <link rel="icon" href="../img/favicon.ico" sizes="any">
+  <title>OKF · Bowerbird</title>
+  <link rel="icon" href="../../img/favicon.png" type="image/png">
+  <link rel="icon" href="../../img/favicon.ico" sizes="any">
   <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Understanding OKF · Bowerbird">
+  <meta property="og:title" content="OKF · Bowerbird">
   <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -19,14 +19,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/pygments.css"><link rel="stylesheet" href="../css/custom.css">
+  <link rel="stylesheet" href="../../css/pygments.css"><link rel="stylesheet" href="../../css/custom.css">
 </head>
 <body>
   
 <nav class="navbar navbar-expand-lg sticky-top site-nav">
   <div class="container-fluid">
-    <a class="navbar-brand fw-semibold" href="..">
-      <img src="../img/favicon.png" alt="" width="32" height="32" class="me-2 align-text-bottom">Bowerbird
+    <a class="navbar-brand fw-semibold" href="../..">
+      <img src="../../img/favicon.png" alt="" width="32" height="32" class="me-2 align-text-bottom">Bowerbird
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#site-nav" aria-controls="site-nav"
@@ -40,7 +40,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="..">Home</a>
+                 href="../..">Home</a>
             </li>
           
         
@@ -48,7 +48,49 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../getting-started/">Getting started</a>
+                 href="../../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -56,15 +98,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../formats/">Formats</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link active"
-                 aria-current="page"
-                 href="./">Understanding OKF</a>
+                 href="../../sealing/">Sealing</a>
             </li>
           
         
@@ -72,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../guide/">Guide</a>
+                 href="../../guide/">Docs</a>
             </li>
           
         
@@ -80,7 +114,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../tools/">Tools</a>
+                 href="../../tools/">Tools</a>
             </li>
           
         
@@ -88,7 +122,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../troubleshooting/">Troubleshooting</a>
+                 href="../../troubleshooting/">Troubleshooting</a>
             </li>
           
         
@@ -96,15 +130,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../contributing/">Contributing</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">OKF v0.2</a>
+                 href="../../contributing/">Contributing</a>
             </li>
           
         
@@ -139,22 +165,19 @@
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#what-okf-is">What OKF is</a>
-      
-    </li>
+      <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#why-a-format-at-all">Why a format at all?</a>
       
     </li>
   
+</ul>
+    </li>
+  
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#the-pieces">The pieces</a>
       <ul class="nav flex-column docs-toc-list">
-  
-    <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#a-concept">A concept</a>
-      
-    </li>
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#the-header-fields">The header fields</a>
@@ -180,17 +203,22 @@
     </li>
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#try-it">Try it</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#reviewing">Reviewing</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#why-it-is-good">Why it is good</a>
       
     </li>
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#what-it-does-not-do">What it does not do</a>
-      
-    </li>
-  
-    <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#where-bowerbird-fits">Where Bowerbird fits</a>
       
     </li>
   
@@ -207,16 +235,18 @@
         
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb small">
-              <li class="breadcrumb-item"><a href="..">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Understanding OKF</li>
+              <li class="breadcrumb-item"><a href="../..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">OKF</li>
             </ol>
           </nav>
         
-        <article><h1 id="understanding-okf">Understanding OKF<a class="headerlink" href="#understanding-okf" title="Link to this section">#</a></h1>
-<div class="admonition note">
-<p class="admonition-title">AI-generated</p>
-<p>Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. It explains the format in plain words and points at <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">the specification</a> for the exact rules; where the two differ, the specification wins.</p>
-</div>
+        <article><h1 id="okf">OKF<a class="headerlink" href="#okf" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:56:21Z</p>
+
+<p><strong>Use it when</strong> the knowledge needs to say where it came from, who checked it and when it expires, especially when
+agents write part of it. <a href="#what-okf-is">Open Knowledge Format</a> is a Markdown convention for exactly that: each
+note (a <em>concept</em>) starts with a small header of facts, and the tools check that the whole folder is well formed.
+It is the only format with the full toolset: <code>lint</code>, <code>fix</code>, <code>cite</code>, <code>provenance</code>, <code>status</code>, <code>move</code>, <code>rename</code> and the rest.</p>
 <h2 id="what-okf-is">What OKF is<a class="headerlink" href="#what-okf-is" title="Link to this section">#</a></h2>
 <p><strong>Open Knowledge Format</strong> (OKF) is a way of writing down what you know so that people and AI assistants can both
 use it. The whole format is this: <strong>a folder of Markdown files, each starting with a short block of facts about
@@ -227,7 +257,7 @@ can ship it.</p>
 <p>OKF is published as a specification (this site follows version 0.2) in the <code>knowledge-catalog</code> repository on
 GitHub. Bowerbird is one tool that implements it: it writes, checks and searches OKF folders. Nothing in
 the format depends on this tool, which is the point.</p>
-<h2 id="why-a-format-at-all">Why a format at all?<a class="headerlink" href="#why-a-format-at-all" title="Link to this section">#</a></h2>
+<h3 id="why-a-format-at-all">Why a format at all?<a class="headerlink" href="#why-a-format-at-all" title="Link to this section">#</a></h3>
 <p>A pile of Markdown notes is already easy to read. The trouble starts when the pile grows, other people add to it,
 and AI assistants begin to <em>write</em> parts of it. Then readers need answers a plain note does not give:</p>
 <ol>
@@ -239,32 +269,35 @@ and AI assistants begin to <em>write</em> parts of it. Then readers need answers
 <p>Without a convention, every team invents its own answers, and no tool can rely on them. OKF fixes a <em>small</em> set of
 conventions for exactly these questions and leaves everything else to you.</p>
 <h2 id="the-pieces">The pieces<a class="headerlink" href="#the-pieces" title="Link to this section">#</a></h2>
-<h3 id="a-concept">A concept<a class="headerlink" href="#a-concept" title="Link to this section">#</a></h3>
-<p>A <strong>concept</strong> is one Markdown file about one thing: a procedure, a database table, a metric, a decision, a
-glossary term. Here is a complete one:</p>
+<p>A collection is a folder of <em>bundles</em>; a bundle is a folder of concepts, one Markdown file each.</p>
+<pre class="highlight"><code class="language-text">kb/
+  kbmcp.yaml               format: okf (the default)
+  index.md                 lists the bundles
+  eng/                     a bundle: its index.md declares okf_version "0.2"
+    index.md
+    log.md                 what changed, newest first
+    db.md
+    runbooks/ship.md
+    refs/pg.md
+  mkt/
+    index.md
+    log.md
+    launch.md</code></pre>
+<p>Each concept is frontmatter (what kind of thing it is, where its facts came from, who checked it) over an ordinary
+Markdown body. Here is <code>eng/db.md</code>:</p>
 <pre class="highlight"><code class="language-markdown">---
-type: Playbook
-title: Deploy
-description: How we ship a release.
-tags: [ops]
+type: Reference
+title: Database
+description: The PostgreSQL cluster behind every service.
 sources:
-  - id: runbook
-    resource: https://example.com/runbook
-    title: Ops runbook
-verified: { by: human:ann, at: 2026-11-13T15:00:00Z }
-status: stable
-stale_after: 2027-05-13T00:00:00Z
+  - id: pg
+    resource: refs/pg.md
+verified: { by: human:you, at: 2026-10-27T14:00:00Z }
 ---
 
-# Deploy
+We run PostgreSQL 16.4.[^pg] Deploys follow [the ship runbook](/runbooks/ship.md).
 
-Run the deploy script, then check the dashboard.[^runbook] If something looks
-wrong, follow [the rollback steps](rollback.md).
-
-[^runbook]: Ops runbook</code></pre>
-<p>The block between the two <code>---</code> lines is the <strong>frontmatter</strong>. Everything after it is ordinary Markdown: headings,
-lists, tables, code. The spec asks writers to prefer structure (headings, lists, tables) over loose prose,
-because structure helps both a reader skimming and an assistant retrieving.</p>
+[^pg]: PostgreSQL release notes</code></pre>
 <h3 id="the-header-fields">The header fields<a class="headerlink" href="#the-header-fields" title="Link to this section">#</a></h3>
 <p>Only one is required. <code>type</code> says what kind of thing the file is (<code>Playbook</code>, <code>Reference</code>, <code>Metric</code> and so on).
 Types are not registered anywhere: pick words that explain themselves, and readers must cope with ones they have
@@ -311,13 +344,29 @@ tool (<code>reference_agent/gemini-2.5-pro</code>). Because the tier keys off th
 confirmed must use it. Two things to keep in mind: <code>generated</code> and <code>verified</code> are kept apart on purpose, because
 who <em>wrote</em> a note need not be who <em>checked</em> it; and tiers are advisory labels, not access control.</p>
 <h3 id="links-and-citations">Links and citations<a class="headerlink" href="#links-and-citations" title="Link to this section">#</a></h3>
-<p>Concepts point at each other with ordinary Markdown links, either relative (<code>[the rollback steps](rollback.md)</code>)
-or from the bundle root with a leading slash (<code>/runbooks/rollback.md</code>, which survives moving files around inside
-a folder). A link says "these are related"; the sentence around it says how. A broken link is allowed by the
-format: it may simply be knowledge nobody has written yet. (Bowerbird's <code>status</code> lists the pages that
-links ask for and nobody has written.)</p>
-<p>A <strong>citation</strong> is different: it records where a <em>fact</em> came from. It lives in <code>sources</code>, and the claim in the text
-points at it with a Markdown footnote (<code>[^runbook]</code>). Links are for navigation, citations are for lineage.</p>
+<p>Concepts point at each other in two ways: a Markdown <strong>link</strong> in the body, and a <strong>citation</strong> in <code>sources</code>, which
+records where a fact came from. <code>web output=mermaid</code> draws both for the whole collection:</p>
+<pre class="mermaid"><code>graph LR
+  subgraph eng
+    db["db.md"]
+    ship["runbooks/ship.md"]
+    pg["refs/pg.md"]
+  end
+  subgraph mkt
+    launch["launch.md"]
+  end
+  db -.-&gt;|cites| pg
+  db --&gt;|links| ship
+  ship --&gt;|links| db
+  ship --&gt;|links| launch
+  launch --&gt;|links| db</code></pre>
+<p>Solid arrows are links; dotted ones are citations. The boxes are bundles, so an arrow that leaves its box crosses into
+another bundle. That is allowed, but <code>lint</code> flags it, because the link breaks if one bundle is published alone.</p>
+<p>Links are ordinary Markdown, either relative (<code>[the rollback steps](rollback.md)</code>) or from the bundle root with a leading
+slash (<code>/runbooks/rollback.md</code>, which survives moving files around inside a folder). A link says "these are related"; the
+sentence around it says how. A broken link is allowed by the format: it may simply be knowledge nobody has written yet
+(<code>status</code> lists the pages that links ask for and nobody has written). A citation is different: the claim in the text points
+at its entry in <code>sources</code> with a Markdown footnote (<code>[^pg]</code>). Links are for navigation, citations are for lineage.</p>
 <h3 id="bundles-indexmd-and-logmd">Bundles, <code>index.md</code> and <code>log.md</code><a class="headerlink" href="#bundles-indexmd-and-logmd" title="Link to this section">#</a></h3>
 <p>A <strong>bundle</strong> is a folder of concepts, with subfolders as you like. Two filenames are reserved at any level:</p>
 <ul>
@@ -330,6 +379,22 @@ points at it with a Markdown footnote (<code>[^runbook]</code>). Links are for n
 <p>A bundle can travel as a git repository (recommended, for the history and the diffs), a zip, or a subfolder of a
 bigger repository. The word <strong>collection</strong>, as this site uses it, is not part of OKF: it means a bundle, or a
 folder of bundles, that Bowerbird manages together.</p>
+<h2 id="try-it">Try it<a class="headerlink" href="#try-it" title="Link to this section">#</a></h2>
+<p>In an empty folder:</p>
+<pre class="highlight"><code class="language-sh">kb init holds=okf about="Team runbooks." apply=true
+kb create deploy type=Playbook title="Deploy" description="How we ship a release." \
+   body='Run the deploy script, then check the dashboard.' output=text
+kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
+kb lint output=text</code></pre>
+<p><code>create</code> writes a file with its header, <code>cite</code> records a source and prints the footnote tag (<code>[^runbook]</code>) to put next to
+the claim it backs, and <code>lint</code> checks the whole collection:</p>
+<pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 1 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True</code></pre>
+<p>A file with no header, a broken link or a fact with no source is a finding, each naming the file, what is wrong and how to
+fix it, and <code>kb fix apply=true</code> repairs the mechanical ones.</p>
+<h2 id="reviewing">Reviewing<a class="headerlink" href="#reviewing" title="Link to this section">#</a></h2>
+<p><code>kb seal</code> writes a <code>verified</code> entry into the concept itself, with a <code>sha256</code> of the note. The trust tier
+comes only from who verified: nobody means <em>unverified</em>, a script or agent means <em>machine-confirmed</em>, and a person
+means <em>human-reviewed</em>. Hits show the tier and whether the note has gone stale. See The tiers are explained <a href="#trust-tiers">above</a>.</p>
 <h2 id="why-it-is-good">Why it is good<a class="headerlink" href="#why-it-is-good" title="Link to this section">#</a></h2>
 <p>These are the properties that follow from the format itself.</p>
 <ul>
@@ -361,40 +426,20 @@ folder of bundles, that Bowerbird manages together.</p>
 <li><strong>It will not replace domain schemas.</strong> Where an asset already has a precise schema (an API description, a
   table definition), OKF points at it with <code>resource</code>; it does not copy it.</li>
 </ul>
-<h2 id="where-bowerbird-fits">Where Bowerbird fits<a class="headerlink" href="#where-bowerbird-fits" title="Link to this section">#</a></h2>
-<p>OKF is the format; Bowerbird is a way to keep a folder of it healthy. It cares how a concept is written,
-never what it says:</p>
-<ul>
-<li><strong><code>lint</code></strong> checks every file against the specification's conformance rules plus house rules (broken links,
-  empty notes, orphans, duplicate titles, key-shaped secrets), and <code>fix</code> repairs the mechanical ones.</li>
-<li><strong><code>index</code></strong> regenerates the tables of contents from the concepts' own descriptions.</li>
-<li><strong><code>cite</code>, <code>seal</code>, <code>provenance</code></strong> write the provenance and trust fields correctly (<code>seal</code> also records a <code>sha256</code> of
-  the note in each <code>verified</code> entry, an extra key the specification allows, so a later edit is noticed). A person's review is recorded
-  only with that person's own confirmation (a prompt over MCP, or <code>--attest</code> at their terminal), never by an
-  assistant on their behalf.</li>
-<li><strong><code>passages</code>, <code>search</code>, <code>dirs</code>, <code>get</code></strong> find and read, and <code>passages</code> returns each section with its file, line,
-  trust tier and staleness, so an answer can show its sources and say when it is on thin ice.</li>
-<li><strong><code>status</code></strong> says what needs a person next: the oldest unreviewed notes, drafts, notes with no sources, what
-  goes stale soon.</li>
-</ul>
-<p>Bowerbird can also search a plain Markdown folder (ADR and MADR records among them) and SKOS thesauri, and <code>seal</code> a
-human review of those too, with one <code>format:</code> line in <code>kbmcp.yaml</code> (see <a href="../formats/">Formats</a>).</p>
-<p>The practical effect is that a collection kept this way can answer a question <em>and</em> say how far to trust the
-answer. That is the whole idea.</p>
 <h2 id="read-on">Read on<a class="headerlink" href="#read-on" title="Link to this section">#</a></h2>
 <ul>
-<li><a href="../getting-started/">Getting started</a>: build one in ten minutes.</li>
+<li><a href="../../getting-started/">Getting started</a>: build one in ten minutes.</li>
 <li><a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">The specification</a>: the exact rules, including attested computations, which this page leaves out.</li>
-<li><a href="../guide/">The guide</a>: layout, the archive, several bundles, CI and settings.</li>
+<li><a href="../../tools/">Tools</a>: every tool, by role. <a href="../../guide/">The guide</a>: layout, the archive, several bundles, CI and settings.</li>
 </ul></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
             
-              <a class="btn btn-outline-secondary" href="../formats/">&larr; Formats</a>
+              <a class="btn btn-outline-secondary" href="../adr/">&larr; ADR</a>
             
             
-              <a class="btn btn-outline-secondary" href="../guide/">Guide &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../skos/">SKOS &rarr;</a>
             
           </div>
         

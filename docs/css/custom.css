@@ -44,6 +44,16 @@ body { font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiase
 .admonition-title { font-weight: 600; margin-bottom: .2rem; }
 .admonition p:last-child { margin-bottom: 0; }
 
+/* The review badge (hooks/seal_banner.py): a pill with a dot for the state of the page's seal. */
+.seal-badge { display: inline-flex; align-items: center; gap: .5rem; margin: .25rem 0 1.25rem; padding: .2rem .75rem;
+              border: 1px solid var(--bs-border-color); border-radius: 999px; background: var(--bs-tertiary-bg);
+              color: var(--bs-secondary-color); font-size: .8rem; font-weight: 500; line-height: 1.5; }
+.seal-badge::before { content: ""; width: .55rem; height: .55rem; border-radius: 50%; background: var(--seal, var(--bs-secondary-color)); }
+.seal-badge[data-state="reviewed"] { --seal: var(--bs-success); }
+.seal-badge[data-state="edited"] { --seal: var(--bs-warning); }
+.seal-badge[data-state="derived"] { --seal: var(--bs-info); }
+.seal-note { margin: -.75rem 0 1.25rem; color: var(--bs-secondary-color); font-size: .8rem; }
+
 .headerlink { margin-left: .4rem; color: var(--bs-secondary-color); text-decoration: none; opacity: 0; transition: opacity .15s; }
 :is(h1, h2, h3, h4, h5, h6):hover .headerlink, .headerlink:focus { opacity: .6; }
 .headerlink:hover { opacity: 1; }

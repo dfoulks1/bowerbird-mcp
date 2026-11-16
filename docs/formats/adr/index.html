@@ -1,0 +1,327 @@
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADR · Bowerbird</title>
+  <link rel="icon" href="../../img/favicon.png" type="image/png">
+  <link rel="icon" href="../../img/favicon.ico" sizes="any">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ADR · Bowerbird">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/pygments.css"><link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+  
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="../..">
+      <img src="../../img/favicon.png" alt="" width="32" height="32" class="me-2 align-text-bottom">Bowerbird
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#site-nav" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="site-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../..">Home</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../guide/">Docs</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../tools/">Tools</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../troubleshooting/">Troubleshooting</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../contributing/">Contributing</a>
+            </li>
+          
+        
+      </ul>
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/dfoulks1/bowerbird-mcp"
+               target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-github"></i> GitHub
+            </a>
+          </li>
+        
+        <li class="nav-item d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary ms-lg-2" id="theme-toggle"
+                  type="button" title="Toggle light/dark" aria-label="Toggle theme">
+            <i class="bi bi-circle-half"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="docs-grid with-toc">
+      
+        <aside class="d-none d-lg-block docs-toc">
+          <div class="position-sticky py-5" style="top: 3.5rem; max-height: calc(100vh - 3.5rem); overflow-y: auto;">
+            <h6 class="text-uppercase small text-body-secondary fw-semibold mb-3">On this page</h6>
+            <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#adr">ADR</a>
+      
+    </li>
+  
+</ul>
+          </div>
+        </aside>
+      
+      <main class="py-5 docs-content">
+        
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+              <li class="breadcrumb-item"><a href="../..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">ADR</li>
+            </ol>
+          </nav>
+        
+        <article><h1 id="adr">ADR<a class="headerlink" href="#adr" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:43:41Z</p>
+
+<p><strong>Use it when</strong> you keep decision records (ADR or MADR) and want to find them, see which are accepted, and have
+a person ratify them.</p>
+<pre class="highlight"><code class="language-text">platform/
+  kbmcp.yaml             format: adr
+  docs/adr/
+    0001-use-a-managed-queue.md      a Nygard record
+    0002-use-postgresql.md           a MADR record
+  .waxseals.yaml</code></pre>
+<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+format: adr
+about: Platform decisions.
+seal: {require: ["docs/adr/*.md"], exempt_status: [proposed, draft]}</code></pre>
+<p>Every Markdown file is a record (except <code>README.md</code> and <code>index.md</code>), whatever its name or folder. Bowerbird reads each
+record's status as the author wrote it: from MADR 3 frontmatter, from a <code>## Status</code> section (Nygard), or from a
+<code>* Status:</code> line (MADR 2).</p>
+<pre class="highlight"><code class="language-markdown"># 1. Use a managed queue
+
+Date: 2026-11-16
+
+## Status
+
+Accepted
+
+## Context
+
+The platypus service needs a queue.</code></pre>
+<pre class="highlight"><code class="language-markdown">---
+status: proposed
+date: 2026-11-16
+decision-makers: platform team
+---
+# Use PostgreSQL
+
+## Context and Problem Statement
+
+Which database for the narwhal?</code></pre>
+<p>Hits carry <code>type: adr</code> and the record's <code>status</code>:</p>
+<pre class="highlight"><code class="language-text">file: docs/adr/0001-use-a-managed-queue.md, heading: 1. Use a managed queue &gt; Decision, type: adr, status: Accepted, tier: unverified
+file: docs/adr/0002-use-postgresql.md, heading: Use PostgreSQL &gt; Context and Problem Statement, type: adr, status: proposed, tier: unverified</code></pre>
+<p><strong>Ratifying.</strong> A record that says "Accepted" has only said so about itself. <code>kb ratify</code> (the same function as <code>seal</code>,
+under the word ADRs use) records that a person reviewed it and what they decided:</p>
+<pre class="highlight"><code class="language-sh">kb ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest</code></pre>
+<p>The <code>decision</code> goes into <code>.waxseals.yaml</code>, and from then on it is the hit's <code>status</code>, with <code>tier: human-reviewed</code>.
+<code>kb seal check=true</code> fails a commit when a record that needs a review lacks one: <code>unsigned</code> for a required record,
+<code>claims_accepted</code> for one whose own status says accepted but no person reviewed it, and <code>stale_signature</code> for one
+edited after its review. A <code>proposed</code> or <code>draft</code> record is exempt, so you can commit a proposal before it is reviewed.</p>
+<p><strong>Seeing where the records stand.</strong> <code>kb status</code> and <code>kb list</code> report a record as <code>stable</code> (proposed or accepted),
+<code>superseded</code>, <code>rejected</code> or <code>deprecated</code>; a superseded record stays superseded. A person's seal is what makes a stable
+record <strong>accepted</strong>; without one it is <strong>proposed</strong>, whatever the file says about itself. <code>accepted</code> is another command-line name for
+<code>seal</code>, like <code>ratify</code>. With two records that both write "Accepted" and no seal yet:</p>
+<pre class="highlight"><code class="language-text">$ kb status
+concepts: 2, by_status: {stable: 2}, by_state: {proposed: 2}, by_tier: {unverified: 2}, stale: 0
+$ kb list status=proposed
+adr/0001-use-postgres.md   status: stable, state: proposed, tier: unverified
+adr/0002-use-redis.md      status: stable, state: proposed, tier: unverified</code></pre>
+<p><code>kb list status=proposed</code> is the worklist of decisions nobody has reviewed. <code>stale</code> counts the records edited after a
+review.</p></article>
+        
+          <hr class="my-5">
+          <div class="d-flex justify-content-between gap-3">
+            
+              <a class="btn btn-outline-secondary" href="../markdown/">&larr; Markdown</a>
+            
+            
+              <a class="btn btn-outline-secondary" href="../okf/">OKF &rarr;</a>
+            
+          </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top mt-4 py-3">
+    <div class="container-fluid small text-muted d-flex flex-wrap justify-content-between gap-2">
+      <span>Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review</span>
+      <span>Built with MkDocs + Bootstrap 5.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      // Restore saved theme before paint-sensitive work.
+      var root = document.documentElement;
+      var saved = localStorage.getItem('docs-theme');
+      if (saved) root.setAttribute('data-bs-theme', saved);
+
+      // Make Markdown tables look like Bootstrap tables.
+      document.querySelectorAll('.docs-content table').forEach(function (t) {
+        t.classList.add('table', 'table-sm', 'table-striped', 'table-bordered', 'align-middle');
+        if (!t.parentElement.classList.contains('table-responsive')) {
+          var wrap = document.createElement('div');
+          wrap.className = 'table-responsive';
+          t.parentNode.insertBefore(wrap, t);
+          wrap.appendChild(t);
+        }
+      });
+
+      // A Copy button on every listing.
+      document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.classList.contains('mermaid')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code') || pre;
+          navigator.clipboard.writeText(code.innerText.replace(/\n$/, '')).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+          });
+        });
+        pre.classList.add('has-copy');
+        pre.appendChild(btn);
+      });
+
+      // Theme toggle (reload keeps mermaid in sync with the new theme).
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-bs-theme', next);
+        localStorage.setItem('docs-theme', next);
+        location.reload();
+      });
+
+      // Render mermaid: superfences emits <pre class="mermaid"><code>…</code></pre>.
+      if (window.mermaid) {
+        var dark = root.getAttribute('data-bs-theme') === 'dark';
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+        document.querySelectorAll('pre.mermaid').forEach(function (pre) {
+          var code = pre.querySelector('code');
+          if (code) pre.textContent = code.textContent;
+        });
+        try { mermaid.run({ querySelector: 'pre.mermaid' }); } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>

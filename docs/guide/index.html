@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Guide · Bowerbird</title>
+  <title>Docs · Bowerbird</title>
   <link rel="icon" href="../img/favicon.png" type="image/png">
   <link rel="icon" href="../img/favicon.ico" sizes="any">
   <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Guide · Bowerbird">
+  <meta property="og:title" content="Docs · Bowerbird">
   <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -53,10 +53,44 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../formats/">Formats</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -64,7 +98,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../understanding-okf/">Understanding OKF</a>
+                 href="../sealing/">Sealing</a>
             </li>
           
         
@@ -72,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link active"
                  aria-current="page"
-                 href="./">Guide</a>
+                 href="./">Docs</a>
             </li>
           
         
@@ -97,14 +131,6 @@
               <a class="nav-link "
                  
                  href="../contributing/">Contributing</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">OKF v0.2</a>
             </li>
           
         
@@ -170,21 +196,21 @@
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#layout">Layout</a>
+      <a class="nav-link py-1 px-0" href="#okf-layout">OKF layout</a>
       <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#indexmd">index.md</a>
+      <a class="nav-link py-1 px-0" href="#okf-indexmd">OKF index.md</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#logmd">log.md</a>
+      <a class="nav-link py-1 px-0" href="#okf-logmd">OKF log.md</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#the-archive">The archive</a>
+      <a class="nav-link py-1 px-0" href="#the-okf-archive">The OKF archive</a>
       
     </li>
   
@@ -237,15 +263,14 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb small">
               <li class="breadcrumb-item"><a href="..">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Guide</li>
+              <li class="breadcrumb-item active" aria-current="page">Docs</li>
             </ol>
           </nav>
         
-        <article><h1 id="guide">Guide<a class="headerlink" href="#guide" title="Link to this section">#</a></h1>
-<div class="admonition note">
-<p class="admonition-title">AI-generated</p>
-<p>Drawn from the README, written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review.</p>
-</div>
+        <article><h1 id="docs">Docs<a class="headerlink" href="#docs" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:04:18Z</p>
+<p class="seal-note">Text included from the README is not covered by this seal.</p>
+
 <h2 id="run">Run<a class="headerlink" href="#run" title="Link to this section">#</a></h2>
 <p>Requires <a href="https://docs.astral.sh/uv/">uv</a>. Install on the fly from PyPI, nothing to clone; this is
 the form to use (<code>pip install bowerbird-mcp</code> works too):</p>
@@ -265,7 +290,7 @@ neither overwrites a file. The old <code>KB_ROOT</code> variable is gone and is 
 user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | adr | markdown | skos | seal-only: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos | asciidoc | seal-only: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
 semantic: false       # also match by meaning (see Reading the collection)
 semantic_model: BAAI/bge-small-en-v1.5
@@ -282,8 +307,9 @@ and so on; lists are comma separated). Copy it to <code>.env</code> beside <code
 not committed (<code>init</code> and <code>config</code> list it in <code>.gitignore</code>). Precedence, last wins: <code>kbmcp.yaml</code>, then <code>.env</code>, then
 real environment variables. <code>format</code> is the collection's own and no override touches it. <code>KB_ROLE</code> (singular)
 is the same as <code>--role</code>.</p>
-<p><code>init</code> fills in what it can: <code>format</code> is guessed from the folder (thesaurus files mean <code>skos</code>, Markdown with no OKF
-types means <code>markdown</code>, else <code>okf</code>), and it asks for what it cannot know: <code>about</code>, your <code>user</code> id (kept in <code>.env</code>)
+<p><code>init</code> fills in what it can: <code>format</code> is guessed from the folder (thesaurus files mean <code>skos</code>, <code>.adoc</code> files mean
+<code>asciidoc</code>, mostly numbered or <code>adr/decisions</code> Markdown means <code>adr</code>, other Markdown with no OKF types means <code>markdown</code>,
+else <code>okf</code>), and it asks for what it cannot know: <code>about</code>, your <code>user</code> id (kept in <code>.env</code>)
 and <code>holds</code> (the format, to confirm). Over MCP it asks the human with a prompt; at a terminal it asks on the
 command line; or pass them (<code>init about="Runbooks." holds=markdown user=you apply=true</code>). Only an <code>okf</code> folder
 gets a first bundle.</p>
@@ -308,7 +334,7 @@ repos:
 <h3 id="where-tools-look">Where tools look<a class="headerlink" href="#where-tools-look" title="Link to this section">#</a></h3>
 <p>A collection is where its <code>kbmcp.yaml</code> is: the tool looks for one from the
 current directory up (or takes <code>--config path/to/kbmcp.yaml</code>) and treats that
-file's folder as the base. With none, it uses the current directory. It is one bundle at its root, or a set of sibling bundles. A
+file's folder as the base. With none, it uses the current directory. In an <code>okf</code> collection it is one bundle at its root, or a set of sibling bundles (other formats are just the folder). A
 directory whose <code>index.md</code> declares <code>okf_version</code> is a bundle root; bundles do
 not nest. An <code>index.md</code> at the collection root lists its bundles (<code>index
 apply=true</code> there writes it), and tools find the root from inside a bundle
@@ -340,7 +366,12 @@ Write tools that touch many files default to <code>apply=false</code> and show a
 only on the command line: no MCP call can pass it.</p>
 <p>Output is JSON; <code>output=text</code> prints one key per line and diffs as is.</p>
 <p>Exit codes: 0 ok, 1 findings, 2 usage error.</p>
-<h2 id="layout">Layout<a class="headerlink" href="#layout" title="Link to this section">#</a></h2>
+<h2 id="okf-layout">OKF layout<a class="headerlink" href="#okf-layout" title="Link to this section">#</a></h2>
+<blockquote>
+<p><strong>OKF only, and not required.</strong> Everything in this section (bundles, <code>index.md</code>, <code>log.md</code>, the archive) is how an <code>okf</code>
+collection keeps its concepts in order. A <code>markdown</code>, <code>adr</code>, <code>skos</code>, <code>asciidoc</code> or <code>seal-only</code> folder needs only a
+<code>kbmcp.yaml</code> and its files, in any layout you like.</p>
+</blockquote>
 <pre class="highlight"><code>kb/                          the collection (kbmcp.yaml sits here)
   index.md                   lists the bundles; no frontmatter
   .gitattributes             log.md and index.md merge=union
@@ -353,7 +384,7 @@ only on the command line: no MCP call can pass it.</p>
   archive/                   the archive: a collection of its own, set apart
     index.md                 lists the archived bundles
     eng/old-runbook.md       archived from eng (archive/eng is a bundle)</code></pre>
-<h3 id="indexmd">index.md<a class="headerlink" href="#indexmd" title="Link to this section">#</a></h3>
+<h3 id="okf-indexmd">OKF index.md<a class="headerlink" href="#okf-indexmd" title="Link to this section">#</a></h3>
 <p>OKF §8: an index lists what is in its directory, for progressive disclosure.
 Every index has the same body shape, sections under headings with one entry
 per item:</p>
@@ -384,7 +415,7 @@ Hand-written text is kept.
 <li>Being listed counts as being linked, so a listed concept is not an orphan.</li>
 <li><code>get</code> synthesizes a missing index from frontmatter (§8 allows this).</li>
 </ul>
-<h3 id="logmd">log.md<a class="headerlink" href="#logmd" title="Link to this section">#</a></h3>
+<h3 id="okf-logmd">OKF log.md<a class="headerlink" href="#okf-logmd" title="Link to this section">#</a></h3>
 <p>OKF §9: date headings, newest first, one entry per line. Each tool write adds an
 entry to the nearest <code>log.md</code> above the change, with a hidden unix-time stamp:</p>
 <pre class="highlight"><code class="language-markdown">## 2026-10-27
@@ -394,13 +425,13 @@ entry to the nearest <code>log.md</code> above the change, with a hidden unix-ti
 reads a concept's history: the entries linking to it in every <code>log.md</code> above it,
 and the git commits that changed it. <code>log</code> alone shows the bundle's recent
 entries.</p>
-<p><code>init</code> adds <code>log.md merge=union</code> and <code>index.md merge=union</code> to the
+<p>For an <code>okf</code> bundle <code>init</code> adds <code>log.md merge=union</code> and <code>index.md merge=union</code> to the
 collection's <code>.gitattributes</code>, so git keeps both sides when parallel
 branches log or index. After such a merge, <code>fix</code> merges duplicate log date
 sections, orders stamped entries by time, and rebuilds the generated index
 lists. A section with a
 hand-written, unstamped entry keeps its order.</p>
-<h3 id="the-archive">The archive<a class="headerlink" href="#the-archive" title="Link to this section">#</a></h3>
+<h3 id="the-okf-archive">The OKF archive<a class="headerlink" href="#the-okf-archive" title="Link to this section">#</a></h3>
 <p><code>archive/</code> is a collection within the collection, and a special one. Its
 <code>index.md</code> lists its bundles, like the collection root's. <code>archive file=x.md
 bundle=eng</code> moves a concept to <code>archive/eng/x.md</code> (starting <code>archive/eng</code> as a
@@ -473,7 +504,7 @@ commas), and each server offers only that role's tools:</p>
 <tr>
 <td><code>seal</code></td>
 <td>a human's review of a file, and the check for it: <code>seal</code></td>
-<td>1, ~450 tokens</td>
+<td>1, ~500 tokens</td>
 </tr>
 </tbody>
 </table>
@@ -486,20 +517,20 @@ commas), and each server offers only that role's tools:</p>
 <p>The <code>read</code> server is read-only, so a client can approve it without asking; the others
 change files (<code>seal</code> only writes a review: a ledger entry, or a concept's own <code>verified</code> key). A tool can belong to more than one role (<code>dirs</code> is in <code>read</code> and
 <code>structure</code>), and a server with no <code>--role</code> offers them all. With no <code>--role</code> the server offers every role that <code>roles:</code> in
-<code>kbmcp.yaml</code> leaves on; naming a role that is off refuses to start. The CLI
-always has every tool.</p>
+<code>kbmcp.yaml</code> leaves on; naming a role that is off refuses to start. Outside <code>okf</code> the format limits it further, to the tools
+that format uses (see Formats). The CLI always has every tool.</p>
 <h2 id="sealing-who-reviewed-what">Sealing: who reviewed what<a class="headerlink" href="#sealing-who-reviewed-what" title="Link to this section">#</a></h2>
 <p><code>seal</code> is the one function for a human's review, in every format. It shows the human the exact file in a
 prompt, asks for their id, and records who reviewed that version and when. Over MCP the human types their own id;
 at a terminal <code>--attest</code> records you; an assistant can only seal as itself (<code>by=process:&lt;id&gt;</code>), never as a human.
-<code>verify</code> (the OKF word) and <code>ratify</code> (the ADR word) are its command-line names too.</p>
+<code>verify</code> (the OKF word), and <code>ratify</code> or <code>accepted</code> (the ADR words), are its command-line names too.</p>
 <ul>
 <li><strong><code>okf</code>:</strong> a <code>verified: {by, at, sha256}</code> entry in the concept's own frontmatter.</li>
-<li><strong><code>markdown</code> and <code>skos</code>:</strong> an entry in <code>.waxseal.yaml</code> at the collection root (commit it): file, sha256, who,
-  when, and <code>decision=accepted|rejected</code> for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
+<li><strong><code>markdown</code>, <code>adr</code>, <code>skos</code>, <code>asciidoc</code> and <code>seal-only</code>:</strong> one dense line per file in <code>.waxseals.yaml</code> at the collection root (commit it), holding only the latest
+  review: file, sha256, who, when, <code>bowerbird</code> (the version that wrote it), and <code>decision=accepted|rejected</code> for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
   thesauri all work.</li>
 </ul>
-<p>Like a wax seal, a review breaks when the file changes, and only a new review makes a new one. The sha256 covers the file's exact bytes (line endings normalized; for <code>okf</code>, without the <code>verified</code> key). Edit the
+<p>Like a wax seal, a review breaks when the file changes, and only a new review makes a new one (it replaces the old line; git has the history). The sha256 covers the file's exact bytes (line endings normalized; for <code>okf</code>, without the <code>verified</code> key). Edit the
 file after sealing and the seal is broken: <code>passages</code> shows the hit <code>unverified</code> and <code>stale</code>. A ledger decision
 becomes the hit's <code>status</code>.</p>
 <p><code>seal check=true</code> changes nothing and exits 1 on findings, for a pre-commit hook and for CI (<code>since=origin/main</code>
@@ -508,11 +539,14 @@ limits it to a pull request's files):</p>
 <li><code>unsigned</code>: a file the policy requires has no review by a human.</li>
 <li><code>stale_signature</code>: reviewed, then edited.</li>
 <li><code>claims_accepted</code>: its own status says accepted, but no human reviewed it.</li>
+<li><code>unreadable</code>: a required file is not UTF-8 text, so it cannot be reviewed here.</li>
 <li><code>orphan_signature</code>: a ledger entry for a file that is gone (a warning).</li>
 </ul>
 <p>The policy is the <code>seal</code> key in the committed <code>kbmcp.yaml</code> (nothing local can loosen it); by default every file needs a
 review, except those whose status is <code>proposed</code> or <code>draft</code>:</p>
 <pre class="highlight"><code class="language-yaml">seal: {require: ["**"], exempt_status: [proposed, draft]}</code></pre>
+<p>A <code>require</code> glob that starts with <code>!</code> takes files back out, for a generated page that needs no review:
+<code>require: ["/*.md", "!/tools.md"]</code>.</p>
 <pre class="highlight"><code class="language-yaml"># .pre-commit-config.yaml
 repos:
   - repo: local
@@ -524,7 +558,7 @@ repos:
         pass_filenames: false
         always_run: true</code></pre>
 <p>Limits: a hook can be skipped (<code>--no-verify</code>), so run the same command in CI. <code>seal</code> proves a ledger entry exists
-for these bytes, not who typed it: protect <code>.waxseal.yaml</code> and <code>kbmcp.yaml</code> with <code>CODEOWNERS</code> or branch
+for these bytes, not who typed it: protect <code>.waxseals.yaml</code> and <code>kbmcp.yaml</code> with <code>CODEOWNERS</code> or branch
 protection so changes to them need a named reviewer. A SKOS file is sealed whole, not per concept.</p>
 <h2 id="before-you-push">Before you push<a class="headerlink" href="#before-you-push" title="Link to this section">#</a></h2>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint output=text      # what's wrong, each with a fix
@@ -616,12 +650,16 @@ uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text</cod
   that draws Mermaid (GitHub, GitLab).</li>
 <li><code>heatmap days=30</code> ranks concepts by how many commits changed them (the ones
   most likely to collide across branches) and by how many people did; who
-  changes the most; and concepts only one person has ever touched. index.md and
-  log.md are left out.</li>
+  changes the most; and concepts only one person has ever touched. In OKF
+  index.md and log.md are left out; the other formats count their own files
+  (<code>.md</code>, or <code>.adoc</code> and <code>.asciidoc</code>).</li>
 <li><code>status</code> lists what needs a person next: longest since review, oldest
   drafts, concepts without sources, the longest concepts, and what goes stale
   within <code>due_days</code>; the most linked-to concepts (<code>hubs</code>); and the pages links
-  want that do not exist yet (<code>wanted</code>), most wanted first.</li>
+  want that do not exist yet (<code>wanted</code>), most wanted first. In <code>markdown</code> and <code>adr</code>
+  it counts by type, status, state (a decision record is accepted once a person
+  has sealed it, else proposed; superseded is final) and tier, and the records
+  edited since a review (<code>stale</code>); <code>list status=proposed</code> is the unreviewed worklist.</li>
 <li><code>log file=x.md</code> is a concept's history.</li>
 </ul>
 <h2 id="known-limits">Known limits<a class="headerlink" href="#known-limits" title="Link to this section">#</a></h2>
@@ -637,7 +675,8 @@ uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text</cod
   undeclared bundle is any folder until you pass it as <code>bundle=</code>.</li>
 <li><code>ingest</code> does not convert other formats or check licenses. Its plan says so.</li>
 <li>With <code>format: skos</code>, links between concepts are not counted, so <code>hubs</code> does
-  nothing, and a file that does not parse is skipped without an error.</li>
+  nothing, and a file that does not parse is skipped without an error. With
+  <code>format: asciidoc</code>, <code>include::</code> is not followed, and <code>move</code> is not offered.</li>
 <li><code>passages</code> has no stemming ("rolling" will not match "roll"), and with
   <code>build: manual</code> it does not notice files changed since the last <code>reindex</code>.
   Semantic search downloads its model (~65 MB) once into
@@ -651,7 +690,7 @@ uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text</cod
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
             
-              <a class="btn btn-outline-secondary" href="../understanding-okf/">&larr; Understanding OKF</a>
+              <a class="btn btn-outline-secondary" href="../sealing/">&larr; Sealing</a>
             
             
               <a class="btn btn-outline-secondary" href="../tools/">Tools &rarr;</a>

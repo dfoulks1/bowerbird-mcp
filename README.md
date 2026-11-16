@@ -72,7 +72,7 @@ about: Engineering runbooks.   # shown to the agent; tells collections apart
 user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | adr | markdown | skos | seal-only: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos | asciidoc | seal-only: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
 semantic: false       # also match by meaning (see Reading the collection)
 semantic_model: BAAI/bge-small-en-v1.5
@@ -93,8 +93,9 @@ not committed (`init` and `config` list it in `.gitignore`). Precedence, last wi
 real environment variables. `format` is the collection's own and no override touches it. `KB_ROLE` (singular)
 is the same as `--role`.
 
-`init` fills in what it can: `format` is guessed from the folder (thesaurus files mean `skos`, Markdown with no OKF
-types means `markdown`, else `okf`), and it asks for what it cannot know: `about`, your `user` id (kept in `.env`)
+`init` fills in what it can: `format` is guessed from the folder (thesaurus files mean `skos`, `.adoc` files mean
+`asciidoc`, mostly numbered or `adr/decisions` Markdown means `adr`, other Markdown with no OKF types means `markdown`,
+else `okf`), and it asks for what it cannot know: `about`, your `user` id (kept in `.env`)
 and `holds` (the format, to confirm). Over MCP it asks the human with a prompt; at a terminal it asks on the
 command line; or pass them (`init about="Runbooks." holds=markdown user=you apply=true`). Only an `okf` folder
 gets a first bundle.
@@ -129,7 +130,7 @@ repos:
 
 A collection is where its `kbmcp.yaml` is: the tool looks for one from the
 current directory up (or takes `--config path/to/kbmcp.yaml`) and treats that
-file's folder as the base. With none, it uses the current directory. It is one bundle at its root, or a set of sibling bundles. A
+file's folder as the base. With none, it uses the current directory. In an `okf` collection it is one bundle at its root, or a set of sibling bundles (other formats are just the folder). A
 directory whose `index.md` declares `okf_version` is a bundle root; bundles do
 not nest. An `index.md` at the collection root lists its bundles (`index
 apply=true` there writes it), and tools find the root from inside a bundle
@@ -184,6 +185,9 @@ search, index and review tools work across them.
   a `## Status` section (Nygard) or a `* Status:` line (MADR 2).
 - `markdown`: any other folder of Markdown, no frontmatter needed; `index.md` and `log.md` are ordinary files. A
   numbered file name (`0007-use-queue.md`) or a path through `adr`, `adrs` or `decisions` still counts as an ADR.
+- `asciidoc`: AsciiDoc (`*.adoc`, `*.asciidoc`), no frontmatter needed. One passage per section; the document header's
+  `:name: value` attributes (or YAML front matter) are the metadata, and `xref:`, `link:` and `<<file.adoc#id>>` links count.
+  `include::` is not followed.
 - `skos`: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (`*.ttl`, `*.rdf`, `*.jsonld`, `*.nt`, `*.n3`;
   needs `pip install rdflib`). One passage per concept, headed by its broader chain, with its labels, notes and
   broader, narrower and related concepts in the text.
@@ -191,13 +195,20 @@ search, index and review tools work across them.
   `seal.require`; the one tool is `seal`, and `kb seal check=true` fails when a listed file has no human review of its
   current version.
 
-Outside `okf` the server offers `passages`, `reindex` and `seal`. A hit is `unverified` until a human seals that exact
-file (see [Sealing](https://bowerbird.voltpop.com/guide/#sealing-who-reviewed-what)): reviews go in `.waxseal.yaml`, not in the file. `init` guesses
+Outside `okf` a server offers only the tools that format uses: `passages`, `reindex` and `seal` for every format but
+`seal-only` (just `seal`); `markdown` adds `get`, `search`, `dirs`, `links`, `list`, `status`, `heatmap`, `init` and
+`config`; `adr` adds `move`; `asciidoc` adds `heatmap`. The command line always has every tool. A hit is `unverified`
+until a human seals that exact file (see [Sealing](https://bowerbird.voltpop.com/sealing/)): reviews go in
+`.waxseals.yaml`, not in the file. `init` guesses
 the format from the folder, and the agent's instructions follow it.
 
 <!-- --8<-- [end:formats] -->
 <!-- --8<-- [start:layout] -->
-## Layout
+## OKF layout
+
+> **OKF only, and not required.** Everything in this section (bundles, `index.md`, `log.md`, the archive) is how an `okf`
+> collection keeps its concepts in order. A `markdown`, `adr`, `skos`, `asciidoc` or `seal-only` folder needs only a
+> `kbmcp.yaml` and its files, in any layout you like.
 
 ```
 kb/                          the collection (kbmcp.yaml sits here)
@@ -214,7 +225,7 @@ kb/                          the collection (kbmcp.yaml sits here)
     eng/old-runbook.md       archived from eng (archive/eng is a bundle)
 ```
 
-### index.md
+### OKF index.md
 
 OKF §8: an index lists what is in its directory, for progressive disclosure.
 Every index has the same body shape, sections under headings with one entry
@@ -249,7 +260,7 @@ Hand-written text is kept.
 - Being listed counts as being linked, so a listed concept is not an orphan.
 - `get` synthesizes a missing index from frontmatter (§8 allows this).
 
-### log.md
+### OKF log.md
 
 OKF §9: date headings, newest first, one entry per line. Each tool write adds an
 entry to the nearest `log.md` above the change, with a hidden unix-time stamp:
@@ -265,14 +276,14 @@ reads a concept's history: the entries linking to it in every `log.md` above it,
 and the git commits that changed it. `log` alone shows the bundle's recent
 entries.
 
-`init` adds `log.md merge=union` and `index.md merge=union` to the
+For an `okf` bundle `init` adds `log.md merge=union` and `index.md merge=union` to the
 collection's `.gitattributes`, so git keeps both sides when parallel
 branches log or index. After such a merge, `fix` merges duplicate log date
 sections, orders stamped entries by time, and rebuilds the generated index
 lists. A section with a
 hand-written, unstamped entry keeps its order.
 
-### The archive
+### The OKF archive
 
 `archive/` is a collection within the collection, and a special one. Its
 `index.md` lists its bundles, like the collection root's. `archive file=x.md
@@ -337,7 +348,7 @@ commas), and each server offers only that role's tools:
 | `structure` | shape, repair and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~1,700 tokens |
 | `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `set` | 6, ~1,600 tokens |
 | `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,800 tokens |
-| `seal` | a human's review of a file, and the check for it: `seal` | 1, ~450 tokens |
+| `seal` | a human's review of a file, and the check for it: `seal` | 1, ~500 tokens |
 
 ```json
 {
@@ -351,8 +362,8 @@ commas), and each server offers only that role's tools:
 The `read` server is read-only, so a client can approve it without asking; the others
 change files (`seal` only writes a review: a ledger entry, or a concept's own `verified` key). A tool can belong to more than one role (`dirs` is in `read` and
 `structure`), and a server with no `--role` offers them all. With no `--role` the server offers every role that `roles:` in
-`kbmcp.yaml` leaves on; naming a role that is off refuses to start. The CLI
-always has every tool.
+`kbmcp.yaml` leaves on; naming a role that is off refuses to start. Outside `okf` the format limits it further, to the tools
+that format uses (see Formats). The CLI always has every tool.
 
 <!-- --8<-- [end:register] -->
 <!-- --8<-- [start:ci] -->
@@ -361,14 +372,14 @@ always has every tool.
 `seal` is the one function for a human's review, in every format. It shows the human the exact file in a
 prompt, asks for their id, and records who reviewed that version and when. Over MCP the human types their own id;
 at a terminal `--attest` records you; an assistant can only seal as itself (`by=process:<id>`), never as a human.
-`verify` (the OKF word) and `ratify` (the ADR word) are its command-line names too.
+`verify` (the OKF word), and `ratify` or `accepted` (the ADR words), are its command-line names too.
 
 - **`okf`:** a `verified: {by, at, sha256}` entry in the concept's own frontmatter.
-- **`markdown` and `skos`:** an entry in `.waxseal.yaml` at the collection root (commit it): file, sha256, who,
-  when, and `decision=accepted|rejected` for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
+- **`markdown`, `adr`, `skos`, `asciidoc` and `seal-only`:** one dense line per file in `.waxseals.yaml` at the collection root (commit it), holding only the latest
+  review: file, sha256, who, when, `bowerbird` (the version that wrote it), and `decision=accepted|rejected` for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
   thesauri all work.
 
-Like a wax seal, a review breaks when the file changes, and only a new review makes a new one. The sha256 covers the file's exact bytes (line endings normalized; for `okf`, without the `verified` key). Edit the
+Like a wax seal, a review breaks when the file changes, and only a new review makes a new one (it replaces the old line; git has the history). The sha256 covers the file's exact bytes (line endings normalized; for `okf`, without the `verified` key). Edit the
 file after sealing and the seal is broken: `passages` shows the hit `unverified` and `stale`. A ledger decision
 becomes the hit's `status`.
 
@@ -378,6 +389,7 @@ limits it to a pull request's files):
 - `unsigned`: a file the policy requires has no review by a human.
 - `stale_signature`: reviewed, then edited.
 - `claims_accepted`: its own status says accepted, but no human reviewed it.
+- `unreadable`: a required file is not UTF-8 text, so it cannot be reviewed here.
 - `orphan_signature`: a ledger entry for a file that is gone (a warning).
 
 The policy is the `seal` key in the committed `kbmcp.yaml` (nothing local can loosen it); by default every file needs a
@@ -386,6 +398,9 @@ review, except those whose status is `proposed` or `draft`:
 ```yaml
 seal: {require: ["**"], exempt_status: [proposed, draft]}
 ```
+
+A `require` glob that starts with `!` takes files back out, for a generated page that needs no review:
+`require: ["/*.md", "!/tools.md"]`.
 
 ```yaml
 # .pre-commit-config.yaml
@@ -401,7 +416,7 @@ repos:
 ```
 
 Limits: a hook can be skipped (`--no-verify`), so run the same command in CI. `seal` proves a ledger entry exists
-for these bytes, not who typed it: protect `.waxseal.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
+for these bytes, not who typed it: protect `.waxseals.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
 protection so changes to them need a named reviewer. A SKOS file is sealed whole, not per concept.
 
 ## Before you push
@@ -519,12 +534,16 @@ repos:
   that draws Mermaid (GitHub, GitLab).
 - `heatmap days=30` ranks concepts by how many commits changed them (the ones
   most likely to collide across branches) and by how many people did; who
-  changes the most; and concepts only one person has ever touched. index.md and
-  log.md are left out.
+  changes the most; and concepts only one person has ever touched. In OKF
+  index.md and log.md are left out; the other formats count their own files
+  (`.md`, or `.adoc` and `.asciidoc`).
 - `status` lists what needs a person next: longest since review, oldest
   drafts, concepts without sources, the longest concepts, and what goes stale
   within `due_days`; the most linked-to concepts (`hubs`); and the pages links
-  want that do not exist yet (`wanted`), most wanted first.
+  want that do not exist yet (`wanted`), most wanted first. In `markdown` and `adr`
+  it counts by type, status, state (a decision record is accepted once a person
+  has sealed it, else proposed; superseded is final) and tier, and the records
+  edited since a review (`stale`); `list status=proposed` is the unreviewed worklist.
 - `log file=x.md` is a concept's history.
 
 ## Known limits
@@ -540,7 +559,8 @@ repos:
   undeclared bundle is any folder until you pass it as `bundle=`.
 - `ingest` does not convert other formats or check licenses. Its plan says so.
 - With `format: skos`, links between concepts are not counted, so `hubs` does
-  nothing, and a file that does not parse is skipped without an error.
+  nothing, and a file that does not parse is skipped without an error. With
+  `format: asciidoc`, `include::` is not followed, and `move` is not offered.
 - `passages` has no stemming ("rolling" will not match "roll"), and with
   `build: manual` it does not notice files changed since the last `reindex`.
   Semantic search downloads its model (~65 MB) once into

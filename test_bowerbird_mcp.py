@@ -1041,7 +1041,11 @@ assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-
     == ["Accepted", "superseded by ADR-0005", "proposed"], got
 assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
 assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
-assert k.offered() == {"passages", "reindex", "seal"}
+assert k.offered() == k.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "init", "config"}
+for f, want in (("adr", k.MARKDOWN | {"move"}), ("skos", k.BASE), ("asciidoc", k.ADOC), ("seal-only", {"seal"})):  # the tiers
+    k.OPTS["format"] = f
+    assert k.offered() == want, (f, k.offered())
+k.OPTS["format"] = "markdown"
 # format: adr: every markdown file but README.md and index.md is a decision record, whatever its name or folder.
 (ar / "notes").mkdir(exist_ok=True)
 (ar / "notes/queue-choice.md").write_text("# Queue choice\n\n* Status: accepted\n\nThe okapi service needs a queue.\n")
@@ -1051,10 +1055,40 @@ assert {h["file"]: h["type"] for h in k.passages("okapi")["hits"]} == {"notes/qu
 k.OPTS["format"] = "adr"
 A = {h["file"]: h for h in k.passages("okapi")["hits"]}
 assert A["notes/queue-choice.md"]["type"] == "adr" and A["notes/queue-choice.md"]["status"] == "accepted" and A["notes/README.md"]["type"] is None, A
-assert k.offered() == {"passages", "reindex", "seal"} and k.detect_holds(ar) == "adr"
+assert k.offered() == k.MARKDOWN | {"move"} and k.detect_holds(ar) == "adr"
 k.OPTS["format"] = "markdown"
 (ar / "notes/queue-choice.md").unlink()
 (ar / "notes/README.md").unlink()
+# list and status outside OKF: proposed and accepted are stable (a seal is what says accepted), superseded is final.
+k0 = "docs/adr/0001-record-decisions.md"
+text0 = (ar / k0).read_text()
+k.ledger_put(k0, {"file": k0, "sha256": k.content_hash(text0, False), "by": "human:ann", "at": "2026-01-01T00:00:00Z"})
+L = {c["file"]: c for c in k.list_(limit=0)["concepts"]}
+assert (L[k0]["status"], L[k0]["tier"]) == ("stable", "human-reviewed") and L["docs/adr/0002-use-postgres.md"]["status"] == "superseded", L
+assert [c["file"] for c in k.list_(status="proposed", tier="unverified")["concepts"]] == ["docs/adr/0003-use-queue.md"]  # the word the file wrote
+assert {c["file"] for c in k.list_(status="STABLE", tier="unverified")["concepts"]} == {"docs/adr/0003-use-queue.md", "docs/index.md"}
+st = k.status()
+assert (st["concepts"], st["by_status"], st["by_tier"], st["stale"]) == (4, {"stable": 3, "superseded": 1}, {"human-reviewed": 1, "unverified": 3}, 0), st
+assert st["by_state"] == {"accepted": 1, "proposed": 1, "stable": 1, "superseded": 1}, st  # the index note is no decision record
+(ar / k0).write_text(text0 + "\nEdited.\n")  # an edit breaks the seal: unreviewed again, and counted stale
+st = k.status()
+assert st["by_tier"] == {"unverified": 4} and st["stale"] == 1, st
+assert st["by_state"] == {"proposed": 2, "stable": 1, "superseded": 1}, st
+(ar / k0).write_text(text0)
+# move carries a seal along when the file's text does not change, and leaves it when the file had to be edited.
+k.ledger_put(k0, {"file": k0, "sha256": k.content_hash(text0, False), "by": "human:ann", "at": "2026-01-01T00:00:00Z"})
+k1 = "docs/adr/0001-record-it.md"
+k.move(k0, "docs/adr/0001-record-it", apply=True)
+assert set(k.ledger_by_file()) == {k1} and {c["file"]: c["tier"] for c in k.list_(limit=0)["concepts"]}[k1] == "human-reviewed"
+assert k.status()["by_state"]["accepted"] == 1
+k.move(k1, k0[:-3], apply=True)  # back again, so the other records keep their names
+k9, t9 = "docs/adr/0009-linked.md", "# Linked\n\nSee [home](../index.md).\n"
+(ar / k9).write_text(t9)
+k.ledger_put(k9, {"file": k9, "sha256": k.content_hash(t9, False), "by": "human:ann", "at": "2026-01-01T00:00:00Z"})
+k.move(k9, "docs/0009-linked", apply=True)  # its own relative link had to change, so its text did and the seal stays behind
+assert set(k.ledger_by_file()) == {k0, k9} and {c["file"]: c["tier"] for c in k.list_(limit=0)["concepts"]}["docs/0009-linked.md"] == "unverified"
+(ar / "docs/0009-linked.md").unlink()
+(ar / ".waxseals.yaml").unlink()
 # format: seal-only: nothing is indexed, one tool; the seal.require globs pick the files (any text file, code included).
 prev = (k.KB_ROOT, k.OPTS["format"], dict(k.OPTS["seal"]))
 so = Path(tempfile.mkdtemp()).resolve()
@@ -1067,6 +1101,10 @@ k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = so, "seal-only", {"require": ["src
 assert k.offered() == {"seal"} and k.passages("add")["gap"]
 C = k.signatures()
 assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/util.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 2, C
+k.OPTS["seal"] = {"require": ["src/**/*.py", "!src/util.py"], "exempt_status": []}  # a leading ! takes a file back out
+C = k.signatures()
+assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 1, C
+k.OPTS["seal"] = {"require": ["src/**/*.py"], "exempt_status": []}
 class AnyFile(Ctx):
     async def elicit(self, message, schema):
         assert "src/app.py" in message and "sha256" in message
@@ -1106,8 +1144,11 @@ class Any(Ctx):  # a human who confirms whatever file is shown
         assert "adr/0001" in message and "sha256" in message and "decision: accepted" in message
         return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
 asyncio.run(k.seal(adr1, ctx=Any(), decision="accepted"))
-led = (ar / ".waxseal.yaml").read_text()
-assert led.startswith("# .waxseal.yaml") and "sha256:" in led and "by: human:tester" in led and "decision: accepted" in led
+led = (ar / ".waxseals.yaml").read_text()
+line = next(ln for ln in led.splitlines() if adr1 in ln)  # one dense line per file
+assert led.startswith("# .waxseals.yaml") and line.startswith("- {") and "sha256:" in line and "human:tester" in line and "decision: accepted" in line and f"bowerbird: {k.VERSION}" in line, led
+asyncio.run(k.seal(adr1, ctx=Any(), decision="accepted"))  # sealing again replaces the line: only the last seal is kept
+assert [ln for ln in (ar / ".waxseals.yaml").read_text().splitlines() if adr1 in ln] and sum(adr1 in ln for ln in (ar / ".waxseals.yaml").read_text().splitlines()) == 1
 assert (adr1, "unsigned") not in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
 h = k.passages("zebra")["hits"][0]
 assert h["tier"] == "human-reviewed" and h["status"] == "accepted" and not h["stale"], h
@@ -1119,7 +1160,7 @@ asyncio.run(k.seal("docs/adr/0003-use-queue.md", by="process:ci"))
 (ar / "docs/adr/0003-use-queue.md").unlink()
 O = [f for f in k.signatures()["findings"] if f["kind"] == "orphan_signature"]
 assert [f["file"] for f in O] == ["docs/adr/0003-use-queue.md"] and O[0]["severity"] == "warning"
-assert k.ALIASES == {"verify": "seal", "ratify": "seal"} and k.verify is k.seal
+assert k.ALIASES == {"verify": "seal", "ratify": "seal", "accepted": "seal"} and k.verify is k.seal
 R = k.signatures()
 txt = k.render(R, "text")
 assert txt.splitlines()[-1].startswith("bowerbird-mcp seal: ") and "file(s) checked" in txt and "conformant" not in txt, txt
@@ -1159,6 +1200,45 @@ else:
     assert k.passages("turtle")["gap"] and k.offered() == {"passages", "reindex", "seal"}
     k.KB_ROOT = was[0]
     k.OPTS.update(was[1])
+
+# format: asciidoc indexes AsciiDoc: one passage per section, header attributes (or YAML front matter) as metadata.
+ad = Path(tempfile.mkdtemp()).resolve()
+(ad / "deploy.adoc").write_text("= Deploy guide\n:tags: ops, deploy\n:status: stable\n\nIntro text.\n\n== Rollback\n\nRun the okapi rollback.\n\n"
+                                "----\n== not a heading\n----\n\nSee xref:other.adoc[other] and <<third.adoc#x,third>>.\n")
+(ad / "other.adoc").write_text("---\ntitle: Other doc\ntype: runbook\n---\n= Ignored\n\nThe platypus page.\n")
+(ad / "third.adoc").write_text("= Third\n\nThe wombat page.\n")
+k.KB_ROOT = ad
+k.OPTS |= {"format": "asciidoc", "semantic": False, "index": ""}
+t, m, tags, cs, dst = k.load_adoc(ad / "deploy.adoc", ad, "deploy.adoc", "asciidoc")
+assert (t, tags, m["status"], m["type"]) == ("Deploy guide", ["ops", "deploy"], "stable", "asciidoc"), (t, tags, m)
+assert [c[0] for c in cs] == ["Deploy guide", "Deploy guide > Rollback"] and dst == {"other.adoc", "third.adoc"}, (cs, dst)
+h = k.passages("okapi")["hits"][0]
+assert h["file"] == "deploy.adoc" and h["heading"] == "Deploy guide > Rollback" and h["tier"] == "unverified", h
+o = k.passages("platypus")["hits"][0]
+assert o["title"] == "Other doc" and o["type"] == "runbook", o  # front matter wins over the `= Ignored` line
+assert k.offered() == k.ADOC and k.detect_holds(ad) == "asciidoc"
+k.KB_ROOT = was[0]
+k.OPTS.update(was[1])
+
+# heatmap outside OKF counts the format's own files; index.md is an ordinary note there.
+hmd = Path(tempfile.mkdtemp()).resolve()
+gh = lambda *a: subprocess.run(["git", "-C", str(hmd), "-c", "user.name=Ann", "-c", "user.email=a@example.com", *a], check=True, capture_output=True)
+gh("init", "-q")
+(hmd / "a.adoc").write_text("= A\n")
+(hmd / "b.md").write_text("# B\n")
+(hmd / "index.md").write_text("# I\n")
+gh("add", ".")
+gh("commit", "-qm", "x")
+(hmd / "a.adoc").write_text("= A\n\nmore\n")
+gh("commit", "-qam", "y")
+k.KB_ROOT = hmd
+for f, want in (("asciidoc", {"a.adoc"}), ("markdown", {"b.md", "index.md"}), ("adr", {"b.md", "index.md"})):
+    k.OPTS["format"] = f
+    got = k.heatmap(limit=0)
+    assert {x["file"] for x in got["files"]} == want, (f, got)
+assert {x["file"]: x["changes"] for x in (k.OPTS.update(format="asciidoc") or k.heatmap(limit=0))["files"]} == {"a.adoc": 2}
+k.KB_ROOT = was[0]
+k.OPTS.update(was[1])
 
 # KB_* overrides: kbmcp.yaml < .env < the environment; `format` is never overridden; env.example lists every key.
 assert k.env_overrides({"KB_SEMANTIC": "true", "KB_MIN_SIMILARITY": "0.7", "KB_ROLES": "read, write", "KB_ABOUT": "x",

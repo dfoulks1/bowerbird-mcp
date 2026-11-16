@@ -53,10 +53,44 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../formats/">Formats</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -64,7 +98,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../understanding-okf/">Understanding OKF</a>
+                 href="../sealing/">Sealing</a>
             </li>
           
         
@@ -72,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../guide/">Guide</a>
+                 href="../guide/">Docs</a>
             </li>
           
         
@@ -97,14 +131,6 @@
               <a class="nav-link active"
                  aria-current="page"
                  href="./">Contributing</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">OKF v0.2</a>
             </li>
           
         
@@ -186,6 +212,9 @@
           </nav>
         
         <article><h1 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:14:31Z</p>
+<p class="seal-note">Text included from the README is not covered by this seal.</p>
+
 <p>Bowerbird is a personal project, Apache-2.0 licensed, built under the
 <a href="https://www.apache.org/legal/generative-tooling.html">ASF generative-tooling guidelines</a>. AI assists; a human reviews before
 anything public-facing ships.</p>
@@ -193,9 +222,10 @@ anything public-facing ships.</p>
 <p>Bugs, ideas and OKF edge cases: <a href="https://github.com/dfoulks1/bowerbird-mcp/issues">GitHub Issues</a>. Doc fixes are welcome too.
 Security problems: see <a href="https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md">SECURITY.md</a>, and please do not open a public issue for them.</p>
 <h2 id="what-it-serves">What it serves<a class="headerlink" href="#what-it-serves" title="Link to this section">#</a></h2>
-<p>Bundles in the <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md">Open Knowledge Format</a> (OKF). Everything a tool does is
-also doable by hand (edit the file, run <code>lint</code>). The tools make it cheaper and
-more consistent, not possible.</p>
+<p>A folder of files in one of six formats: bundles in the <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">Open Knowledge Format</a> (OKF), Markdown, ADR records, SKOS
+thesauri, AsciiDoc, or any text files you name (seal-only). Search and the human-review <code>seal</code> work across all of them;
+the full toolset is OKF's. Everything a tool does is also doable by hand (edit the file, run <code>lint</code>). The tools make it
+cheaper and more consistent, not possible.</p>
 <h2 id="how-we-build">How we build<a class="headerlink" href="#how-we-build" title="Link to this section">#</a></h2>
 <p>One brief, then refinement. <a href="https://github.com/dfoulks1/bowerbird-mcp/blob/main/docs-src/prompts/rewrite-brief.md"><code>docs-src/prompts/rewrite-brief.md</code></a> is the current brief (AI source
 material kept in the repository, not on the website; a draft in the beta process);
@@ -212,13 +242,19 @@ use cases drive changes to it. Core stays one file.</p>
 </ul>
 <pre class="highlight"><code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></pre>
 <h2 id="running-the-checks">Running the checks<a class="headerlink" href="#running-the-checks" title="Link to this section">#</a></h2>
-<pre class="highlight"><code class="language-sh">uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
+<pre class="highlight"><code class="language-sh">tools/QA.sh                      # every check a release asks for, in one command (needs uv); PYTHONS="3.12" tools/QA.sh for one Python
+uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
 uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # also the optional backends (skipped otherwise)</code></pre>
+<p><code>tools/QA.sh</code> runs the tests with every optional backend on Python 3.10 to 3.14, checks that <code>docs-src/tools.md</code> is what the
+tools' docstrings produce, that <code>docs/</code> is a fresh build of <code>docs-src/</code>, and that <code>uv.lock</code> matches <code>pyproject.toml</code>. It
+changes nothing in the working tree and stops at the first failure.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Link to this section">#</a></h2>
 <ol>
-<li>Set <code>version</code> in <code>pyproject.toml</code> and <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), add a section to <code>CHANGELOG.md</code>, and run the checks above (the tests
-   run on Python 3.10 to 3.14: <code>uv run --python 3.10 test_bowerbird_mcp.py</code>).</li>
-<li>Rebuild the docs site (below) and commit. Merge to <code>main</code>.</li>
+<li>Set <code>version</code> in <code>pyproject.toml</code> and <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), run <code>uv lock</code> (the
+   lockfile records the version), and add a section to <code>CHANGELOG.md</code>. For a new major version, also change the pin <code>init</code>
+   writes into <code>.mcp.json</code> (<code>MCP_JSON</code> in <code>bowerbird_mcp.py</code>) and the <code>bowerbird-mcp[skos]&gt;=N,&lt;N+1</code> example in
+   <code>docs-src/formats/skos.md</code>. Then run <code>tools/QA.sh</code>.</li>
+<li>Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to <code>main</code>.</li>
 <li>Tag and publish a GitHub release, <code>git tag -a vX.Y.Z</code> then <code>gh release create vX.Y.Z</code>, with the
    <code>CHANGELOG.md</code> section as the notes. This only creates the release: nothing publishes automatically.</li>
 <li>Publish to PyPI by hand, from the tag, after the checks above pass:</li>
@@ -234,7 +270,13 @@ git checkout main</code></pre>
 serves it from <code>main</code> <code>/docs</code>. No CI builds it. After changing the README, a
 tool or <code>docs-src/</code>, rebuild locally and commit both:</p>
 <pre class="highlight"><code class="language-sh">uv run docs_tools.py                          # docs-src/tools.md, from the tools' docstrings
-uvx --with pymdown-extensions mkdocs build    # docs-src/ -&gt; docs/</code></pre></article>
+uvx --with pymdown-extensions mkdocs build    # docs-src/ -&gt; docs/</code></pre>
+<p><code>docs-src/</code> is also a collection (its own <code>kbmcp.yaml</code>): a person reviews each page and seals it, and the build draws each
+page's review badge from <code>docs-src/.waxseals.yaml</code> (<code>hooks/seal_banner.py</code>). So seal first, then build, then commit
+<code>docs/</code>: a build made before a seal is stale, and <code>tools/QA.sh</code> fails it. See what still needs a review with:</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py seal check=true --config docs-src/kbmcp.yaml</code></pre>
+<p><code>tools.md</code> is built from the code and left out of the review policy (<code>!/tools.md</code> in <code>seal.require</code>). <code>mkdocs serve</code>
+loads <code>hooks/</code> once, so restart the preview after changing them.</p></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">

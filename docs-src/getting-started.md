@@ -1,7 +1,6 @@
 # Getting started
 
-!!! note "AI-generated"
-    Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. Every command on this page was run for real. Long output lines are shortened, and the person sealing in the examples is a made-up user called `example`.
+<!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. Every command on this page was run for real. Long output lines are shortened, and the person sealing in the examples is a made-up user called `example`. -->
 
 In about ten minutes you will turn a folder into a collection, ask it a question and get an answer with the file and
 line to cite, have a person seal a file so a changed file is never mistaken for a reviewed one, and connect an AI
@@ -219,21 +218,20 @@ kb seal deploy.md --attest output=text
 ```
 
 ```text
-edited: {".": [".waxseal.yaml"]}
+edited: {".": [".waxseals.yaml"]}
 file: deploy.md
 sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
+bowerbird: 2.0.0
 tier: human-reviewed
 ```
 
-The review goes into `.waxseal.yaml` (commit it), and your file is not touched:
+The review goes into `.waxseals.yaml` (commit it), and your file is not touched:
 
 ```yaml
-entries:
-- file: deploy.md
-  sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
-  by: human:example
-  at: 2026-11-16T15:29:29Z
+- {file: deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.0.0}
 ```
+
+One line per file, and only the latest seal is kept: seal it again and the line is replaced (git has the earlier ones).
 
 Search now shows the difference: `deploy.md` is `tier: human-reviewed`, and `rollback.md` is still `unverified`.
 
@@ -256,7 +254,7 @@ code, which is what makes it useful in a hook or in CI (step 7).
 
 A person's review is only ever recorded with that person's own confirmation: `--attest` at their terminal, or a
 prompt over MCP. An AI assistant can seal as itself (`by=process:<id>`), never as a person. These tiers are advisory
-labels, not access control: the guarantee is only as strong as who can write to the repository, so protect `.waxseal.yaml`
+labels, not access control: the guarantee is only as strong as who can write to the repository, so protect `.waxseals.yaml`
 and `kbmcp.yaml` with `CODEOWNERS` or branch protection.
 
 ## 6. Connect an AI assistant
@@ -445,4 +443,4 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
 - [The guide](guide.md): layout, settings, sealing, CI and every setting in `kbmcp.yaml`.
 - [Tools](tools.md): every command, with its arguments and examples.
 - [Troubleshooting](troubleshooting.md): when something does not behave.
-- [Understanding OKF](understanding-okf.md): what the richest format is and why it is built this way.
+- [OKF](formats/okf.md): what the richest format is and why it is built this way.

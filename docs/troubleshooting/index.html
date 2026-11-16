@@ -53,10 +53,44 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../formats/">Formats</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -64,7 +98,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../understanding-okf/">Understanding OKF</a>
+                 href="../sealing/">Sealing</a>
             </li>
           
         
@@ -72,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../guide/">Guide</a>
+                 href="../guide/">Docs</a>
             </li>
           
         
@@ -97,14 +131,6 @@
               <a class="nav-link "
                  
                  href="../contributing/">Contributing</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">OKF v0.2</a>
             </li>
           
         
@@ -166,10 +192,8 @@
           </nav>
         
         <article><h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this section">#</a></h1>
-<div class="admonition note">
-<p class="admonition-title">AI-generated</p>
-<p>Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. The behavior described here was checked against the code and by running it.</p>
-</div>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:08:02Z</p>
+
 <h2 id="searching">Searching<a class="headerlink" href="#searching" title="Link to this section">#</a></h2>
 <ul>
 <li><strong><code>passages</code> says <code>gap: true</code> for something you know is there.</strong> It matches by words and has no stemming, so "rolling"

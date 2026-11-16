@@ -1,7 +1,11 @@
-# Understanding OKF
+# OKF
 
-!!! note "AI-generated"
-    Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. It explains the format in plain words and points at [the specification][okf] for the exact rules; where the two differ, the specification wins.
+<!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. Every command and output on this page was run for real; long lines are shortened. -->
+
+**Use it when** the knowledge needs to say where it came from, who checked it and when it expires, especially when
+agents write part of it. [Open Knowledge Format](#what-okf-is) is a Markdown convention for exactly that: each
+note (a *concept*) starts with a small header of facts, and the tools check that the whole folder is well formed.
+It is the only format with the full toolset: `lint`, `fix`, `cite`, `provenance`, `status`, `move`, `rename` and the rest.
 
 ## What OKF is
 
@@ -16,7 +20,7 @@ OKF is published as a specification (this site follows version 0.2) in the `know
 GitHub. Bowerbird is one tool that implements it: it writes, checks and searches OKF folders. Nothing in
 the format depends on this tool, which is the point.
 
-## Why a format at all?
+### Why a format at all?
 
 A pile of Markdown notes is already easy to read. The trouble starts when the pile grows, other people add to it,
 and AI assistants begin to *write* parts of it. Then readers need answers a plain note does not give:
@@ -31,37 +35,42 @@ conventions for exactly these questions and leaves everything else to you.
 
 ## The pieces
 
-### A concept
+A collection is a folder of *bundles*; a bundle is a folder of concepts, one Markdown file each.
 
-A **concept** is one Markdown file about one thing: a procedure, a database table, a metric, a decision, a
-glossary term. Here is a complete one:
+```text
+kb/
+  kbmcp.yaml               format: okf (the default)
+  index.md                 lists the bundles
+  eng/                     a bundle: its index.md declares okf_version "0.2"
+    index.md
+    log.md                 what changed, newest first
+    db.md
+    runbooks/ship.md
+    refs/pg.md
+  mkt/
+    index.md
+    log.md
+    launch.md
+```
+
+Each concept is frontmatter (what kind of thing it is, where its facts came from, who checked it) over an ordinary
+Markdown body. Here is `eng/db.md`:
 
 ```markdown
 ---
-type: Playbook
-title: Deploy
-description: How we ship a release.
-tags: [ops]
+type: Reference
+title: Database
+description: The PostgreSQL cluster behind every service.
 sources:
-  - id: runbook
-    resource: https://example.com/runbook
-    title: Ops runbook
-verified: { by: human:ann, at: 2026-11-13T15:00:00Z }
-status: stable
-stale_after: 2027-05-13T00:00:00Z
+  - id: pg
+    resource: refs/pg.md
+verified: { by: human:you, at: 2026-10-27T14:00:00Z }
 ---
 
-# Deploy
+We run PostgreSQL 16.4.[^pg] Deploys follow [the ship runbook](/runbooks/ship.md).
 
-Run the deploy script, then check the dashboard.[^runbook] If something looks
-wrong, follow [the rollback steps](rollback.md).
-
-[^runbook]: Ops runbook
+[^pg]: PostgreSQL release notes
 ```
-
-The block between the two `---` lines is the **frontmatter**. Everything after it is ordinary Markdown: headings,
-lists, tables, code. The spec asks writers to prefer structure (headings, lists, tables) over loose prose,
-because structure helps both a reader skimming and an assistant retrieving.
 
 ### The header fields
 
@@ -96,14 +105,34 @@ who *wrote* a note need not be who *checked* it; and tiers are advisory labels, 
 
 ### Links and citations
 
-Concepts point at each other with ordinary Markdown links, either relative (`[the rollback steps](rollback.md)`)
-or from the bundle root with a leading slash (`/runbooks/rollback.md`, which survives moving files around inside
-a folder). A link says "these are related"; the sentence around it says how. A broken link is allowed by the
-format: it may simply be knowledge nobody has written yet. (Bowerbird's `status` lists the pages that
-links ask for and nobody has written.)
+Concepts point at each other in two ways: a Markdown **link** in the body, and a **citation** in `sources`, which
+records where a fact came from. `web output=mermaid` draws both for the whole collection:
 
-A **citation** is different: it records where a *fact* came from. It lives in `sources`, and the claim in the text
-points at it with a Markdown footnote (`[^runbook]`). Links are for navigation, citations are for lineage.
+```mermaid
+graph LR
+  subgraph eng
+    db["db.md"]
+    ship["runbooks/ship.md"]
+    pg["refs/pg.md"]
+  end
+  subgraph mkt
+    launch["launch.md"]
+  end
+  db -.->|cites| pg
+  db -->|links| ship
+  ship -->|links| db
+  ship -->|links| launch
+  launch -->|links| db
+```
+
+Solid arrows are links; dotted ones are citations. The boxes are bundles, so an arrow that leaves its box crosses into
+another bundle. That is allowed, but `lint` flags it, because the link breaks if one bundle is published alone.
+
+Links are ordinary Markdown, either relative (`[the rollback steps](rollback.md)`) or from the bundle root with a leading
+slash (`/runbooks/rollback.md`, which survives moving files around inside a folder). A link says "these are related"; the
+sentence around it says how. A broken link is allowed by the format: it may simply be knowledge nobody has written yet
+(`status` lists the pages that links ask for and nobody has written). A citation is different: the claim in the text points
+at its entry in `sources` with a Markdown footnote (`[^pg]`). Links are for navigation, citations are for lineage.
 
 ### Bundles, `index.md` and `log.md`
 
@@ -118,6 +147,34 @@ A **bundle** is a folder of concepts, with subfolders as you like. Two filenames
 A bundle can travel as a git repository (recommended, for the history and the diffs), a zip, or a subfolder of a
 bigger repository. The word **collection**, as this site uses it, is not part of OKF: it means a bundle, or a
 folder of bundles, that Bowerbird manages together.
+
+## Try it
+
+In an empty folder:
+
+```sh
+kb init holds=okf about="Team runbooks." apply=true
+kb create deploy type=Playbook title="Deploy" description="How we ship a release." \
+   body='Run the deploy script, then check the dashboard.' output=text
+kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
+kb lint output=text
+```
+
+`create` writes a file with its header, `cite` records a source and prints the footnote tag (`[^runbook]`) to put next to
+the claim it backs, and `lint` checks the whole collection:
+
+```text
+bowerbird-mcp lint: ok: 1 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True
+```
+
+A file with no header, a broken link or a fact with no source is a finding, each naming the file, what is wrong and how to
+fix it, and `kb fix apply=true` repairs the mechanical ones.
+
+## Reviewing
+
+`kb seal` writes a `verified` entry into the concept itself, with a `sha256` of the note. The trust tier
+comes only from who verified: nobody means *unverified*, a script or agent means *machine-confirmed*, and a person
+means *human-reviewed*. Hits show the tier and whether the note has gone stale. See The tiers are explained [above](#trust-tiers).
 
 ## Why it is good
 
@@ -152,33 +209,10 @@ It is worth being plain about the limits.
 - **It will not replace domain schemas.** Where an asset already has a precise schema (an API description, a
   table definition), OKF points at it with `resource`; it does not copy it.
 
-## Where Bowerbird fits
-
-OKF is the format; Bowerbird is a way to keep a folder of it healthy. It cares how a concept is written,
-never what it says:
-
-- **`lint`** checks every file against the specification's conformance rules plus house rules (broken links,
-  empty notes, orphans, duplicate titles, key-shaped secrets), and `fix` repairs the mechanical ones.
-- **`index`** regenerates the tables of contents from the concepts' own descriptions.
-- **`cite`, `seal`, `provenance`** write the provenance and trust fields correctly (`seal` also records a `sha256` of
-  the note in each `verified` entry, an extra key the specification allows, so a later edit is noticed). A person's review is recorded
-  only with that person's own confirmation (a prompt over MCP, or `--attest` at their terminal), never by an
-  assistant on their behalf.
-- **`passages`, `search`, `dirs`, `get`** find and read, and `passages` returns each section with its file, line,
-  trust tier and staleness, so an answer can show its sources and say when it is on thin ice.
-- **`status`** says what needs a person next: the oldest unreviewed notes, drafts, notes with no sources, what
-  goes stale soon.
-
-Bowerbird can also search a plain Markdown folder (ADR and MADR records among them) and SKOS thesauri, and `seal` a
-human review of those too, with one `format:` line in `kbmcp.yaml` (see [Formats](formats.md)).
-
-The practical effect is that a collection kept this way can answer a question *and* say how far to trust the
-answer. That is the whole idea.
-
 ## Read on
 
-- [Getting started](getting-started.md): build one in ten minutes.
+- [Getting started](../getting-started.md): build one in ten minutes.
 - [The specification][okf]: the exact rules, including attested computations, which this page leaves out.
-- [The guide](guide.md): layout, the archive, several bundles, CI and settings.
+- [Tools](../tools.md): every tool, by role. [The guide](../guide.md): layout, the archive, several bundles, CI and settings.
 
 [okf]: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md

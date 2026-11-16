@@ -21,6 +21,10 @@
          <lastmod>2026-11-16</lastmod>
     </url>
     <url>
+         <loc>https://bowerbird.voltpop.com/sealing/</loc>
+         <lastmod>2026-11-16</lastmod>
+    </url>
+    <url>
          <loc>https://bowerbird.voltpop.com/tools/</loc>
          <lastmod>2026-11-16</lastmod>
     </url>
@@ -29,7 +33,23 @@
          <lastmod>2026-11-16</lastmod>
     </url>
     <url>
-         <loc>https://bowerbird.voltpop.com/understanding-okf/</loc>
+         <loc>https://bowerbird.voltpop.com/formats/adr/</loc>
+         <lastmod>2026-11-16</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/asciidoc/</loc>
+         <lastmod>2026-11-16</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/markdown/</loc>
+         <lastmod>2026-11-16</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/okf/</loc>
+         <lastmod>2026-11-16</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/skos/</loc>
          <lastmod>2026-11-16</lastmod>
     </url>
 </urlset>

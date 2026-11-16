@@ -64,18 +64,25 @@ markdown_extensions:
 exclude_docs: |
   prompts/
   kbmcp.yaml
-  .waxseal.yaml
+  .waxseals.yaml
   .env
 
 nav:
   - Home: index.md
   - Getting started: getting-started.md
-  - Formats: formats.md
-  - Understanding OKF: understanding-okf.md
-  - Guide: guide.md
+  - Formats:
+      - Overview: formats.md
+      - Markdown: formats/markdown.md
+      - ADR: formats/adr.md
+      - OKF: formats/okf.md
+      - SKOS: formats/skos.md
+      - AsciiDoc: formats/asciidoc.md
+  - Sealing: sealing.md
+  - Docs: guide.md
   - Tools: tools.md
   - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md
-  - OKF v0.2: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md
 
 plugins: []
+hooks:
+  - hooks/seal_banner.py

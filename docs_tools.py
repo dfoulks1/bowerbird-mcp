@@ -20,10 +20,13 @@ def prose(doc: str) -> str:
     return "`".join(html.escape(p, quote=False) if i % 2 == 0 else p for i, p in enumerate(parts))
 
 
-out = ["# Tools", "", ("Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> "
+out = ["# Tools", "", "<!-- seal-banner: Derived from the tools' own docstrings. -->", "", ("Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> "
                        "name=value ...`, or see the same text with `help <tool>`."), ""]
 for name, fn in sorted(k.REG.items()):
-    out += [f"## {name}", "", prose(fn.__doc__), ""]
+    roles = [r for r, ts in k.ROLES.items() if name in ts]  # the roles that switch it on, and the formats whose server offers it
+    fmts = ["OKF", *(f.replace("seal-only", "Seal-only").replace("asciidoc", "AsciiDoc").replace("skos", "SKOS").replace("adr", "ADR").replace("markdown", "Markdown")
+                     for f in ("markdown", "adr", "skos", "asciidoc", "seal-only") if name in k.TIERS[f])]
+    out += [f"## {name}", "", f"Role: {', '.join(f'`{r}`' for r in roles)}. Offered by a server for: {', '.join(fmts)}.", "", prose(fn.__doc__), ""]
     if name in k.EXAMPLES:
         out += ["```sh", *(f"uv run bowerbird_mcp.py {e}" for e in k.EXAMPLES[name]), "```", ""]
     args = [(n, p) for n, p in inspect.signature(fn).parameters.items() if n != "ctx"]

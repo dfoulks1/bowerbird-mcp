@@ -1,13 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Changed
-- The command-line option that picks how a result is printed is now `output=` (`text`, `json`, `github` or `sarif`),
-  so it no longer shares a name with a collection's `format`. `format=` still works as an alias.
-- Releases are published to PyPI by hand (`uv publish`), not by a GitHub Actions workflow; the publish workflow is removed.
-  See `CONTRIBUTING.md`.
-
 ## 2.0.0 (2026-11-16)
 
 A major version: several things a 1.x user relied on changed.
@@ -30,9 +22,10 @@ A major version: several things a 1.x user relied on changed.
   `write`. `fix` moved back to `write`; the four older roles stay within about 15% of each other.
 - `seal` (command-line names `verify` for okf and `ratify` for ADRs): one function for a human's review, in every
   format, replacing `verify` as the tool. Over MCP it asks the human in a prompt, as `verify` did. okf records
-  `verified: {by, at, sha256}` in the concept; markdown and skos add an entry (file, sha256, by, at, decision) to a
-  committed `.waxseal.yaml`. The sha256 binds the review to the exact bytes: an edit breaks the seal and the
-  hit shows `unverified` and `stale`. A ledger decision becomes the hit's `status`.
+  `verified: {by, at, sha256}` in the concept; the other formats keep one dense line per file (file, sha256, by, at,
+  decision, and `bowerbird`, the version that wrote it) in a committed `.waxseals.yaml`, only the latest seal, which sealing again replaces (git has the earlier
+  ones). The sha256 binds the review to the exact bytes: an edit breaks the seal and the hit shows `unverified` and
+  `stale`, and the line still names the version that was reviewed. A ledger decision becomes the hit's `status`. 
 - `seal check=true` (a pre-commit hook, CI; `since=` for pull requests) exits 1 on `unsigned`, `stale_signature`,
   `claims_accepted` and `orphan_signature` (a warning). The policy is the `seal` key in the committed `kbmcp.yaml`:
   `require` globs (default everything) and `exempt_status` (default proposed, draft); no override can loosen it.
@@ -42,14 +35,32 @@ A major version: several things a 1.x user relied on changed.
 - `format: adr` (every markdown file but README.md and index.md is a decision record) and `format: markdown` in kbmcp.yaml
   index a folder with no OKF frontmatter, so `passages` works on
   ADR and MADR records. A numbered file name or a path through adr/decisions gets type `adr` and its `status`
-  (MADR 3 frontmatter, a Nygard `## Status` section, or MADR 2's `* Status:` line). Only `passages`, `reindex` and `seal` are
-  offered, `index.md` and `log.md` are ordinary files, and every hit is `unverified`.
+  (MADR 3 frontmatter, a Nygard `## Status` section, or MADR 2's `* Status:` line). `index.md` and `log.md` are ordinary files, and a hit is
+  `unverified` until a person seals it. A server offers a few tools outside OKF, by format: markdown `get`, `search`,
+  `dirs`, `links`, `list`, `status`, `heatmap`, `init` and `config` on top of `passages`, `reindex` and `seal`; adr also
+  `move`; skos `passages`, `reindex` and `seal`; asciidoc those three and `heatmap`; seal-only just `seal`.
 - `vector_index` in kbmcp.yaml picks how semantic search finds neighbours: `scan` (default, exact, Python),
   `sqlite-vec` (exact, in C, same results as scan, faster from about 10K passages) or `hnsw` (approximate, a graph
   file beside the index, seeded and single-threaded so builds repeat). Both are optional extras
   (`bowerbird-mcp[sqlite-vec]`, `bowerbird-mcp[hnsw]`). `hnsw` keeps the top 500 before the type/tag/dir filters.
 
+- `format: asciidoc` indexes `.adoc` and `.asciidoc` files: one passage per section, `:name: value` header attributes or
+  YAML front matter as metadata, `xref:`, `link:` and `<<file.adoc#id>>` links. No new dependency.
+- `list` and `status` work in markdown and adr. A decision record is stable, superseded, rejected or deprecated, and a
+  person's seal is what makes a stable one accepted (`state`: accepted, proposed or superseded). `status` counts them
+  (`by_state`) and the records edited since a review (`stale`); `list status=proposed` is the unreviewed worklist.
+  `accepted` is a command-line name for `seal`, like `ratify`. `heatmap` counts each format's own files.
+- `seal.require` takes `!` globs to leave files out (a generated page): `require: ["/*.md", "!/tools.md"]`.
+- `move` carries a file's seal to the new path when its text does not change; a file whose own links had to be
+  rewritten loses it, as any edit does.
+- The site build renders each page's review badge from the ledger (`hooks/seal_banner.py`), so the page source never
+  holds the seal data and rendering cannot stale a seal.
+
 ### Changed
+- The command-line option that picks how a result is printed is now `output=` (`text`, `json`, `github` or `sarif`), so it
+  no longer shares a name with a collection's `format`. `format=` still works as an alias.
+- Releases are published to PyPI by hand (`uv publish`), not by a GitHub Actions workflow; the publish workflow is removed.
+  See `CONTRIBUTING.md`.
 - `init` also writes a `.mcp.json` (commit it): whoever clones the repository has the tools, with nothing to register
   on their own machine (Claude Code asks once to approve a project's server). The collection's settings, reviews and
   client configuration all travel with the repository.
@@ -61,7 +72,7 @@ A major version: several things a 1.x user relied on changed.
   `.env` (not committed; `init` and `config` ignore it). Precedence: `kbmcp.yaml`, then `.env`, then real environment
   variables. `config` also writes `env.example`.
 - `init` writes a mostly filled-in `kbmcp.yaml`: `format` is guessed from the folder, and `about`, `user` (into
-  `.env`) and `holds` (okf, markdown or skos) are asked for in an MCP prompt or at a terminal, or passed as arguments.
+  `.env`) and `holds` (okf, markdown, adr, skos, asciidoc or seal-only) are asked for in an MCP prompt or at a terminal, or passed as arguments.
   `markdown` and `skos` start no bundle. `init` is now async.
 - The `KB_ROOT` refusal message no longer tells you to set a `root:` key (there is none).
 - The server instructions are built from the settings: they follow `format` (OKF workflow, or read-only search for

@@ -1,5 +1,6 @@
 # Contributing
 
+<!-- --8<-- [start:body] -->
 Bowerbird is a personal project, Apache-2.0 licensed, built under the
 [ASF generative-tooling guidelines][asf-gt]. AI assists; a human reviews before
 anything public-facing ships.
@@ -11,9 +12,10 @@ Security problems: see [SECURITY.md](https://github.com/dfoulks1/bowerbird-mcp/b
 
 ## What it serves
 
-Bundles in the [Open Knowledge Format][okf] (OKF). Everything a tool does is
-also doable by hand (edit the file, run `lint`). The tools make it cheaper and
-more consistent, not possible.
+A folder of files in one of six formats: bundles in the [Open Knowledge Format][okf] (OKF), Markdown, ADR records, SKOS
+thesauri, AsciiDoc, or any text files you name (seal-only). Search and the human-review `seal` work across all of them;
+the full toolset is OKF's. Everything a tool does is also doable by hand (edit the file, run `lint`). The tools make it
+cheaper and more consistent, not possible.
 
 ## How we build
 
@@ -38,15 +40,22 @@ use cases drive changes to it. Core stays one file.
 ## Running the checks
 
 ```sh
+tools/QA.sh                      # every check a release asks for, in one command (needs uv); PYTHONS="3.12" tools/QA.sh for one Python
 uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
 uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # also the optional backends (skipped otherwise)
 ```
 
+`tools/QA.sh` runs the tests with every optional backend on Python 3.10 to 3.14, checks that `docs-src/tools.md` is what the
+tools' docstrings produce, that `docs/` is a fresh build of `docs-src/`, and that `uv.lock` matches `pyproject.toml`. It
+changes nothing in the working tree and stops at the first failure.
+
 ## Releasing
 
-1. Set `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), add a section to `CHANGELOG.md`, and run the checks above (the tests
-   run on Python 3.10 to 3.14: `uv run --python 3.10 test_bowerbird_mcp.py`).
-2. Rebuild the docs site (below) and commit. Merge to `main`.
+1. Set `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), run `uv lock` (the
+   lockfile records the version), and add a section to `CHANGELOG.md`. For a new major version, also change the pin `init`
+   writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1` example in
+   `docs-src/formats/skos.md`. Then run `tools/QA.sh`.
+2. Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to `main`.
 3. Tag and publish a GitHub release, `git tag -a vX.Y.Z` then `gh release create vX.Y.Z`, with the
    `CHANGELOG.md` section as the notes. This only creates the release: nothing publishes automatically.
 4. Publish to PyPI by hand, from the tag, after the checks above pass:
@@ -72,5 +81,17 @@ uv run docs_tools.py                          # docs-src/tools.md, from the tool
 uvx --with pymdown-extensions mkdocs build    # docs-src/ -> docs/
 ```
 
+`docs-src/` is also a collection (its own `kbmcp.yaml`): a person reviews each page and seals it, and the build draws each
+page's review badge from `docs-src/.waxseals.yaml` (`hooks/seal_banner.py`). So seal first, then build, then commit
+`docs/`: a build made before a seal is stale, and `tools/QA.sh` fails it. See what still needs a review with:
+
+```sh
+uv run bowerbird_mcp.py seal check=true --config docs-src/kbmcp.yaml
+```
+
+`tools.md` is built from the code and left out of the review policy (`!/tools.md` in `seal.require`). `mkdocs serve`
+loads `hooks/` once, so restart the preview after changing them.
+
 [asf-gt]: https://www.apache.org/legal/generative-tooling.html
-[okf]: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
+[okf]: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md
+<!-- --8<-- [end:body] -->

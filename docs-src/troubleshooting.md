@@ -1,7 +1,6 @@
 # Troubleshooting
 
-!!! note "AI-generated"
-    Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. The behavior described here was checked against the code and by running it.
+<!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. The behavior described here was checked against the code and by running it. -->
 
 ## Searching
 

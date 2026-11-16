@@ -53,10 +53,44 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../formats/">Formats</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -64,7 +98,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../understanding-okf/">Understanding OKF</a>
+                 href="../sealing/">Sealing</a>
             </li>
           
         
@@ -72,7 +106,7 @@
             <li class="nav-item">
               <a class="nav-link "
                  
-                 href="../guide/">Guide</a>
+                 href="../guide/">Docs</a>
             </li>
           
         
@@ -97,14 +131,6 @@
               <a class="nav-link "
                  
                  href="../contributing/">Contributing</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">OKF v0.2</a>
             </li>
           
         
@@ -242,10 +268,8 @@
           </nav>
         
         <article><h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Link to this section">#</a></h1>
-<div class="admonition note">
-<p class="admonition-title">AI-generated</p>
-<p>Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. Every command on this page was run for real. Long output lines are shortened, and the person sealing in the examples is a made-up user called <code>example</code>.</p>
-</div>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:56:33Z</p>
+
 <p>In about ten minutes you will turn a folder into a collection, ask it a question and get an answer with the file and
 line to cite, have a person seal a file so a changed file is never mistaken for a reviewed one, and connect an AI
 assistant. You do not need to know anything about AI tooling to start, and nothing here sends your files anywhere.</p>
@@ -440,16 +464,14 @@ must be at least <code>min_similarity</code> close in meaning (0.6 by default) t
 <p>Every hit says <code>tier: unverified</code>: nobody has said a person looked at these files. A <strong>seal</strong> is a person's review of
 one exact version of a file. At a terminal, <code>--attest</code> records you:</p>
 <pre class="highlight"><code class="language-sh">kb seal deploy.md --attest output=text</code></pre>
-<pre class="highlight"><code class="language-text">edited: {".": [".waxseal.yaml"]}
+<pre class="highlight"><code class="language-text">edited: {".": [".waxseals.yaml"]}
 file: deploy.md
 sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
+bowerbird: 2.0.0
 tier: human-reviewed</code></pre>
-<p>The review goes into <code>.waxseal.yaml</code> (commit it), and your file is not touched:</p>
-<pre class="highlight"><code class="language-yaml">entries:
-- file: deploy.md
-  sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
-  by: human:example
-  at: 2026-11-16T15:29:29Z</code></pre>
+<p>The review goes into <code>.waxseals.yaml</code> (commit it), and your file is not touched:</p>
+<pre class="highlight"><code class="language-yaml">- {file: deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.0.0}</code></pre>
+<p>One line per file, and only the latest seal is kept: seal it again and the line is replaced (git has the earlier ones).</p>
 <p>Search now shows the difference: <code>deploy.md</code> is <code>tier: human-reviewed</code>, and <code>rollback.md</code> is still <code>unverified</code>.</p>
 <p>Like a wax seal, a review breaks when the file changes. Edit <code>deploy.md</code> and check:</p>
 <pre class="highlight"><code class="language-sh">echo "Also tell the team in chat." &gt;&gt; deploy.md
@@ -462,7 +484,7 @@ it as <code>unverified</code> and <code>stale</code> until a person reviews it a
 code, which is what makes it useful in a hook or in CI (step 7).</p>
 <p>A person's review is only ever recorded with that person's own confirmation: <code>--attest</code> at their terminal, or a
 prompt over MCP. An AI assistant can seal as itself (<code>by=process:&lt;id&gt;</code>), never as a person. These tiers are advisory
-labels, not access control: the guarantee is only as strong as who can write to the repository, so protect <code>.waxseal.yaml</code>
+labels, not access control: the guarantee is only as strong as who can write to the repository, so protect <code>.waxseals.yaml</code>
 and <code>kbmcp.yaml</code> with <code>CODEOWNERS</code> or branch protection.</p>
 <h2 id="6-connect-an-ai-assistant">6. Connect an AI assistant<a class="headerlink" href="#6-connect-an-ai-assistant" title="Link to this section">#</a></h2>
 <p><code>kb init</code> wrote a <code>.mcp.json</code> at the root of the collection. <strong>Commit it</strong>: anyone who clones the repository then has the
@@ -604,7 +626,7 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
 <li><a href="../guide/">The guide</a>: layout, settings, sealing, CI and every setting in <code>kbmcp.yaml</code>.</li>
 <li><a href="../tools/">Tools</a>: every command, with its arguments and examples.</li>
 <li><a href="../troubleshooting/">Troubleshooting</a>: when something does not behave.</li>
-<li><a href="../understanding-okf/">Understanding OKF</a>: what the richest format is and why it is built this way.</li>
+<li><a href="../formats/okf/">OKF</a>: what the richest format is and why it is built this way.</li>
 </ul></article>
         
           <hr class="my-5">
@@ -613,7 +635,7 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
               <a class="btn btn-outline-secondary" href="..">&larr; Home</a>
             
             
-              <a class="btn btn-outline-secondary" href="../formats/">Formats &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../formats/">Overview &rarr;</a>
             
           </div>
         

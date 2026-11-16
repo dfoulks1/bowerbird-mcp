@@ -1,0 +1,460 @@
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sealing · Bowerbird</title>
+  <link rel="icon" href="../img/favicon.png" type="image/png">
+  <link rel="icon" href="../img/favicon.ico" sizes="any">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sealing · Bowerbird">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/pygments.css"><link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+  
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="..">
+      <img src="../img/favicon.png" alt="" width="32" height="32" class="me-2 align-text-bottom">Bowerbird
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#site-nav" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="site-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="..">Home</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link active"
+                 aria-current="page"
+                 href="./">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../guide/">Docs</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../tools/">Tools</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../troubleshooting/">Troubleshooting</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../contributing/">Contributing</a>
+            </li>
+          
+        
+      </ul>
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/dfoulks1/bowerbird-mcp"
+               target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-github"></i> GitHub
+            </a>
+          </li>
+        
+        <li class="nav-item d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary ms-lg-2" id="theme-toggle"
+                  type="button" title="Toggle light/dark" aria-label="Toggle theme">
+            <i class="bi bi-circle-half"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="docs-grid with-toc">
+      
+        <aside class="d-none d-lg-block docs-toc">
+          <div class="position-sticky py-5" style="top: 3.5rem; max-height: calc(100vh - 3.5rem); overflow-y: auto;">
+            <h6 class="text-uppercase small text-body-secondary fw-semibold mb-3">On this page</h6>
+            <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#how-a-seal-works">How a seal works</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#who-can-seal">Who can seal</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#where-a-review-is-kept">Where a review is kept</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#decisions">Decisions</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#checking">Checking</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-policy">The policy</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#enforcing-it">Enforcing it</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#moving-and-renaming">Moving and renaming</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#seal-only">Seal-only</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#showing-a-review-on-a-website">Showing a review on a website</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#limits">Limits</a>
+      
+    </li>
+  
+</ul>
+          </div>
+        </aside>
+      
+      <main class="py-5 docs-content">
+        
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+              <li class="breadcrumb-item"><a href="..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Sealing</li>
+            </ol>
+          </nav>
+        
+        <article><h1 id="sealing">Sealing<a class="headerlink" href="#sealing" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:58:06Z</p>
+
+<p>A seal is a person's review of one exact version of a file. It is how Bowerbird guarantees a human was in the loop: for stored
+knowledge (a note, a concept, a page) and for decisions (an ADR). One function, <code>seal</code>, does it in every <a href="../formats/">format</a>.</p>
+<h2 id="how-a-seal-works">How a seal works<a class="headerlink" href="#how-a-seal-works" title="Link to this section">#</a></h2>
+<p><code>seal</code> shows the person the file in a prompt, asks for their id, and records who reviewed it and when. The record is bound to
+the sha256 of the file's exact bytes (line endings normalized; for OKF, without the <code>verified</code> key, which the review itself
+writes). Edit the file afterwards and the hash no longer matches: the seal is broken, and a hit for that file shows
+<code>unverified</code> and <code>stale</code>. Only a new review makes a new seal.</p>
+<p>Like a wax seal, it proves the document was not changed after it was closed. It does not prove the reviewer read it all.</p>
+<h2 id="who-can-seal">Who can seal<a class="headerlink" href="#who-can-seal" title="Link to this section">#</a></h2>
+<ul>
+<li><strong>A person:</strong> over MCP they type their own id in the prompt. At a terminal, <code>--attest</code> records them. The result is a
+  <code>human-reviewed</code> hit.</li>
+<li><strong>An agent or process:</strong> it can only seal as itself, with <code>by=&lt;tool&gt;/&lt;version&gt;</code> or <code>by=process:&lt;id&gt;</code>. That is
+  <code>machine-confirmed</code>, not <code>human-reviewed</code>. An agent never passes <code>human:&lt;id&gt;</code>, and should show the person the file first.</li>
+</ul>
+<p>At the terminal <code>seal</code> also answers to <code>verify</code> (the OKF word), <code>ratify</code> and <code>accepted</code> (the ADR words). They are the same
+function.</p>
+<h2 id="where-a-review-is-kept">Where a review is kept<a class="headerlink" href="#where-a-review-is-kept" title="Link to this section">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>The review lives in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OKF</td>
+<td>the concept's own frontmatter, as <code>verified: {by, at, sha256}</code></td>
+</tr>
+<tr>
+<td>Markdown, ADR, SKOS, AsciiDoc, Seal-only</td>
+<td><code>.waxseals.yaml</code> at the collection root (commit it). The file itself is never edited</td>
+</tr>
+</tbody>
+</table>
+<pre class="highlight"><code class="language-yaml"># .waxseals.yaml: the latest review of each file (`seal`); an edit breaks it, git has the earlier ones. Commit it.
+- {file: config/limits.yaml, sha256: 3b1f…, by: 'human:you', at: '2026-11-16T15:02:10Z', bowerbird: 2.0.0}
+- {file: src/app.py, sha256: ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772, by: 'human:you', at: '2026-11-16T15:01:31Z', bowerbird: 2.0.0}</code></pre>
+<p>There is one <code>.waxseals.yaml</code>, at the collection root beside <code>kbmcp.yaml</code>, with one dense line per file (its path from that
+root). <strong>Only the latest seal is kept</strong>: sealing a file again replaces its line. That is deliberate. When an edit breaks a
+seal, the line still names the version a person reviewed, and git shows what has changed since; the earlier reviews are in
+the file's history. <code>bowerbird</code> is the version of Bowerbird that wrote the line, so a review can be traced to the tool that recorded it.</p>
+<p>Because the file is untouched, Nygard ADRs, MADR, thesauri and AsciiDoc all work as they are. Reviews are not converted when
+you <a href="../formats/#changing-your-mind">change format</a>; after a switch the files may need sealing again.</p>
+<h2 id="decisions">Decisions<a class="headerlink" href="#decisions" title="Link to this section">#</a></h2>
+<p>For an ADR, <code>decision=accepted</code> or <code>decision=rejected</code> goes into the ledger with the review and becomes the hit's <code>status</code>:</p>
+<pre class="highlight"><code class="language-sh">kb ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest</code></pre>
+<p>A record that writes "Accepted" has only said so about itself. In <code>kb status</code> and <code>kb list</code> a decision record is
+<strong>accepted</strong> only once a person has sealed it, and <strong>proposed</strong> until then. Superseded, rejected and deprecated are final. See
+<a href="../formats/adr/">ADR</a>.</p>
+<p>In OKF, <code>promote=true</code> also moves a concept from <code>draft</code> to <code>stable</code>, and only a human review may.</p>
+<h2 id="checking">Checking<a class="headerlink" href="#checking" title="Link to this section">#</a></h2>
+<p><code>kb seal check=true</code> changes nothing and exits 1 on findings, so it can run in a pre-commit hook and in CI:</p>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>unsigned</code></td>
+<td>a file the policy requires has no review by a human</td>
+</tr>
+<tr>
+<td><code>stale_signature</code></td>
+<td>it was reviewed, then edited</td>
+</tr>
+<tr>
+<td><code>claims_accepted</code></td>
+<td>its own status says accepted, but no human reviewed it</td>
+</tr>
+<tr>
+<td><code>orphan_signature</code></td>
+<td>a ledger entry for a file that is gone (a warning)</td>
+</tr>
+<tr>
+<td><code>unreadable</code></td>
+<td>required, but not UTF-8 text, so it cannot be reviewed here</td>
+</tr>
+</tbody>
+</table>
+<pre class="highlight"><code class="language-text">$ kb seal check=true output=text
+config/limits.yaml: error: unsigned: no review by a human | fix: a human reviews it: seal config/limits.yaml
+src/app.py: error: unsigned: no review by a human | fix: a human reviews it: seal src/app.py
+bowerbird-mcp seal: FAILED: 2 file(s) checked, 2 finding(s)</code></pre>
+<p>After an edit, the file fails again until someone reviews the new version:</p>
+<pre class="highlight"><code class="language-text">src/app.py: error: stale_signature: edited since it was reviewed | fix: review it again: seal src/app.py</code></pre>
+<p><code>since=&lt;git ref&gt;</code> limits the check to files changed since its merge base with <code>HEAD</code>: <code>since=origin/main</code> for a pull request.</p>
+<h2 id="the-policy">The policy<a class="headerlink" href="#the-policy" title="Link to this section">#</a></h2>
+<p>The policy is the <code>seal</code> key in the committed <code>kbmcp.yaml</code>, so nothing local can loosen it. By default every file needs a review,
+except those whose status is <code>proposed</code> or <code>draft</code>:</p>
+<pre class="highlight"><code class="language-yaml">seal: {require: ["**"], exempt_status: [proposed, draft]}</code></pre>
+<p><code>require</code> is a list of globs, and a leading <code>/</code> anchors one at the collection root. <code>exempt_status</code> lets a proposal be committed
+before it is reviewed.</p>
+<h2 id="enforcing-it">Enforcing it<a class="headerlink" href="#enforcing-it" title="Link to this section">#</a></h2>
+<p>A pre-commit hook:</p>
+<pre class="highlight"><code class="language-yaml"># .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: bowerbird-seal
+        name: Bowerbird seal check
+        entry: uvx bowerbird-mcp seal check=true output=text
+        language: system
+        pass_filenames: false
+        always_run: true</code></pre>
+<p>And the same command in CI, with <code>since=origin/${{ github.base_ref }}</code> on pull requests. A hook can be skipped with
+<code>--no-verify</code>; CI cannot.</p>
+<h2 id="moving-and-renaming">Moving and renaming<a class="headerlink" href="#moving-and-renaming" title="Link to this section">#</a></h2>
+<p><code>move</code> keeps a file's seal when the file's text does not change (Markdown and ADR). If the move had to rewrite the file's own
+relative links, its text changed, so it loses the seal, as any edit does. Files that linked to it are edited too, and lose theirs.</p>
+<h2 id="seal-only">Seal-only<a class="headerlink" href="#seal-only" title="Link to this section">#</a></h2>
+<p>Use <code>format: seal-only</code> when you have files (code, configuration, policy) and want a guaranteed human review of the exact
+version, enforced at commit time, with nothing indexed or searched. The only tool is <code>seal</code>.</p>
+<pre class="highlight"><code class="language-text">service/
+  kbmcp.yaml             format: seal-only
+  .waxseals.yaml          the reviews (commit it)
+  src/app.py
+  config/limits.yaml</code></pre>
+<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+format: seal-only
+about: Reviewed code.
+seal: {require: ["src/**/*.py", "config/*.yaml"]}</code></pre>
+<p><code>require</code> has to be set: <code>init holds=seal-only</code> writes it empty, and <code>kb seal check=true</code> refuses to run until you fill it
+in. Any text file can be named.</p>
+<pre class="highlight"><code class="language-sh">kb init holds=seal-only about="Reviewed code." apply=true
+kb seal check=true output=text</code></pre>
+<h2 id="showing-a-review-on-a-website">Showing a review on a website<a class="headerlink" href="#showing-a-review-on-a-website" title="Link to this section">#</a></h2>
+<p>A badge naming the reviewer cannot be written into the sealed file. The build can fill it in from the ledger instead; see
+<a href="../formats/markdown/#use-case-content-for-a-generated-website">the website use case</a>.</p>
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Link to this section">#</a></h2>
+<ul>
+<li>The prompt shows the start of the file; the reviewer is trusted to have read all of it, or the diff.</li>
+<li><code>seal</code> proves a ledger entry exists for these bytes, not who typed it. Protect <code>.waxseals.yaml</code> and <code>kbmcp.yaml</code> with
+  <code>CODEOWNERS</code> or branch protection, so a change to them needs a named reviewer.</li>
+<li>A SKOS file is sealed whole, not per concept. A page that includes text from another file is not covered for that text.</li>
+</ul></article>
+        
+          <hr class="my-5">
+          <div class="d-flex justify-content-between gap-3">
+            
+              <a class="btn btn-outline-secondary" href="../formats/asciidoc/">&larr; AsciiDoc</a>
+            
+            
+              <a class="btn btn-outline-secondary" href="../guide/">Docs &rarr;</a>
+            
+          </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top mt-4 py-3">
+    <div class="container-fluid small text-muted d-flex flex-wrap justify-content-between gap-2">
+      <span>Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review</span>
+      <span>Built with MkDocs + Bootstrap 5.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      // Restore saved theme before paint-sensitive work.
+      var root = document.documentElement;
+      var saved = localStorage.getItem('docs-theme');
+      if (saved) root.setAttribute('data-bs-theme', saved);
+
+      // Make Markdown tables look like Bootstrap tables.
+      document.querySelectorAll('.docs-content table').forEach(function (t) {
+        t.classList.add('table', 'table-sm', 'table-striped', 'table-bordered', 'align-middle');
+        if (!t.parentElement.classList.contains('table-responsive')) {
+          var wrap = document.createElement('div');
+          wrap.className = 'table-responsive';
+          t.parentNode.insertBefore(wrap, t);
+          wrap.appendChild(t);
+        }
+      });
+
+      // A Copy button on every listing.
+      document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.classList.contains('mermaid')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code') || pre;
+          navigator.clipboard.writeText(code.innerText.replace(/\n$/, '')).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+          });
+        });
+        pre.classList.add('has-copy');
+        pre.appendChild(btn);
+      });
+
+      // Theme toggle (reload keeps mermaid in sync with the new theme).
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-bs-theme', next);
+        localStorage.setItem('docs-theme', next);
+        location.reload();
+      });
+
+      // Render mermaid: superfences emits <pre class="mermaid"><code>…</code></pre>.
+      if (window.mermaid) {
+        var dark = root.getAttribute('data-bs-theme') === 'dark';
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+        document.querySelectorAll('pre.mermaid').forEach(function (pre) {
+          var code = pre.querySelector('code');
+          if (code) pre.textContent = code.textContent;
+        });
+        try { mermaid.run({ querySelector: 'pre.mermaid' }); } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>
