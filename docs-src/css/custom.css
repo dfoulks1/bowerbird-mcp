@@ -10,6 +10,10 @@ body { font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiase
 .site-nav { background: color-mix(in srgb, var(--bs-body-bg) 85%, transparent); backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--bs-border-color); }
 .site-nav .navbar-brand { font-weight: 700; letter-spacing: -.01em; }
+/* The brand mark follows the theme toggle, as the hero's does: dark art on light, pale art on dark. */
+.site-nav .logo-dark { display: none; }
+[data-bs-theme="dark"] .site-nav .logo-light { display: none; }
+[data-bs-theme="dark"] .site-nav .logo-dark { display: inline; }
 .site-nav .nav-link { font-weight: 500; }
 .site-nav .nav-link.active { color: rgb(var(--bs-link-color-rgb)); }
 
