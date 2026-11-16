@@ -15,8 +15,8 @@ as Markdown in a folder or repository. It works on knowledgebases in [Open Knowl
 (OKF) v0.2: one Markdown file per *concept*, each starting with a small header of
 facts (its type, a description, where it came from, who checked it). A *bundle* is
 a folder of concepts; a knowledgebase is a bundle, or a folder of bundles.
-It can also search a plain Markdown folder (ADR and MADR records among them) and
-SKOS thesauri: one `format:` line in `kbmcp.yaml` picks which ([Formats](#formats)).
+It is not tied to one format: one `format:` line in `kbmcp.yaml` points it at other
+knowledge formats too ([Formats](#formats)).
 
 It is an MCP server (MCP, the Model Context Protocol, is how AI assistants call
 tools) and a command line. It
@@ -72,7 +72,7 @@ about: Engineering runbooks.   # shown to the agent; tells knowledgebases apart
 user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | markdown | skos: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
 semantic: false       # also match by meaning (see Reading the knowledgebase)
 semantic_model: BAAI/bge-small-en-v1.5
@@ -96,27 +96,8 @@ is the same as `--role`.
 `init` fills in what it can: `format` is guessed from the folder (thesaurus files mean `skos`, Markdown with no OKF
 types means `markdown`, else `okf`), and it asks for what it cannot know: `about`, your `user` id (kept in `.env`)
 and `holds` (the format, to confirm). Over MCP it asks the human with a prompt; at a terminal it asks on the
-command line; or pass them (`init about="Runbooks." holds=markdown user=you apply=true`). An `okf` folder also
-gets its first bundle; `markdown` and `skos` get only the configuration.
-
-### Formats
-
-`format` in `kbmcp.yaml` says what the folder holds.
-
-- `okf` (the default): OKF bundles. Every tool is available.
-- `markdown`: any folder of Markdown, no frontmatter needed; `index.md` and
-  `log.md` are ordinary files. A numbered file name (`0007-use-queue.md`) or a
-  path through `adr`, `adrs` or `decisions` makes a hit type `adr`, with its
-  `status` read from MADR frontmatter, a `## Status` section (Nygard) or a
-  `* Status:` line (MADR 2).
-- `skos`: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (`*.ttl`,
-  `*.rdf`, `*.jsonld`, `*.nt`, `*.n3`; needs `pip install rdflib`). One passage
-  per concept, headed by its broader chain, with its labels, notes and
-  broader, narrower and related concepts in the text.
-
-Outside `okf` only `passages` and `reindex` are offered, and every hit is
-`unverified`: there are no trust fields to read. The agent's instructions follow
-the format.
+command line; or pass them (`init about="Runbooks." holds=markdown user=you apply=true`). Only an `okf` folder
+gets a first bundle.
 
 ### The index
 
@@ -191,6 +172,27 @@ Output is JSON; `format=text` prints one key per line and diffs as is.
 Exit codes: 0 ok, 1 findings, 2 usage error.
 
 <!-- --8<-- [end:run] -->
+## Formats
+
+<!-- --8<-- [start:formats] -->
+Bowerbird is not tied to one knowledge format. `format` in `kbmcp.yaml` says what a folder holds, and the same
+search, index and review tools work across them.
+
+- `okf` (the default): [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md) bundles. Every tool is available.
+- `adr`: ADR and MADR decision records. Every Markdown file is a record (except `README.md` and `index.md`), whatever
+  its name or folder, and no frontmatter is needed. A hit gets type `adr` and its `status`, read from MADR frontmatter,
+  a `## Status` section (Nygard) or a `* Status:` line (MADR 2).
+- `markdown`: any other folder of Markdown, no frontmatter needed; `index.md` and `log.md` are ordinary files. A
+  numbered file name (`0007-use-queue.md`) or a path through `adr`, `adrs` or `decisions` still counts as an ADR.
+- `skos`: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (`*.ttl`, `*.rdf`, `*.jsonld`, `*.nt`, `*.n3`;
+  needs `pip install rdflib`). One passage per concept, headed by its broader chain, with its labels, notes and
+  broader, narrower and related concepts in the text.
+
+Outside `okf` the server offers `passages`, `reindex` and `seal`. A hit is `unverified` until a human seals that exact
+file (see [Sealing](https://bowerbird.voltpop.com/guide/#sealing-who-reviewed-what)): reviews go in `verifications.yaml`, not in the file. `init` guesses
+the format from the folder, and the agent's instructions follow it.
+
+<!-- --8<-- [end:formats] -->
 <!-- --8<-- [start:layout] -->
 ## Layout
 
@@ -319,17 +321,17 @@ the client or reconnect the server (`/mcp` in Claude Code).
 
 ### Roles: a smaller tool list per agent
 
-All 35 tools cost an agent about 8,200 tokens of schema (an estimate: each tool's name, description and argument
+All 35 tools cost an agent about 7,200 tokens of schema (an estimate: each tool's name, description and argument
 schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
 script more than once, each with a role (`--role`, or `KB_ROLE`; several with
 commas), and each server offers only that role's tools:
 
 | Role | Tools | Schema |
 |---|---|---|
-| `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~2,000 tokens |
-| `structure` | shape and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~1,900 tokens |
-| `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `seal` `set` | 7, ~2,350 tokens |
-| `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,950 tokens |
+| `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~1,750 tokens |
+| `structure` | shape and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~1,700 tokens |
+| `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `seal` `set` | 7, ~2,050 tokens |
+| `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,750 tokens |
 
 ```json
 {

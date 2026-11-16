@@ -757,7 +757,7 @@ try:
 except SystemExit as e:
     assert "unknown key bogus" in str(e)
 # flat passage settings: types and values are checked.
-for bad, msg in (("semantic: 3", "semantic must be a bool"), ("seal: {nope: 1}", "seal takes require and exempt_status"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, skos"), ("build: sometimes", "must be auto or manual"),
+for bad, msg in (("semantic: 3", "semantic must be a bool"), ("seal: {nope: 1}", "seal takes require and exempt_status"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, adr, skos"), ("build: sometimes", "must be auto or manual"),
                  ("min_similarity: high", "must be a float"), ("index: {path: x}", "index must be a str"), ("nope: 1", "unknown key nope")):
     (cfg / "kbmcp.yaml").write_text(bad + "\n")
     try:
@@ -940,7 +940,12 @@ assert k.detect_holds(g) == "okf"
 assert k.detect_holds(g) == "skos"
 (g / "adr").mkdir()
 (g / "adr/0001-x.md").write_text("# Use x\n")
+assert k.detect_holds(g) == "adr"
+(g / "adr/0001-x.md").rename(g / "adr/x.md")
+(g / "adr").rename(g / "docs")
 assert k.detect_holds(g) == "markdown"
+(g / "docs").rename(g / "adr")
+(g / "adr/x.md").rename(g / "adr/0001-x.md")
 (g / "adr/0001-x.md").write_text("---\ntype: Note\n---\nx\n")
 assert k.detect_holds(g) == "okf"
 # init asks a human (elicitation) for what it could not know, and goes on without an answer.
@@ -1022,6 +1027,19 @@ assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-
 assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
 assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
 assert k.offered() == {"passages", "reindex", "seal"}
+# format: adr: every markdown file but README.md and index.md is a decision record, whatever its name or folder.
+(ar / "notes").mkdir(exist_ok=True)
+(ar / "notes/queue-choice.md").write_text("# Queue choice\n\n* Status: accepted\n\nThe okapi service needs a queue.\n")
+(ar / "notes/README.md").write_text("# Notes\n\nThe okapi readme.\n")
+k.OPTS["format"] = "markdown"
+assert {h["file"]: h["type"] for h in k.passages("okapi")["hits"]} == {"notes/queue-choice.md": None, "notes/README.md": None}
+k.OPTS["format"] = "adr"
+A = {h["file"]: h for h in k.passages("okapi")["hits"]}
+assert A["notes/queue-choice.md"]["type"] == "adr" and A["notes/queue-choice.md"]["status"] == "accepted" and A["notes/README.md"]["type"] is None, A
+assert k.offered() == {"passages", "reindex", "seal"} and k.detect_holds(ar) == "adr"
+k.OPTS["format"] = "markdown"
+(ar / "notes/queue-choice.md").unlink()
+(ar / "notes/README.md").unlink()
 # seal, in markdown mode: the ledger binds a review to exact bytes; `check` finds what lacks one; a decision is the status.
 k.OPTS["seal"] = {"require": ["docs/adr/*.md"], "exempt_status": ["proposed"]}
 adr1 = "docs/adr/0001-record-decisions.md"

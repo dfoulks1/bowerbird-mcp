@@ -61,6 +61,7 @@ exclude_docs: |
 nav:
   - Home: index.md
   - Getting started: getting-started.md
+  - Formats: formats.md
   - Understanding OKF: understanding-okf.md
   - Guide: guide.md
   - Tools: tools.md

@@ -14,9 +14,10 @@
 - `format: skos` indexes SKOS thesauri (Turtle, RDF/XML, JSON-LD, N-Triples, N3; optional extra `bowerbird-mcp[skos]`, needs
   `rdflib`): one passage per `skos:Concept`, headed by its broader chain, with labels, notes and broader/narrower/
   related neighbours in the text. No hub boost, since a concept's links stay inside its file.
-- `format: markdown` in kbmcp.yaml indexes any folder of markdown, no OKF frontmatter needed, so `passages` works on
+- `format: adr` (every markdown file but README.md and index.md is a decision record) and `format: markdown` in kbmcp.yaml
+  index a folder with no OKF frontmatter, so `passages` works on
   ADR and MADR records. A numbered file name or a path through adr/decisions gets type `adr` and its `status`
-  (MADR 3 frontmatter, a Nygard `## Status` section, or MADR 2's `* Status:` line). Only `passages` and `reindex` are
+  (MADR 3 frontmatter, a Nygard `## Status` section, or MADR 2's `* Status:` line). Only `passages`, `reindex` and `seal` are
   offered, `index.md` and `log.md` are ordinary files, and every hit is `unverified`.
 - `vector_index` in kbmcp.yaml picks how semantic search finds neighbours: `scan` (default, exact, Python),
   `sqlite-vec` (exact, in C, same results as scan, faster from about 10K passages) or `hnsw` (approximate, a graph

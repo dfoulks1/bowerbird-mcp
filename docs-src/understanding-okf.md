@@ -170,7 +170,7 @@ never what it says:
   goes stale soon.
 
 Bowerbird can also search a plain Markdown folder (ADR and MADR records among them) and SKOS thesauri, and `seal` a
-human review of those too, with one `format:` line in `kbmcp.yaml` (see [the guide](guide.md#formats)).
+human review of those too, with one `format:` line in `kbmcp.yaml` (see [Formats](formats.md)).
 
 The practical effect is that a knowledgebase kept this way can answer a question *and* say how far to trust the
 answer. That is the whole idea.

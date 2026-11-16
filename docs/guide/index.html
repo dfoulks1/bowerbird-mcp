@@ -56,6 +56,14 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../formats/">Formats</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../understanding-okf/">Understanding OKF</a>
             </li>
           
@@ -132,11 +140,6 @@
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#overrides-env-and-the-environment">Overrides: .env and the environment</a>
-      
-    </li>
-  
-    <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#formats">Formats</a>
       
     </li>
   
@@ -254,7 +257,7 @@ neither overwrites a file. The old <code>KB_ROOT</code> variable is gone and is 
 user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | markdown | skos: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
 semantic: false       # also match by meaning (see Reading the knowledgebase)
 semantic_model: BAAI/bge-small-en-v1.5
@@ -274,25 +277,8 @@ is the same as <code>--role</code>.</p>
 <p><code>init</code> fills in what it can: <code>format</code> is guessed from the folder (thesaurus files mean <code>skos</code>, Markdown with no OKF
 types means <code>markdown</code>, else <code>okf</code>), and it asks for what it cannot know: <code>about</code>, your <code>user</code> id (kept in <code>.env</code>)
 and <code>holds</code> (the format, to confirm). Over MCP it asks the human with a prompt; at a terminal it asks on the
-command line; or pass them (<code>init about="Runbooks." holds=markdown user=you apply=true</code>). An <code>okf</code> folder also
-gets its first bundle; <code>markdown</code> and <code>skos</code> get only the configuration.</p>
-<h3 id="formats">Formats<a class="headerlink" href="#formats" title="Link to this section">#</a></h3>
-<p><code>format</code> in <code>kbmcp.yaml</code> says what the folder holds.</p>
-<ul>
-<li><code>okf</code> (the default): OKF bundles. Every tool is available.</li>
-<li><code>markdown</code>: any folder of Markdown, no frontmatter needed; <code>index.md</code> and
-  <code>log.md</code> are ordinary files. A numbered file name (<code>0007-use-queue.md</code>) or a
-  path through <code>adr</code>, <code>adrs</code> or <code>decisions</code> makes a hit type <code>adr</code>, with its
-  <code>status</code> read from MADR frontmatter, a <code>## Status</code> section (Nygard) or a
-  <code>* Status:</code> line (MADR 2).</li>
-<li><code>skos</code>: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (<code>*.ttl</code>,
-  <code>*.rdf</code>, <code>*.jsonld</code>, <code>*.nt</code>, <code>*.n3</code>; needs <code>pip install rdflib</code>). One passage
-  per concept, headed by its broader chain, with its labels, notes and
-  broader, narrower and related concepts in the text.</li>
-</ul>
-<p>Outside <code>okf</code> only <code>passages</code> and <code>reindex</code> are offered, and every hit is
-<code>unverified</code>: there are no trust fields to read. The agent's instructions follow
-the format.</p>
+command line; or pass them (<code>init about="Runbooks." holds=markdown user=you apply=true</code>). Only an <code>okf</code> folder
+gets a first bundle.</p>
 <h3 id="the-index">The index<a class="headerlink" href="#the-index" title="Link to this section">#</a></h3>
 <p>With no <code>kbmcp.yaml</code> the defaults apply. The index is a cache derived from
 the concepts: safe to delete, never committed (a new <code>.kbmcp/</code> folder ignores
@@ -441,7 +427,7 @@ the agent what that knowledgebase holds. Each keeps its own index.</p>
 <p>The client loads the tool list at start. After editing the script, restart
 the client or reconnect the server (<code>/mcp</code> in Claude Code).</p>
 <h3 id="roles-a-smaller-tool-list-per-agent">Roles: a smaller tool list per agent<a class="headerlink" href="#roles-a-smaller-tool-list-per-agent" title="Link to this section">#</a></h3>
-<p>All 35 tools cost an agent about 8,200 tokens of schema (an estimate: each tool's name, description and argument
+<p>All 35 tools cost an agent about 7,200 tokens of schema (an estimate: each tool's name, description and argument
 schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
 script more than once, each with a role (<code>--role</code>, or <code>KB_ROLE</code>; several with
 commas), and each server offers only that role's tools:</p>
@@ -457,22 +443,22 @@ commas), and each server offers only that role's tools:</p>
 <tr>
 <td><code>read</code></td>
 <td>find and read, nothing written: <code>dirs</code> <code>get</code> <code>heatmap</code> <code>links</code> <code>list</code> <code>log</code> <code>passages</code> <code>search</code> <code>status</code> <code>vocab</code></td>
-<td>10, ~2,000 tokens</td>
+<td>10, ~1,750 tokens</td>
 </tr>
 <tr>
 <td><code>structure</code></td>
 <td>shape and reorganization: <code>archive</code> <code>bundles</code> <code>dirs</code> <code>ingest</code> <code>migrate</code> <code>move</code> <code>rename</code> <code>split</code> <code>unarchive</code> <code>web</code></td>
-<td>10, ~1,900 tokens</td>
+<td>10, ~1,700 tokens</td>
 </tr>
 <tr>
 <td><code>write</code></td>
 <td>write a concept and check it: <code>cite</code> <code>create</code> <code>fix</code> <code>lint</code> <code>record</code> <code>seal</code> <code>set</code></td>
-<td>7, ~2,350 tokens</td>
+<td>7, ~2,050 tokens</td>
 </tr>
 <tr>
 <td><code>lifecycle</code></td>
 <td>keep it current: <code>baseline</code> <code>config</code> <code>index</code> <code>init</code> <code>provenance</code> <code>recheck_apply</code> <code>recheck_plan</code> <code>reindex</code> <code>upgrade</code></td>
-<td>9, ~1,950 tokens</td>
+<td>9, ~1,750 tokens</td>
 </tr>
 </tbody>
 </table>

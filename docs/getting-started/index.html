@@ -56,6 +56,14 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../formats/">Formats</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../understanding-okf/">Understanding OKF</a>
             </li>
           
@@ -335,7 +343,7 @@ works in <code>claude_desktop_config.json</code> for Claude Desktop and <code>.c
 <p>Restart the assistant (in Claude Code, <code>/mcp</code> reconnects). It now has the tools and a short instruction on how to
 use them: look at <code>dirs</code>, then <code>passages</code>, then <code>get</code> only what it needs, cite the file and line, and say so
 when the answer is a gap or the passage is unverified or stale.</p>
-<p>All 35 tools cost an assistant about 8,200 tokens of tool definitions (an estimate: each tool's name, description and
+<p>All 35 tools cost an assistant about 7,200 tokens of tool definitions (an estimate: each tool's name, description and
 argument schema, in characters divided by four) before it has said a word. Give each
 assistant only what it needs by adding <code>"--role", "read"</code> (find and read only, 10 tools, safe to auto-approve),
 <code>write</code> (write a concept and check it), <code>structure</code> (reorganize) or <code>lifecycle</code> (keep it current). Each role is
@@ -344,7 +352,7 @@ knowledgebase several times, one per role, and you can load several different kn
 with its own <code>--config</code>. <a href="../guide/#roles-a-smaller-tool-list-per-agent">The guide</a> has the tool lists.</p>
 <p>Not an OKF knowledgebase? A plain folder of Markdown (ADR and MADR records among them) or a set of SKOS
 thesauri works too: set <code>format: markdown</code> or <code>format: skos</code> in <code>kbmcp.yaml</code>, and the server offers <code>passages</code>
-and <code>reindex</code> over it. <a href="../guide/#formats">The guide</a> has the details.</p>
+and <code>reindex</code> over it. <a href="../formats/">Formats</a> has the details.</p>
 <h2 id="7-keep-it-checked-automatically">7. Keep it checked automatically<a class="headerlink" href="#7-keep-it-checked-automatically" title="Link to this section">#</a></h2>
 <p>The easiest habit is a check on every commit. With <a href="https://pre-commit.com/">pre-commit</a>, add this to
 <code>.pre-commit-config.yaml</code>:</p>
@@ -383,7 +391,7 @@ only what changed: see <a href="../guide/#ci">the guide</a>.</p>
               <a class="btn btn-outline-secondary" href="..">&larr; Home</a>
             
             
-              <a class="btn btn-outline-secondary" href="../understanding-okf/">Understanding OKF &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../formats/">Formats &rarr;</a>
             
           </div>
         

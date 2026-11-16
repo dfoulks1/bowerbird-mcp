@@ -226,7 +226,7 @@ Restart the assistant (in Claude Code, `/mcp` reconnects). It now has the tools 
 use them: look at `dirs`, then `passages`, then `get` only what it needs, cite the file and line, and say so
 when the answer is a gap or the passage is unverified or stale.
 
-All 35 tools cost an assistant about 8,200 tokens of tool definitions (an estimate: each tool's name, description and
+All 35 tools cost an assistant about 7,200 tokens of tool definitions (an estimate: each tool's name, description and
 argument schema, in characters divided by four) before it has said a word. Give each
 assistant only what it needs by adding `"--role", "read"` (find and read only, 10 tools, safe to auto-approve),
 `write` (write a concept and check it), `structure` (reorganize) or `lifecycle` (keep it current). Each role is
@@ -236,7 +236,7 @@ with its own `--config`. [The guide](guide.md#roles-a-smaller-tool-list-per-agen
 
 Not an OKF knowledgebase? A plain folder of Markdown (ADR and MADR records among them) or a set of SKOS
 thesauri works too: set `format: markdown` or `format: skos` in `kbmcp.yaml`, and the server offers `passages`
-and `reindex` over it. [The guide](guide.md#formats) has the details.
+and `reindex` over it. [Formats](formats.md) has the details.
 
 ## 7. Keep it checked automatically
 
