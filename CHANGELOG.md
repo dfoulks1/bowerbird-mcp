@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Releases are published to PyPI by hand (`uv publish`), not by a GitHub Actions workflow; the publish workflow is removed.
+  See `CONTRIBUTING.md`.
+
 ## 2.0.0 (2026-11-16)
 
 A major version: several things a 1.x user relied on changed.

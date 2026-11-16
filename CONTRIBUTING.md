@@ -49,15 +49,18 @@ uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # 
    run on Python 3.10 to 3.14: `uv run --python 3.10 test_bowerbird_mcp.py`).
 2. Rebuild the docs site (below) and commit. Merge to `main`.
 3. Tag and publish a GitHub release, `git tag -a vX.Y.Z` then `gh release create vX.Y.Z`, with the
-   `CHANGELOG.md` section as the notes. Publishing the release runs `.github/workflows/publish.yml`, which
-   tests, builds and uploads to PyPI. The workflow refuses a tag that does not match `version`.
+   `CHANGELOG.md` section as the notes. This only creates the release: nothing publishes automatically.
+4. Publish to PyPI by hand, from the tag, after the checks above pass:
 
-PyPI uses *trusted publishing*, so no token is stored anywhere. One-time setup, by the project owner:
-create the project's pending publisher at https://pypi.org/manage/account/publishing/ with owner
-`dfoulks1`, repository `bowerbird-mcp`, workflow `publish.yml` and environment `pypi`, and create a
-GitHub environment named `pypi` (Settings, Environments), ideally with the owner as a required reviewer
-so each upload waits for approval. To try it first, `uv publish --publish-url https://test.pypi.org/legacy/`
-uploads the files from `uv build` to TestPyPI.
+   ```sh
+   git checkout vX.Y.Z && uv build && uvx twine check dist/* && uv publish
+   git checkout main
+   ```
+
+   `uv publish` asks for credentials: the username `__token__` and a project-scoped PyPI API token as the
+   password (or set `UV_PUBLISH_TOKEN`). Keep the token out of the repository and the shell history. PyPI never
+   accepts the same version twice, so a mistake means a new version. To try it first,
+   `uv publish --publish-url https://test.pypi.org/legacy/` uploads to TestPyPI.
 
 ## Docs site
 
