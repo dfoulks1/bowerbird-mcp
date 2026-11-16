@@ -193,6 +193,11 @@
     </li>
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#sealing-who-reviewed-what">Sealing: who reviewed what</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#before-you-push">Before you push</a>
       
     </li>
@@ -257,7 +262,8 @@ min_similarity: 0.6   # how close in meaning a passage must be
 vector_index: scan    # scan | sqlite-vec | hnsw: how semantic search finds neighbours
 index: .kbmcp/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
 build: auto           # auto: passages keeps the index current; manual: only `reindex`
-roles: [read, write, structure, lifecycle]   # roles the server may offer (see Register)</code></pre>
+roles: [read, write, structure, lifecycle]   # roles the server may offer (see Register)
+seal: {require: ["**"], exempt_status: [proposed, draft]}   # who must have reviewed what (see Sealing)</code></pre>
 <h3 id="overrides-env-and-the-environment">Overrides: .env and the environment<a class="headerlink" href="#overrides-env-and-the-environment" title="Link to this section">#</a></h3>
 <p><code>kbmcp.yaml</code> is shared, so what is yours alone does not go in it. <a href="https://github.com/dfoulks1/bowerbird-mcp/blob/main/env.example"><code>env.example</code></a>
 lists every override as a <code>KB_&lt;KEY&gt;</code> variable (<code>KB_USER</code>, <code>KB_ABOUT</code>, <code>KB_SEMANTIC</code>, <code>KB_VECTOR_INDEX</code>, <code>KB_BUILD</code>,
@@ -335,7 +341,7 @@ arguments fill the required ones in order (<code>move a.md b.md</code>); on <cod
 other <code>key=value</code> is frontmatter (<code>set a.md status=deprecated tags=[x,y]</code>).
 Write tools that touch many files default to <code>apply=false</code> and show a diff.</p>
 <p><code>--attest</code> records you, as <code>human:&lt;KB_USER&gt;</code> (else your git <code>user.email</code>), on
-<code>create</code> and <code>provenance</code> (<code>generated</code>), <code>verify</code> and <code>recheck_apply</code>
+<code>create</code> and <code>provenance</code> (<code>generated</code>), <code>seal</code> and <code>recheck_apply</code>
 (<code>verified</code>). It exists
 only on the command line: no MCP call can pass it.</p>
 <p>Output is JSON; <code>format=text</code> prints one key per line and diffs as is.</p>
@@ -435,8 +441,8 @@ the agent what that knowledgebase holds. Each keeps its own index.</p>
 <p>The client loads the tool list at start. After editing the script, restart
 the client or reconnect the server (<code>/mcp</code> in Claude Code).</p>
 <h3 id="roles-a-smaller-tool-list-per-agent">Roles: a smaller tool list per agent<a class="headerlink" href="#roles-a-smaller-tool-list-per-agent" title="Link to this section">#</a></h3>
-<p>All 35 tools cost an agent about 9,500 tokens of schema (an estimate: each tool's description
-length in characters, divided by four); each role is about a quarter of that. Register the same
+<p>All 35 tools cost an agent about 8,200 tokens of schema (an estimate: each tool's name, description and argument
+schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
 script more than once, each with a role (<code>--role</code>, or <code>KB_ROLE</code>; several with
 commas), and each server offers only that role's tools:</p>
 <table>
@@ -451,22 +457,22 @@ commas), and each server offers only that role's tools:</p>
 <tr>
 <td><code>read</code></td>
 <td>find and read, nothing written: <code>dirs</code> <code>get</code> <code>heatmap</code> <code>links</code> <code>list</code> <code>log</code> <code>passages</code> <code>search</code> <code>status</code> <code>vocab</code></td>
-<td>10, ~2,460 tokens</td>
+<td>10, ~2,000 tokens</td>
 </tr>
 <tr>
 <td><code>structure</code></td>
 <td>shape and reorganization: <code>archive</code> <code>bundles</code> <code>dirs</code> <code>ingest</code> <code>migrate</code> <code>move</code> <code>rename</code> <code>split</code> <code>unarchive</code> <code>web</code></td>
-<td>10, ~2,450 tokens</td>
+<td>10, ~1,900 tokens</td>
 </tr>
 <tr>
 <td><code>write</code></td>
-<td>write a concept and check it: <code>cite</code> <code>create</code> <code>fix</code> <code>lint</code> <code>record</code> <code>set</code> <code>verify</code></td>
-<td>7, ~2,450 tokens</td>
+<td>write a concept and check it: <code>cite</code> <code>create</code> <code>fix</code> <code>lint</code> <code>record</code> <code>seal</code> <code>set</code></td>
+<td>7, ~2,350 tokens</td>
 </tr>
 <tr>
 <td><code>lifecycle</code></td>
 <td>keep it current: <code>baseline</code> <code>config</code> <code>index</code> <code>init</code> <code>provenance</code> <code>recheck_apply</code> <code>recheck_plan</code> <code>reindex</code> <code>upgrade</code></td>
-<td>9, ~2,270 tokens</td>
+<td>9, ~1,950 tokens</td>
 </tr>
 </tbody>
 </table>
@@ -481,6 +487,44 @@ three change files. A tool can belong to more than one role (<code>dirs</code> i
 <code>structure</code>), and a server with no <code>--role</code> offers them all. With no <code>--role</code> the server offers every role that <code>roles:</code> in
 <code>kbmcp.yaml</code> leaves on; naming a role that is off refuses to start. The CLI
 always has every tool.</p>
+<h2 id="sealing-who-reviewed-what">Sealing: who reviewed what<a class="headerlink" href="#sealing-who-reviewed-what" title="Link to this section">#</a></h2>
+<p><code>seal</code> is the one function for a human's review, in every format. It shows the human the exact file in a
+prompt, asks for their id, and records who reviewed that version and when. Over MCP the human types their own id;
+at a terminal <code>--attest</code> records you; an assistant can only seal as itself (<code>by=process:&lt;id&gt;</code>), never as a human.
+<code>verify</code> (the OKF word) and <code>ratify</code> (the ADR word) are its command-line names too.</p>
+<ul>
+<li><strong><code>okf</code>:</strong> a <code>verified: {by, at, sha256}</code> entry in the concept's own frontmatter.</li>
+<li><strong><code>markdown</code> and <code>skos</code>:</strong> an entry in <code>verifications.yaml</code> at the knowledgebase root (commit it): file, sha256, who,
+  when, and <code>decision=accepted|rejected</code> for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
+  thesauri all work.</li>
+</ul>
+<p>The sha256 covers the file's exact bytes (line endings normalized; for <code>okf</code>, without the <code>verified</code> key). Edit the
+file after sealing and the seal is broken: <code>passages</code> shows the hit <code>unverified</code> and <code>stale</code>. A ledger decision
+becomes the hit's <code>status</code>.</p>
+<p><code>seal check=true</code> changes nothing and exits 1 on findings, for a pre-commit hook and for CI (<code>since=origin/main</code>
+limits it to a pull request's files):</p>
+<ul>
+<li><code>unsigned</code>: a file the policy requires has no review by a human.</li>
+<li><code>stale_signature</code>: reviewed, then edited.</li>
+<li><code>claims_accepted</code>: its own status says accepted, but no human reviewed it.</li>
+<li><code>orphan_signature</code>: a ledger entry for a file that is gone (a warning).</li>
+</ul>
+<p>The policy is the <code>seal</code> key in the committed <code>kbmcp.yaml</code> (nothing local can loosen it); by default every file needs a
+review, except those whose status is <code>proposed</code> or <code>draft</code>:</p>
+<pre class="highlight"><code class="language-yaml">seal: {require: ["**"], exempt_status: [proposed, draft]}</code></pre>
+<pre class="highlight"><code class="language-yaml"># .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: bowerbird-seal
+        name: Bowerbird seal check
+        entry: uvx bowerbird-mcp seal check=true format=text
+        language: system
+        pass_filenames: false
+        always_run: true</code></pre>
+<p>Limits: a hook can be skipped (<code>--no-verify</code>), so run the same command in CI. <code>seal</code> proves a ledger entry exists
+for these bytes, not who typed it: protect <code>verifications.yaml</code> and <code>kbmcp.yaml</code> with <code>CODEOWNERS</code> or branch
+protection so changes to them need a named reviewer. A SKOS file is sealed whole, not per concept.</p>
 <h2 id="before-you-push">Before you push<a class="headerlink" href="#before-you-push" title="Link to this section">#</a></h2>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint format=text      # what's wrong, each with a fix
 uv run bowerbird_mcp.py fix apply=true        # mechanical repairs, then re-lint
@@ -581,7 +625,7 @@ uv run bowerbird_mcp.py passages 'how do we roll back a deploy' format=text</cod
 </ul>
 <h2 id="known-limits">Known limits<a class="headerlink" href="#known-limits" title="Link to this section">#</a></h2>
 <ul>
-<li>A human <code>verify</code> over MCP needs a client that supports elicitation
+<li>A human <code>seal</code> over MCP needs a client that supports elicitation
   (confirmation prompts); otherwise the human runs it from the CLI.</li>
 <li><code>move</code>, <code>migrate</code>, <code>split</code>, <code>rename</code>, <code>archive</code> and <code>unarchive</code> rewrite links
   (code blocks included; read the diff) and §6.2 path fields (<code>resource</code>,

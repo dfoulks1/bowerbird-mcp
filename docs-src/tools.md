@@ -423,6 +423,24 @@ uv run bowerbird_mcp.py rename marketing bundle=mkt apply=true
 | `apply` | `bool` | `False` |
 | `bundle` | `str` | `''` |
 
+## seal
+
+Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the `seal` policy in kbmcp.yaml covers has one. The one function for every format; `verify` (okf) and `ratify` (ADRs) are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit `by`; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 `verified` entry {by, at, sha256} into the concept; markdown and skos add one to verifications.yaml (commit it). The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (markdown and skos). check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; `seal.require` and `seal.exempt_status` in kbmcp.yaml say what it covers.
+
+```sh
+uv run bowerbird_mcp.py seal db.md bundle=eng --attest promote=true
+```
+
+| Argument | Type | Default |
+|---|---|---|
+| `file` | `str` | `''` |
+| `by` | `str` | `''` |
+| `promote` | `bool` | `False` |
+| `decision` | `str` | `''` |
+| `check` | `bool` | `False` |
+| `since` | `str` | `''` |
+| `bundle` | `str` | `''` |
+
 ## search
 
 Concepts holding every word of query (case-insensitive, anywhere in the concept), best first. Each field a word matches adds its weight to the score: title 5, id 4, tags 3, type 2, description 2, body 1. Each hit: {bundle, file, title, type, score, matched (the fields), line, text (the first line holding a word, body first)}. Filters: type, tag, dir (a directory in the bundle); fields limits where words are looked for.
@@ -445,7 +463,7 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks format
 
 ## set
 
-Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, verify, cite). apply=False shows the diff.
+Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, seal, cite). apply=False shows the diff.
 
 ```sh
 uv run bowerbird_mcp.py set db.md status=deprecated tags=[db,ops] bundle=eng apply=true
@@ -511,21 +529,6 @@ uv run bowerbird_mcp.py upgrade apply=true
 | Argument | Type | Default |
 |---|---|---|
 | `apply` | `bool` | `False` |
-| `bundle` | `str` | `''` |
-
-## verify
-
-Record a §5.2 `verified` entry {by, at} (at = now, UTC). Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; the concept is machine-confirmed. A human checked it: omit `by`; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the concept to them first. At the terminal a human runs it with --attest. promote=true also moves a draft to stable (§5.4); only a human review may.
-
-```sh
-uv run bowerbird_mcp.py verify db.md bundle=eng --attest promote=true
-```
-
-| Argument | Type | Default |
-|---|---|---|
-| `file` | `str` | required |
-| `by` | `str` | `''` |
-| `promote` | `bool` | `False` |
 | `bundle` | `str` | `''` |
 
 ## vocab

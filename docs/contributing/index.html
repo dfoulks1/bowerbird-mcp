@@ -197,7 +197,8 @@ use cases drive changes to it. Core stays one file.</p>
 <pre class="highlight"><code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></pre>
 <h2 id="running-the-checks">Running the checks<a class="headerlink" href="#running-the-checks" title="Link to this section">#</a></h2>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint     # exits 1 on problems; use as a pre-merge gate
-uv run test_bowerbird_mcp.py     # self-check against throwaway bundles</code></pre>
+uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
+uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # also the optional backends (skipped otherwise)</code></pre>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Link to this section">#</a></h2>
 <ol>
 <li>Set <code>version</code> in <code>pyproject.toml</code>, add a section to <code>CHANGELOG.md</code>, and run the checks above (the tests

@@ -280,8 +280,8 @@ not seen. A file with nothing but <code>type</code> is fully valid.</p>
 </tr>
 </tbody>
 </table>
-<p>Every date is ISO 8601 with an explicit UTC offset, such as <code>2026-11-13T15:00:00Z</code>. Anything else you add is
-yours: tools must keep keys they do not understand and must not reject a file for having them.</p>
+<p>Every timestamp is ISO 8601 with an explicit UTC offset, such as <code>2026-11-13T15:00:00Z</code>. Anything else you add is
+yours: tools should keep keys they do not understand and must not reject a file for having them.</p>
 <h3 id="trust-tiers">Trust tiers<a class="headerlink" href="#trust-tiers" title="Link to this section">#</a></h3>
 <p>The tier is <em>derived</em>, never typed in. Look at who is in <code>verified</code>:</p>
 <ul>
@@ -352,7 +352,8 @@ never what it says:</p>
 <li><strong><code>lint</code></strong> checks every file against the specification's conformance rules plus house rules (broken links,
   empty notes, orphans, duplicate titles, key-shaped secrets), and <code>fix</code> repairs the mechanical ones.</li>
 <li><strong><code>index</code></strong> regenerates the tables of contents from the concepts' own descriptions.</li>
-<li><strong><code>cite</code>, <code>verify</code>, <code>provenance</code></strong> write the provenance and trust fields correctly. A person's review is recorded
+<li><strong><code>cite</code>, <code>seal</code>, <code>provenance</code></strong> write the provenance and trust fields correctly (<code>seal</code> also records a <code>sha256</code> of
+  the note in each <code>verified</code> entry, an extra key the specification allows, so a later edit is noticed). A person's review is recorded
   only with that person's own confirmation (a prompt over MCP, or <code>--attest</code> at their terminal), never by an
   assistant on their behalf.</li>
 <li><strong><code>passages</code>, <code>search</code>, <code>dirs</code>, <code>get</code></strong> find and read, and <code>passages</code> returns each section with its file, line,
@@ -360,6 +361,8 @@ never what it says:</p>
 <li><strong><code>status</code></strong> says what needs a person next: the oldest unreviewed notes, drafts, notes with no sources, what
   goes stale soon.</li>
 </ul>
+<p>Bowerbird can also search a plain Markdown folder (ADR and MADR records among them) and SKOS thesauri, and <code>seal</code> a
+human review of those too, with one <code>format:</code> line in <code>kbmcp.yaml</code> (see <a href="../guide/#formats">the guide</a>).</p>
 <p>The practical effect is that a knowledgebase kept this way can answer a question <em>and</em> say how far to trust the
 answer. That is the whole idea.</p>
 <h2 id="read-on">Read on<a class="headerlink" href="#read-on" title="Link to this section">#</a></h2>

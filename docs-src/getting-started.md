@@ -56,11 +56,16 @@ Most commands that change files show you a plan first and only act when you add 
 ```text
 edited: {".": ["index.md", "log.md"]}
 gitattributes: ["log.md merge=union", "index.md merge=union"]
+config: {"files": ["kbmcp.yaml", "env.example", ".env"], "missing": ["about", "holds"], "gitignore": "not a git work tree"}
 ```
 
 `index.md` is a generated table of contents for the folder, and `log.md` is its history, newest first. It also
 made a `.gitattributes`, which lets two people who edit `log.md` and `index.md` on different branches merge
-without a conflict. Now
+without a conflict. The `config` line is the knowledgebase's settings: `kbmcp.yaml` (commit it), `env.example`
+(every personal override, see step 6) and, when it knows your id from `KB_USER` or your git email, a `.env` with it
+(not committed). `missing` lists what it could not know: `about`, a sentence on what the folder holds, which you
+fill in; and `holds`, the format it guessed from the folder, here `okf`. At a terminal `init` asks you for
+these instead, and over MCP it asks in a prompt. Now
 write two notes. Each has a few real sentences, because a note with an empty body gives the search nothing to
 find:
 
@@ -160,22 +165,26 @@ Notes get trusted too easily or not at all. OKF gives you two small, honest tool
 
 ```sh
 kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" format=text
-kb verify deploy.md by=process:docs-check format=text
+kb seal deploy.md by=process:docs-check format=text
 ```
 
-`cite` records a source and prints a footnote tag, `[^runbook]`, to put next to the claim it backs. `verify`
-records that someone or something confirmed the note, and when. Both write to the header:
+`cite` records a source and prints a footnote tag, `[^runbook]`, to put next to the claim it backs. `seal`
+(`verify` still works as its command-line name) records that someone or something confirmed this exact version of the note, and when. Both write to the header:
 
 ```yaml
 sources:
 - id: runbook
   resource: https://example.com/runbook
   title: Ops runbook
-  retrieved_at: 2026-11-13T15:49:32Z
+  retrieved_at: 2026-11-16T13:35:24Z
 verified:
 - by: process:docs-check
-  at: 2026-11-13T15:49:32Z
+  at: 2026-11-16T13:35:25Z
+  sha256: 22c9c7cfd0d84374acde099621e14887fac4b74b844cfa6e4eb0e5665cf5f29f
 ```
+
+The `sha256` ties the review to this exact text: edit the note afterwards and the review no longer holds, and
+`passages` shows it as `unverified` and `stale`.
 
 The trust tier comes only from who verified: nobody means **unverified**, a script or agent means
 **machine-confirmed**, and a person (`human:<id>`) means **human-reviewed**. `passages` shows the tier on every
@@ -187,7 +196,7 @@ a note should expire, set `stale_after` in its header, and `passages` will flag 
 ## 6. Connect an AI assistant
 
 First, the settings file. `kbmcp.yaml` sits at the root of the knowledgebase, tells any server where it is, and is
-committed with your notes. `kb init apply=true` (step 1) already wrote one. If your folder predates it, or you want the
+committed with your notes. `kb init apply=true` (step 2) already wrote one. If your folder predates it, or you want the
 all-commented example, run:
 
 ```sh
@@ -217,8 +226,8 @@ Restart the assistant (in Claude Code, `/mcp` reconnects). It now has the tools 
 use them: look at `dirs`, then `passages`, then `get` only what it needs, cite the file and line, and say so
 when the answer is a gap or the passage is unverified or stale.
 
-All 35 tools cost an assistant about 9,500 tokens of tool descriptions (an estimate: the length of each
-description in characters, divided by four) before it has said a word. Give each
+All 35 tools cost an assistant about 8,200 tokens of tool definitions (an estimate: each tool's name, description and
+argument schema, in characters divided by four) before it has said a word. Give each
 assistant only what it needs by adding `"--role", "read"` (find and read only, 10 tools, safe to auto-approve),
 `write` (write a concept and check it), `structure` (reorganize) or `lifecycle` (keep it current). Each role is
 about a quarter of the total. You can register the same

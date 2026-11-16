@@ -81,6 +81,7 @@ vector_index: scan    # scan | sqlite-vec | hnsw: how semantic search finds neig
 index: .kbmcp/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
 build: auto           # auto: passages keeps the index current; manual: only `reindex`
 roles: [read, write, structure, lifecycle]   # roles the server may offer (see Register)
+seal: {require: ["**"], exempt_status: [proposed, draft]}   # who must have reviewed what (see Sealing)
 ```
 
 ### Overrides: .env and the environment
@@ -181,7 +182,7 @@ other `key=value` is frontmatter (`set a.md status=deprecated tags=[x,y]`).
 Write tools that touch many files default to `apply=false` and show a diff.
 
 `--attest` records you, as `human:<KB_USER>` (else your git `user.email`), on
-`create` and `provenance` (`generated`), `verify` and `recheck_apply`
+`create` and `provenance` (`generated`), `seal` and `recheck_apply`
 (`verified`). It exists
 only on the command line: no MCP call can pass it.
 
@@ -318,17 +319,17 @@ the client or reconnect the server (`/mcp` in Claude Code).
 
 ### Roles: a smaller tool list per agent
 
-All 35 tools cost an agent about 9,500 tokens of schema (an estimate: each tool's description
-length in characters, divided by four); each role is about a quarter of that. Register the same
+All 35 tools cost an agent about 8,200 tokens of schema (an estimate: each tool's name, description and argument
+schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
 script more than once, each with a role (`--role`, or `KB_ROLE`; several with
 commas), and each server offers only that role's tools:
 
 | Role | Tools | Schema |
 |---|---|---|
-| `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~2,460 tokens |
-| `structure` | shape and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~2,450 tokens |
-| `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `set` `verify` | 7, ~2,450 tokens |
-| `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~2,270 tokens |
+| `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~2,000 tokens |
+| `structure` | shape and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~1,900 tokens |
+| `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `seal` `set` | 7, ~2,350 tokens |
+| `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,950 tokens |
 
 ```json
 {
@@ -347,6 +348,54 @@ always has every tool.
 
 <!-- --8<-- [end:register] -->
 <!-- --8<-- [start:ci] -->
+## Sealing: who reviewed what
+
+`seal` is the one function for a human's review, in every format. It shows the human the exact file in a
+prompt, asks for their id, and records who reviewed that version and when. Over MCP the human types their own id;
+at a terminal `--attest` records you; an assistant can only seal as itself (`by=process:<id>`), never as a human.
+`verify` (the OKF word) and `ratify` (the ADR word) are its command-line names too.
+
+- **`okf`:** a `verified: {by, at, sha256}` entry in the concept's own frontmatter.
+- **`markdown` and `skos`:** an entry in `verifications.yaml` at the knowledgebase root (commit it): file, sha256, who,
+  when, and `decision=accepted|rejected` for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
+  thesauri all work.
+
+The sha256 covers the file's exact bytes (line endings normalized; for `okf`, without the `verified` key). Edit the
+file after sealing and the seal is broken: `passages` shows the hit `unverified` and `stale`. A ledger decision
+becomes the hit's `status`.
+
+`seal check=true` changes nothing and exits 1 on findings, for a pre-commit hook and for CI (`since=origin/main`
+limits it to a pull request's files):
+
+- `unsigned`: a file the policy requires has no review by a human.
+- `stale_signature`: reviewed, then edited.
+- `claims_accepted`: its own status says accepted, but no human reviewed it.
+- `orphan_signature`: a ledger entry for a file that is gone (a warning).
+
+The policy is the `seal` key in the committed `kbmcp.yaml` (nothing local can loosen it); by default every file needs a
+review, except those whose status is `proposed` or `draft`:
+
+```yaml
+seal: {require: ["**"], exempt_status: [proposed, draft]}
+```
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: local
+    hooks:
+      - id: bowerbird-seal
+        name: Bowerbird seal check
+        entry: uvx bowerbird-mcp seal check=true format=text
+        language: system
+        pass_filenames: false
+        always_run: true
+```
+
+Limits: a hook can be skipped (`--no-verify`), so run the same command in CI. `seal` proves a ledger entry exists
+for these bytes, not who typed it: protect `verifications.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
+protection so changes to them need a named reviewer. A SKOS file is sealed whole, not per concept.
+
 ## Before you push
 
 ```sh
@@ -472,7 +521,7 @@ repos:
 
 ## Known limits
 
-- A human `verify` over MCP needs a client that supports elicitation
+- A human `seal` over MCP needs a client that supports elicitation
   (confirmation prompts); otherwise the human runs it from the CLI.
 - `move`, `migrate`, `split`, `rename`, `archive` and `unarchive` rewrite links
   (code blocks included; read the diff) and §6.2 path fields (`resource`,

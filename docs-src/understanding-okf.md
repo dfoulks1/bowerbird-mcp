@@ -77,8 +77,8 @@ The others are recommended or optional, in three families:
 | **Provenance and trust** | `sources` (what it was built from), `generated` (who or what wrote the current text, and when), `verified` (who confirmed it, and when) | Where it came from and how far to trust it |
 | **Lifecycle** | `status` (`draft`, `stable`, `deprecated`; absent means stable), `stale_after` (a date after which the content counts as stale) | Is it current |
 
-Every date is ISO 8601 with an explicit UTC offset, such as `2026-11-13T15:00:00Z`. Anything else you add is
-yours: tools must keep keys they do not understand and must not reject a file for having them.
+Every timestamp is ISO 8601 with an explicit UTC offset, such as `2026-11-13T15:00:00Z`. Anything else you add is
+yours: tools should keep keys they do not understand and must not reject a file for having them.
 
 ### Trust tiers
 
@@ -160,13 +160,17 @@ never what it says:
 - **`lint`** checks every file against the specification's conformance rules plus house rules (broken links,
   empty notes, orphans, duplicate titles, key-shaped secrets), and `fix` repairs the mechanical ones.
 - **`index`** regenerates the tables of contents from the concepts' own descriptions.
-- **`cite`, `verify`, `provenance`** write the provenance and trust fields correctly. A person's review is recorded
+- **`cite`, `seal`, `provenance`** write the provenance and trust fields correctly (`seal` also records a `sha256` of
+  the note in each `verified` entry, an extra key the specification allows, so a later edit is noticed). A person's review is recorded
   only with that person's own confirmation (a prompt over MCP, or `--attest` at their terminal), never by an
   assistant on their behalf.
 - **`passages`, `search`, `dirs`, `get`** find and read, and `passages` returns each section with its file, line,
   trust tier and staleness, so an answer can show its sources and say when it is on thin ice.
 - **`status`** says what needs a person next: the oldest unreviewed notes, drafts, notes with no sources, what
   goes stale soon.
+
+Bowerbird can also search a plain Markdown folder (ADR and MADR records among them) and SKOS thesauri, and `seal` a
+human review of those too, with one `format:` line in `kbmcp.yaml` (see [the guide](guide.md#formats)).
 
 The practical effect is that a knowledgebase kept this way can answer a question *and* say how far to trust the
 answer. That is the whole idea.

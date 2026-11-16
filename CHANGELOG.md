@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Added
+- `seal` (command-line names `verify` for okf and `ratify` for ADRs): one function for a human's review, in every
+  format, replacing `verify` as the tool. Over MCP it asks the human in a prompt, as `verify` did. okf records
+  `verified: {by, at, sha256}` in the concept; markdown and skos add an entry (file, sha256, by, at, decision) to a
+  committed `verifications.yaml`. The sha256 binds the review to the exact bytes: an edit breaks the seal and the
+  hit shows `unverified` and `stale`. A ledger decision becomes the hit's `status`.
+- `seal check=true` (a pre-commit hook, CI; `since=` for pull requests) exits 1 on `unsigned`, `stale_signature`,
+  `claims_accepted` and `orphan_signature` (a warning). The policy is the `seal` key in the committed `kbmcp.yaml`:
+  `require` globs (default everything) and `exempt_status` (default proposed, draft); no override can loosen it.
 - `format: skos` indexes SKOS thesauri (Turtle, RDF/XML, JSON-LD, N-Triples, N3; optional extra `bowerbird-mcp[skos]`, needs
   `rdflib`): one passage per `skos:Concept`, headed by its broader chain, with labels, notes and broader/narrower/
   related neighbours in the text. No hub boost, since a concept's links stay inside its file.

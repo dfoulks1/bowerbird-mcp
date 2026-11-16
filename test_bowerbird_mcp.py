@@ -240,6 +240,14 @@ class Ctx:
 
 assert asyncio.run(k.verify("note.md", ctx=Ctx("decline")))["edited"] == []
 assert asyncio.run(k.verify("note.md", ctx=Ctx()))["tier"] == "human-reviewed"
+sealed = (kb / "note.md").read_text()
+e = k.meta(sealed)[0]["verified"][-1]
+assert e["by"] == "human:tester" and e["sha256"] == k.content_hash(sealed, True)
+assert k.signed(k.meta(sealed)[0], "note.md", {})["verified"][-1]["by"] == "human:tester"  # the seal holds
+(kb / "note.md").write_text(sealed + "\nedited after review\n")
+broken = k.signed(k.meta(sealed)[0], "note.md", {})
+assert broken["verified"] == [e2 for e2 in broken["verified"] if "sha256" not in e2] and k.is_stale(broken) and k.trust_tier(broken) != "human-reviewed"
+(kb / "note.md").write_text(sealed)
 d = k.meta((kb / "note.md").read_text())[0]
 assert [e["by"] for e in d["verified"]] == ["claude-code/claude-opus-5-5", "human:tester"]
 edit = lambda: (kb / "note.md").write_text((kb / "note.md").read_text() + "\nmore\n")
@@ -559,7 +567,7 @@ shutil.rmtree(kb / "bad")
 # MCP surface: annotations, and the context parameter is not a tool argument.
 tools = {t.name: t for t in asyncio.run(k.mcp.list_tools())}
 assert tools["lint"].annotations.readOnlyHint and not tools["fix"].annotations.readOnlyHint
-assert "ctx" not in tools["verify"].inputSchema["properties"]
+assert "ctx" not in tools["seal"].inputSchema["properties"]
 
 # Git: history, provenance, ingest (copy, then in place).
 src = kb / "src"
@@ -749,7 +757,7 @@ try:
 except SystemExit as e:
     assert "unknown key bogus" in str(e)
 # flat passage settings: types and values are checked.
-for bad, msg in (("semantic: 3", "semantic must be a bool"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, skos"), ("build: sometimes", "must be auto or manual"),
+for bad, msg in (("semantic: 3", "semantic must be a bool"), ("seal: {nope: 1}", "seal takes require and exempt_status"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, skos"), ("build: sometimes", "must be auto or manual"),
                  ("min_similarity: high", "must be a float"), ("index: {path: x}", "index must be a str"), ("nope: 1", "unknown key nope")):
     (cfg / "kbmcp.yaml").write_text(bad + "\n")
     try:
@@ -1013,7 +1021,41 @@ assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-
     == ["Accepted", "superseded by ADR-0005", "proposed"], got
 assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
 assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
-assert k.offered() == {"passages", "reindex"}
+assert k.offered() == {"passages", "reindex", "seal"}
+# seal, in markdown mode: the ledger binds a review to exact bytes; `check` finds what lacks one; a decision is the status.
+k.OPTS["seal"] = {"require": ["docs/adr/*.md"], "exempt_status": ["proposed"]}
+adr1 = "docs/adr/0001-record-decisions.md"
+C = k.signatures()
+assert not C["ok"] and C["files_checked"] == 4 and {(f["file"], f["kind"]) for f in C["findings"]} == {
+    (adr1, "unsigned"), ("docs/adr/0002-use-postgres.md", "unsigned")}, C  # 0003 is proposed (exempt); index.md is not required
+asyncio.run(k.seal(adr1, by="process:ci"))  # a machine's review is recorded, but policy wants a human
+assert (adr1, "unsigned") in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+assert "accepted or rejected" in raises(k.seal, adr1, decision="maybe")
+class Any(Ctx):  # a human who confirms whatever file is shown
+    async def elicit(self, message, schema):
+        assert "adr/0001" in message and "sha256" in message and "decision: accepted" in message
+        return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
+asyncio.run(k.seal(adr1, ctx=Any(), decision="accepted"))
+led = (ar / "verifications.yaml").read_text()
+assert led.startswith("# verifications.yaml") and "sha256:" in led and "by: human:tester" in led and "decision: accepted" in led
+assert (adr1, "unsigned") not in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+h = k.passages("zebra")["hits"][0]
+assert h["tier"] == "human-reviewed" and h["status"] == "accepted" and not h["stale"], h
+(ar / adr1).write_text((ar / adr1).read_text() + "\nAn edit after the review.\n")  # the seal is broken
+assert (adr1, "stale_signature") in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+h = k.passages("zebra")["hits"][0]
+assert h["tier"] == "unverified" and h["stale"], h
+asyncio.run(k.seal("docs/adr/0003-use-queue.md", by="process:ci"))
+(ar / "docs/adr/0003-use-queue.md").unlink()
+O = [f for f in k.signatures()["findings"] if f["kind"] == "orphan_signature"]
+assert [f["file"] for f in O] == ["docs/adr/0003-use-queue.md"] and O[0]["severity"] == "warning"
+assert k.ALIASES == {"verify": "seal", "ratify": "seal"} and k.verify is k.seal
+R = k.signatures()
+txt = k.render(R, "text")
+assert txt.splitlines()[-1].startswith("bowerbird-mcp seal: ") and "file(s) checked" in txt and "conformant" not in txt, txt
+assert ": warning: orphan_signature:" in txt and "::warning file=" in k.render(R, "github") and "title=orphan_signature" in k.render(R, "github")
+assert k.render(k.signatures(), "github").splitlines()[-1].startswith("::notice title=bowerbird-mcp seal::")
+raises(k.seal)  # no file and no check
 k.OPTS["format"] = "okf"
 assert k.passages("zebra")["gap"], "okf mode skips files without frontmatter"
 k.KB_ROOT = was[0]
@@ -1044,7 +1086,7 @@ else:
     assert h["type"] == "skos" and h["title"] == "Animals" and h["tier"] == "unverified" and h["line"] == 6, h
     assert "Broader: Animal" in h["text"] and "Related: Wolf" in h["text"] and "carnivore" in h["text"], h["text"]
     assert [x["heading"] for x in k.passages("animal")["hits"]][0].endswith("Animal")  # narrower links back to broader
-    assert k.passages("turtle")["gap"] and k.offered() == {"passages", "reindex"}
+    assert k.passages("turtle")["gap"] and k.offered() == {"passages", "reindex", "seal"}
     k.KB_ROOT = was[0]
     k.OPTS.update(was[1])
 
@@ -1074,5 +1116,16 @@ r2 = subprocess.run([sys.executable, "-c", probe], cwd=pe, env=env | {"KB_ABOUT"
 assert r2.stdout.strip() == "from env | manual", r2
 
 k.KB_ROOT = saved
+
+# the token figures in the README follow the tools (same method as the text says: serialized definition chars / 4), within 10%.
+_tl = {t.name: t for t in asyncio.run(k.mcp.list_tools())}
+_cost = lambda names: sum(len(json.dumps({"name": n, "description": _tl[n].description, "inputSchema": _tl[n].inputSchema}))
+                          for n in names if n in _tl) // 4
+_rm = (HERE / "README.md").read_text()
+_close = lambda doc, real: abs(doc - real) <= real * 0.1
+assert f"All {len(_tl)} tools" in _rm and _close(int(re.search(r"about ([\d,]+) tokens of schema", _rm).group(1).replace(",", "")), _cost(_tl)), _cost(_tl)
+for _role, _names in k.ROLES.items():
+    _m = re.search(rf"\| `{_role}` \|.*\| (\d+), ~([\d,]+) tokens \|", _rm)
+    assert int(_m.group(1)) == len([n for n in _names if n in _tl]) and _close(int(_m.group(2).replace(",", "")), _cost(_names)), (_role, _cost(_names))
 
 print("ok")

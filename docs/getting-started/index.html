@@ -221,10 +221,15 @@ kb init apply=true format=text</code></pre>
 <p>Most commands that change files show you a plan first and only act when you add <code>apply=true</code>. Here is what
 <code>init</code> wrote:</p>
 <pre class="highlight"><code class="language-text">edited: {".": ["index.md", "log.md"]}
-gitattributes: ["log.md merge=union", "index.md merge=union"]</code></pre>
+gitattributes: ["log.md merge=union", "index.md merge=union"]
+config: {"files": ["kbmcp.yaml", "env.example", ".env"], "missing": ["about", "holds"], "gitignore": "not a git work tree"}</code></pre>
 <p><code>index.md</code> is a generated table of contents for the folder, and <code>log.md</code> is its history, newest first. It also
 made a <code>.gitattributes</code>, which lets two people who edit <code>log.md</code> and <code>index.md</code> on different branches merge
-without a conflict. Now
+without a conflict. The <code>config</code> line is the knowledgebase's settings: <code>kbmcp.yaml</code> (commit it), <code>env.example</code>
+(every personal override, see step 6) and, when it knows your id from <code>KB_USER</code> or your git email, a <code>.env</code> with it
+(not committed). <code>missing</code> lists what it could not know: <code>about</code>, a sentence on what the folder holds, which you
+fill in; and <code>holds</code>, the format it guessed from the folder, here <code>okf</code>. At a terminal <code>init</code> asks you for
+these instead, and over MCP it asks in a prompt. Now
 write two notes. Each has a few real sentences, because a note with an empty body gives the search nothing to
 find:</p>
 <pre class="highlight"><code class="language-sh">kb create deploy type=Playbook title="Deploy" description="How we ship a release." tags=ops \
@@ -288,17 +293,20 @@ spelling), and <code>kb fix apply=true</code> repairs those for you. Delete <cod
 <h2 id="5-say-where-a-fact-came-from-and-who-checked-it">5. Say where a fact came from, and who checked it<a class="headerlink" href="#5-say-where-a-fact-came-from-and-who-checked-it" title="Link to this section">#</a></h2>
 <p>Notes get trusted too easily or not at all. OKF gives you two small, honest tools for that:</p>
 <pre class="highlight"><code class="language-sh">kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" format=text
-kb verify deploy.md by=process:docs-check format=text</code></pre>
-<p><code>cite</code> records a source and prints a footnote tag, <code>[^runbook]</code>, to put next to the claim it backs. <code>verify</code>
-records that someone or something confirmed the note, and when. Both write to the header:</p>
+kb seal deploy.md by=process:docs-check format=text</code></pre>
+<p><code>cite</code> records a source and prints a footnote tag, <code>[^runbook]</code>, to put next to the claim it backs. <code>seal</code>
+(<code>verify</code> still works as its command-line name) records that someone or something confirmed this exact version of the note, and when. Both write to the header:</p>
 <pre class="highlight"><code class="language-yaml">sources:
 - id: runbook
   resource: https://example.com/runbook
   title: Ops runbook
-  retrieved_at: 2026-11-13T15:49:32Z
+  retrieved_at: 2026-11-16T13:35:24Z
 verified:
 - by: process:docs-check
-  at: 2026-11-13T15:49:32Z</code></pre>
+  at: 2026-11-16T13:35:25Z
+  sha256: 22c9c7cfd0d84374acde099621e14887fac4b74b844cfa6e4eb0e5665cf5f29f</code></pre>
+<p>The <code>sha256</code> ties the review to this exact text: edit the note afterwards and the review no longer holds, and
+<code>passages</code> shows it as <code>unverified</code> and <code>stale</code>.</p>
 <p>The trust tier comes only from who verified: nobody means <strong>unverified</strong>, a script or agent means
 <strong>machine-confirmed</strong>, and a person (<code>human:&lt;id&gt;</code>) means <strong>human-reviewed</strong>. <code>passages</code> shows the tier on every
 hit, and <code>kb list tier=unverified</code> finds what still needs a person. A person's review is recorded only with
@@ -307,7 +315,7 @@ behalf. These tiers are advisory labels, not access control. If
 a note should expire, set <code>stale_after</code> in its header, and <code>passages</code> will flag it once the date passes.</p>
 <h2 id="6-connect-an-ai-assistant">6. Connect an AI assistant<a class="headerlink" href="#6-connect-an-ai-assistant" title="Link to this section">#</a></h2>
 <p>First, the settings file. <code>kbmcp.yaml</code> sits at the root of the knowledgebase, tells any server where it is, and is
-committed with your notes. <code>kb init apply=true</code> (step 1) already wrote one. If your folder predates it, or you want the
+committed with your notes. <code>kb init apply=true</code> (step 2) already wrote one. If your folder predates it, or you want the
 all-commented example, run:</p>
 <pre class="highlight"><code class="language-sh">kb config apply=true format=text</code></pre>
 <p>Open <code>kbmcp.yaml</code> and check <code>about:</code>, a sentence on what this knowledgebase holds. That matters most when you load
@@ -327,8 +335,8 @@ works in <code>claude_desktop_config.json</code> for Claude Desktop and <code>.c
 <p>Restart the assistant (in Claude Code, <code>/mcp</code> reconnects). It now has the tools and a short instruction on how to
 use them: look at <code>dirs</code>, then <code>passages</code>, then <code>get</code> only what it needs, cite the file and line, and say so
 when the answer is a gap or the passage is unverified or stale.</p>
-<p>All 35 tools cost an assistant about 9,500 tokens of tool descriptions (an estimate: the length of each
-description in characters, divided by four) before it has said a word. Give each
+<p>All 35 tools cost an assistant about 8,200 tokens of tool definitions (an estimate: each tool's name, description and
+argument schema, in characters divided by four) before it has said a word. Give each
 assistant only what it needs by adding <code>"--role", "read"</code> (find and read only, 10 tools, safe to auto-approve),
 <code>write</code> (write a concept and check it), <code>structure</code> (reorganize) or <code>lifecycle</code> (keep it current). Each role is
 about a quarter of the total. You can register the same

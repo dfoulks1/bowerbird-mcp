@@ -252,6 +252,11 @@
     </li>
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#seal">seal</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#search">search</a>
       
     </li>
@@ -278,11 +283,6 @@
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#upgrade">upgrade</a>
-      
-    </li>
-  
-    <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#verify">verify</a>
       
     </li>
   
@@ -1298,6 +1298,55 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 </tr>
 </tbody>
 </table>
+<h2 id="seal">seal<a class="headerlink" href="#seal" title="Link to this section">#</a></h2>
+<p>Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the <code>seal</code> policy in kbmcp.yaml covers has one. The one function for every format; <code>verify</code> (okf) and <code>ratify</code> (ADRs) are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 <code>verified</code> entry {by, at, sha256} into the concept; markdown and skos add one to verifications.yaml (commit it). The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (markdown and skos). check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; <code>seal.require</code> and <code>seal.exempt_status</code> in kbmcp.yaml say what it covers.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py seal db.md bundle=eng --attest promote=true</code></pre>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>file</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>by</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>promote</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>decision</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>check</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>since</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>bundle</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="search">search<a class="headerlink" href="#search" title="Link to this section">#</a></h2>
 <p>Concepts holding every word of query (case-insensitive, anywhere in the concept), best first. Each field a word matches adds its weight to the score: title 5, id 4, tags 3, type 2, description 2, body 1. Each hit: {bundle, file, title, type, score, matched (the fields), line, text (the first line holding a word, body first)}. Filters: type, tag, dir (a directory in the bundle); fields limits where words are looked for.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py search postgres format=text
@@ -1354,7 +1403,7 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks format
 </tbody>
 </table>
 <h2 id="set">set<a class="headerlink" href="#set" title="Link to this section">#</a></h2>
-<p>Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, verify, cite). apply=False shows the diff.</p>
+<p>Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, seal, cite). apply=False shows the diff.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py set db.md status=deprecated tags=[db,ops] bundle=eng apply=true</code></pre>
 <table>
 <thead>
@@ -1484,40 +1533,6 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
-<td><code>bool</code></td>
-<td><code>False</code></td>
-</tr>
-<tr>
-<td><code>bundle</code></td>
-<td><code>str</code></td>
-<td><code>''</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="verify">verify<a class="headerlink" href="#verify" title="Link to this section">#</a></h2>
-<p>Record a §5.2 <code>verified</code> entry {by, at} (at = now, UTC). Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; the concept is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the concept to them first. At the terminal a human runs it with --attest. promote=true also moves a draft to stable (§5.4); only a human review may.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py verify db.md bundle=eng --attest promote=true</code></pre>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Type</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>file</code></td>
-<td><code>str</code></td>
-<td>required</td>
-</tr>
-<tr>
-<td><code>by</code></td>
-<td><code>str</code></td>
-<td><code>''</code></td>
-</tr>
-<tr>
-<td><code>promote</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>

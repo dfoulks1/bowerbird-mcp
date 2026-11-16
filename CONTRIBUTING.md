@@ -40,6 +40,7 @@ use cases drive changes to it. Core stays one file.
 ```sh
 uv run bowerbird_mcp.py lint     # exits 1 on problems; use as a pre-merge gate
 uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
+uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # also the optional backends (skipped otherwise)
 ```
 
 ## Releasing
