@@ -14,8 +14,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if page and page.title and not page.is_homepage %}{{ page.title }} · {% endif %}{{ config.site_name }}</title>
-  <link rel="icon" href="{{ 'img/favicon.png' | url }}" type="image/png">
-  <link rel="icon" href="{{ 'img/favicon.ico' | url }}" sizes="any">
+  <link rel="icon" href="{{ 'img/favicon.ico' | url }}" sizes="32x32">
+  <link rel="icon" href="{{ 'img/favicon.svg' | url }}" type="image/svg+xml">
   {% if config.site_description %}<meta name="description" content="{{ config.site_description }}">{% endif %}
   <meta property="og:type" content="website">
   <meta property="og:title" content="{% if page and page.title and not page.is_homepage %}{{ page.title }} · {% endif %}{{ config.site_name }}">
