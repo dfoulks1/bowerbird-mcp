@@ -68,8 +68,7 @@ ROLES = {  # who needs which tools; the MCP server offers the union of its roles
     "lifecycle": {"baseline", "config", "index", "init", "provenance", "recheck_apply", "recheck_plan", "reindex",
                   "upgrade"}}  # each role is about a quarter of the tool descriptions (tests keep every tool in one)
 CONFIG_KEYS = {"user", "ai_producers", *DEFAULTS}
-MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "git+https://github.com/dfoulks1/bowerbird-mcp", "bowerbird-mcp"]}}}
-# shortcut: the repository, until a PyPI release carries seal and `format`; then "args": ["bowerbird-mcp"]
+MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "bowerbird-mcp>=2,<3", "bowerbird-mcp"]}}}  # a repo pins the major
 LEDGER = "verifications.yaml"  # reviews of files in the markdown, adr and skos formats (okf keeps them in frontmatter); committed
 SHARED_ONLY = {"format", "seal"}  # what the folder is, and who must review it: only kbmcp.yaml sets these, never .env or the environment
 NOT_IN_DEFAULTS = {"user": "", "ai_producers": []}  # types of the keys DEFAULTS does not hold (for KB_USER, KB_AI_PRODUCERS)

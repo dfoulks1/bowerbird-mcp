@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 (2026-11-16)
+
+A major version: several things a 1.x user relied on changed.
+
+### Breaking
+- The MCP tool `verify` is now `seal` (one function for a human's review, in every format). `verify` and `ratify`
+  remain command-line names for it, but an MCP client calling `verify` must call `seal`.
+- `kbmcp.yaml` is the knowledgebase's committed, shared configuration (it was local and ignored by git). `config` no
+  longer lists it in `.gitignore`. Personal overrides now go in a `.env` file or `KB_*` variables.
+- Any folder holding a `kbmcp.yaml` is its own knowledgebase, so the outer one skips it and `lint` no longer reports
+  `nested_config`.
+- `init` writes more (a filled-in `kbmcp.yaml`, `env.example`, `.mcp.json`, and your id in `.env`) and is async.
+- The `KB_ROOT` message no longer points at a `root:` key (there is none).
 
 ### Added
 - `seal` (command-line names `verify` for okf and `ratify` for ADRs): one function for a human's review, in every

@@ -1,8 +1,8 @@
 # TODO
 
-Nothing open for 1.0.1. Ideas for later:
+Ideas for later:
 
-## 2.0
+## Next
 
 - [ ] Addressable resources: concepts and passages as `kb://{bundle}/{file}` MCP resources.
 - [ ] MCP prompts (answer from the knowledgebase and cite; review a decision record).
