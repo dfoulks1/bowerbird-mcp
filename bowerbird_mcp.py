@@ -2176,10 +2176,12 @@ async def init(apply: bool = False, bundle: str = "", about: str = "", holds: st
         text = filled_config({**({"about": vals["about"]} if vals["about"] else {}), "format": holds, "passages": True,
                               "hubs": True, "semantic": False, "semantic_model": DEFAULTS["semantic_model"],
                               "min_similarity": DEFAULTS["min_similarity"], "index": DEFAULTS["index"]})
-        cfg = {CONFIG: text, **({} if (d / "env.example").exists() else {"env.example": ENV_EXAMPLE}),
-               **({} if (d / ".mcp.json").exists() else {".mcp.json": json.dumps(MCP_JSON, indent=2) + "\n"})}
+        cfg = {CONFIG: text}
         if vals["user"] and not (d / ".env").exists():
             cfg[".env"] = f"KB_USER={vals['user']}\n"
+    for n, t in (("env.example", ENV_EXAMPLE), (".mcp.json", json.dumps(MCP_JSON, indent=2) + "\n")):
+        if not (d / n).exists():  # also for a folder that already has its kbmcp.yaml
+            cfg[n] = t
     if (holds or OPTS["format"]) != "okf":  # only okf starts a bundle
         out = {"edited": {}} if apply else {"would_edit": {}}
     else:

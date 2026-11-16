@@ -918,7 +918,7 @@ subprocess.run(["git", "init", "-q", str(gr)], check=True)
 (gr / ".gitignore").write_text("build/")  # no trailing newline: kept
 k.KB_ROOT = gr
 P = init()
-assert P["config"]["files"][:2] == ["kbmcp.yaml", "env.example"] and P["config"]["gitignore"] == ".gitignore gets .env", P  # .env too if a user id is known
+assert P["config"]["files"][0] == "kbmcp.yaml" and {"env.example", ".mcp.json"} <= set(P["config"]["files"]) and P["config"]["gitignore"] == ".gitignore gets .env", P  # .env too if a user id is known
 assert "about" in P["config"]["missing"] and not (gr / "kbmcp.yaml").exists(), P  # apply=false writes nothing
 P = init(apply=True)
 assert (gr / ".gitignore").read_text() == "build/\n.env\n" and (gr / "env.example").read_text() == k.ENV_EXAMPLE
@@ -929,6 +929,14 @@ assert k.declares(gr / "index.md") and (gr / "log.md").is_file()  # okf: a bundl
 # init also writes a .mcp.json (commit it: a clone has the tools with nothing to register), and never overwrites one.
 mj = json.loads((gr / ".mcp.json").read_text())
 assert mj == k.MCP_JSON and mj["mcpServers"]["bowerbird"]["command"] == "uvx" and "--role" not in mj["mcpServers"]["bowerbird"]["args"]
+# a folder that already has its kbmcp.yaml still gets the files it lacks, and that file is left alone.
+ex = Path(tempfile.mkdtemp()).resolve()
+(ex / "kbmcp.yaml").write_text("format: adr\n")
+k.KB_ROOT = ex
+P = init(apply=True, holds="adr")
+assert "kbmcp.yaml" not in P["config"]["files"] and {"env.example", ".mcp.json"} <= set(P["config"]["files"]), P
+assert (ex / "kbmcp.yaml").read_text() == "format: adr\n" and json.loads((ex / ".mcp.json").read_text()) == k.MCP_JSON
+k.KB_ROOT = gr
 # given values fill it in; markdown and skos start no bundle; nothing is overwritten.
 md = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = md
