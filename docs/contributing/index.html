@@ -218,7 +218,7 @@ uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # 
 </ol>
 <p>PyPI uses <em>trusted publishing</em>, so no token is stored anywhere. One-time setup, by the project owner:
 create the project's pending publisher at https://pypi.org/manage/account/publishing/ with owner
-<code>dfoulks1</code>, repository <code>Bowerbird</code>, workflow <code>publish.yml</code> and environment <code>pypi</code>, and create a
+<code>dfoulks1</code>, repository <code>bowerbird-mcp</code>, workflow <code>publish.yml</code> and environment <code>pypi</code>, and create a
 GitHub environment named <code>pypi</code> (Settings, Environments), ideally with the owner as a required reviewer
 so each upload waits for approval. To try it first, <code>uv publish --publish-url https://test.pypi.org/legacy/</code>
 uploads the files from <code>uv build</code> to TestPyPI.</p>
