@@ -7,10 +7,10 @@
   <title>Tools · Bowerbird</title>
   <link rel="icon" href="../img/favicon.png" type="image/png">
   <link rel="icon" href="../img/favicon.ico" sizes="any">
-  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Tools · Bowerbird">
-  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -81,6 +81,14 @@
               <a class="nav-link active"
                  aria-current="page"
                  href="./">Tools</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../troubleshooting/">Troubleshooting</a>
             </li>
           
         
@@ -320,7 +328,7 @@
         <article><h1 id="tools">Tools<a class="headerlink" href="#tools" title="Link to this section">#</a></h1>
 <p>Every tool, from its own docstring. Run one as <code>uv run bowerbird_mcp.py &lt;tool&gt; name=value ...</code>, or see the same text with <code>help &lt;tool&gt;</code>.</p>
 <h2 id="archive">archive<a class="headerlink" href="#archive" title="Link to this section">#</a></h2>
-<p>Retire a concept, or (no file) the whole bundle= named, into the archive: <code>archive/</code>, a knowledgebase within the knowledgebase (started when absent), at archive/&lt;bundle&gt;/&lt;path&gt;, so <code>unarchive</code> can put it back. Archived bundles stay bundles; the live knowledgebase (lint, list, search, status, web) does not see them, and editing tools refuse them. Links to it are rewritten and warn afterwards (archived_link); status is left alone. apply=False shows the plan and diff.</p>
+<p>Retire a concept, or (no file) the whole bundle= named, into the archive: <code>archive/</code>, a collection within the collection (started when absent), at archive/&lt;bundle&gt;/&lt;path&gt;, so <code>unarchive</code> can put it back. Archived bundles stay bundles; the live collection (lint, list, search, status, web) does not see them, and editing tools refuse them. Links to it are rewritten and warn afterwards (archived_link); status is left alone. apply=False shows the plan and diff.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py archive file=runbooks/old.md bundle=eng apply=true
 uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <table>
@@ -350,7 +358,7 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="baseline">baseline<a class="headerlink" href="#baseline" title="Link to this section">#</a></h2>
-<p>Snapshot today's lint findings so CI fails only on new ones (<code>lint baseline=&lt;path&gt;</code>; same bundle and <code>all</code>, and like lint it defaults to where the user is). For adopting OKF on a large existing collection. The snapshot's path is relative to the knowledgebase. apply=False only counts.</p>
+<p>Snapshot today's lint findings so CI fails only on new ones (<code>lint baseline=&lt;path&gt;</code>; same bundle and <code>all</code>, and like lint it defaults to where the user is). For adopting OKF on a large existing collection. The snapshot's path is relative to the collection. apply=False only counts.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py baseline apply=true</code></pre>
 <table>
 <thead>
@@ -385,7 +393,7 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 </table>
 <h2 id="bundles">bundles<a class="headerlink" href="#bundles" title="Link to this section">#</a></h2>
 <p>Bundle roots under a directory: each index.md declaring okf_version (§12). A bundle without that declaration looks like any folder; pass it as bundle= directly.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py bundles format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py bundles output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -477,7 +485,7 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="config">config<a class="headerlink" href="#config" title="Link to this section">#</a></h2>
-<p>Write a kbmcp.yaml at the root of the knowledgebase from the built-in example (every setting commented out at its default; commit it, it is the knowledgebase's shared configuration, and any folder holding one is a knowledgebase) and an env.example beside it that lists every KB_* override (copy it to .env, which is not committed and which this lists in the .gitignore beside it in a git work tree). Never overwrites a file; one that exists is skipped. apply=false shows what would change.</p>
+<p>Write a kbmcp.yaml at the root of the collection from the built-in example (every setting commented out at its default; commit it, it is the collection's shared configuration, and any folder holding one is a collection) and an env.example beside it that lists every KB_* override (copy it to .env, which is not committed and which this lists in the .gitignore beside it in a git work tree). Never overwrites a file; one that exists is skipped. apply=false shows what would change.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py config
 uv run bowerbird_mcp.py config apply=true</code></pre>
 <table>
@@ -562,7 +570,7 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 </table>
 <h2 id="dirs">dirs<a class="headerlink" href="#dirs" title="Link to this section">#</a></h2>
 <p>The map: each directory holding concepts and how many. Small; read it before search or get.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py dirs format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py dirs output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -611,7 +619,7 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 </table>
 <h2 id="get">get<a class="headerlink" href="#get" title="Link to this section">#</a></h2>
 <p>One .md file of a bundle (a concept, index.md or log.md), or several at once with files=[...]. A missing index.md is synthesized from frontmatter (§8; <code>synthesized: true</code>). offset/limit page by line; limit=0 = all.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py get db.md bundle=eng format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py get db.md bundle=eng output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -649,8 +657,8 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="heatmap">heatmap<a class="headerlink" href="#heatmap" title="Link to this section">#</a></h2>
-<p>The hottest concepts and who heats them, from git history (.mailmap names). files: commits that changed each concept in the last <code>days</code>, most first, and how many people did. bundles: the same per bundle. authors: each person's changes and concepts in the window. single_author: concepts only one person has ever changed (all history; a bus-factor flag). index.md and log.md are left out: every write touches them. Like lint, it covers where the user is (at the knowledgebase root, every bundle). limit=0 lists all.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py heatmap days=30 format=text</code></pre>
+<p>The hottest concepts and who heats them, from git history (.mailmap names). files: commits that changed each concept in the last <code>days</code>, most first, and how many people did. bundles: the same per bundle. authors: each person's changes and concepts in the window. single_author: concepts only one person has ever changed (all history; a bus-factor flag). index.md and log.md are left out: every write touches them. Like lint, it covers where the user is (at the collection root, every bundle). limit=0 lists all.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py heatmap days=30 output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -678,7 +686,7 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="index">index<a class="headerlink" href="#index" title="Link to this section">#</a></h2>
-<p>Rebuild generated document lists from frontmatter (title, type, tags, <code>description</code>, §8): the bundle-root index.md (a table, added if missing) and every index.md that already has a list. At a knowledgebase root, its index.md lists the bundles (created if missing). dirs=true also gives every directory an index.md listing its concepts and subdirectories (§8 progressive disclosure). apply=False shows the diff.</p>
+<p>Rebuild generated document lists from frontmatter (title, type, tags, <code>description</code>, §8): the bundle-root index.md (a table, added if missing) and every index.md that already has a list. At a collection root, its index.md lists the bundles (created if missing). dirs=true also gives every directory an index.md listing its concepts and subdirectories (§8 progressive disclosure). apply=False shows the diff.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py index apply=true
 uv run bowerbird_mcp.py index dirs=true apply=true bundle=eng</code></pre>
 <table>
@@ -709,7 +717,7 @@ uv run bowerbird_mcp.py index dirs=true apply=true bundle=eng</code></pre>
 </table>
 <h2 id="ingest">ingest<a class="headerlink" href="#ingest" title="Link to this section">#</a></h2>
 <p>Bring markdown from a local directory or git clone into an OKF bundle, or adopt it in place (bundle = source; needs a clean git tree, so the diff is the review). Each file gets frontmatter: <code>type</code> from rules ({glob: type}, first match, else Document), <code>title</code> (its own, its H1, or the filename), <code>status</code> (default draft: imported, not reviewed), optional stale_after, and provenance where git has it: <code>sources</code> (a permalink and last_modified) and <code>generated</code> {by, at, basis: git-history}. Existing keys are kept. Never overwrites; files that already have <code>type</code> are skipped, so a re-run is a no-op. A reserved index.md/log.md carrying frontmatter is renamed &lt;dir&gt;-index.md/&lt;dir&gt;-log.md. apply=False is the plan: run it first, sample files, set rules. keep_okf=true merges another OKF bundle: files that have <code>type</code> are copied as they are (plus an origin source when git has one) and the source's index.md/log.md are left behind. It does not clone, convert other formats or check licenses. Files holding a credential-shaped string are skipped (<code>secrets</code> in the plan); run gitleaks on the source's history too.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki format=text
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki output=text
 uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <table>
 <thead>
@@ -773,7 +781,7 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="init">init<a class="headerlink" href="#init" title="Link to this section">#</a></h2>
-<p>Start a knowledgebase: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; <code>holds</code> is okf, markdown, adr or skos, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with <code>type:</code> frontmatter) and lint.</p>
+<p>Start a collection: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; <code>holds</code> is okf, markdown, adr, skos or seal-only, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with <code>type:</code> frontmatter) and lint.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py init bundle=eng apply=true</code></pre>
 <table>
 <thead>
@@ -813,7 +821,7 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 </table>
 <h2 id="links">links<a class="headerlink" href="#links" title="Link to this section">#</a></h2>
 <p>Edges of one concept (§6): <code>out</code> = its links, and its §6.2 path fields as <code>field</code> entries (sources are lineage, §5.1); exists false = broken; target names the bundle and file. <code>in</code> = concepts in its bundle that link to it or cite it. Check <code>in</code> before moving, renaming or deprecating a concept.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py links db.md bundle=eng format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py links db.md bundle=eng output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -836,11 +844,11 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="lint">lint<a class="headerlink" href="#lint" title="Link to this section">#</a></h2>
-<p>Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: <code>fix</code> clears it). conformant: §11 holds for what was linted (frontmatter parses, <code>type</code> set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a <code>baseline</code> snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the knowledgebase root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A kbmcp.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line <code>&lt;!-- kbmcp-nolint --&gt;</code> skips itself. only / ignore: finding kinds to keep or drop, like only=stub.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint format=text
-uv run bowerbird_mcp.py lint eng/runbooks/ format=text
-uv run bowerbird_mcp.py lint only=stub,island format=text
-uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github</code></pre>
+<p>Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: <code>fix</code> clears it). conformant: §11 holds for what was linted (frontmatter parses, <code>type</code> set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a <code>baseline</code> snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the collection root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A kbmcp.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line <code>&lt;!-- kbmcp-nolint --&gt;</code> skips itself. only / ignore: finding kinds to keep or drop, like only=stub.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint output=text
+uv run bowerbird_mcp.py lint eng/runbooks/ output=text
+uv run bowerbird_mcp.py lint only=stub,island output=text
+uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></pre>
 <table>
 <thead>
 <tr>
@@ -909,7 +917,7 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github</code></p
 </table>
 <h2 id="list">list<a class="headerlink" href="#list" title="Link to this section">#</a></h2>
 <p>Concepts, filtered by type, tag, status (draft | stable | deprecated; absent = stable), trust tier (unverified | machine-confirmed | human-reviewed) or stale=true. The review worklist after an ingest: status=draft tier=unverified.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py list status=draft tier=unverified format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py list status=draft tier=unverified output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -963,7 +971,7 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github</code></p
 </table>
 <h2 id="log">log<a class="headerlink" href="#log" title="Link to this section">#</a></h2>
 <p>History, newest first. With file: the entries in every log.md over that concept that link to it (§9), and the git commits that changed it. Without: the bundle's recent entries from all its log.md files. <code>record</code> writes an entry.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py log db.md bundle=eng format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py log db.md bundle=eng output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -991,7 +999,7 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github</code></p
 </tbody>
 </table>
 <h2 id="migrate">migrate<a class="headerlink" href="#migrate" title="Link to this section">#</a></h2>
-<p>Move a concept to another bundle of the knowledgebase (<code>move</code> stays inside one). to_bundle: the target bundle's path in the knowledgebase ("." for its root). to: the path inside it (default: the same path). Links to the concept in both bundles are rewritten; its own <code>/</code> links, which meant the old bundle's root, become relative paths (cross-bundle: lint warns). Links from other bundles are not touched. apply=False shows the diff.</p>
+<p>Move a concept to another bundle of the collection (<code>move</code> stays inside one). to_bundle: the target bundle's path in the collection ("." for its root). to: the path inside it (default: the same path). Links to the concept in both bundles are rewritten; its own <code>/</code> links, which meant the old bundle's root, become relative paths (cross-bundle: lint warns). Links from other bundles are not touched. apply=False shows the diff.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py migrate db.md mkt bundle=eng apply=true</code></pre>
 <table>
 <thead>
@@ -1064,8 +1072,8 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github</code></p
 </tbody>
 </table>
 <h2 id="passages">passages<a class="headerlink" href="#passages" title="Link to this section">#</a></h2>
-<p>The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section (a long one is cut again, each piece repeating the last short paragraph of the one before; with format: skos each skos:Concept is a passage), ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused (vector_index in kbmcp.yaml picks scan, sqlite-vec or hnsw). Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the knowledgebase has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by <code>reindex</code> when build is manual; semantic mode also downloads its model once.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py passages 'how do we roll back a deploy' format=text
+<p>The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section (a long one is cut again, each piece repeating the last short paragraph of the one before; with format: skos each skos:Concept is a passage), ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused (vector_index in kbmcp.yaml picks scan, sqlite-vec or hnsw). Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the collection has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by <code>reindex</code> when build is manual; semantic mode also downloads its model once.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text
 uv run bowerbird_mcp.py passages rollback tag=ops limit=3</code></pre>
 <table>
 <thead>
@@ -1189,7 +1197,7 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 </table>
 <h2 id="recheck_plan">recheck_plan<a class="headerlink" href="#recheck_plan" title="Link to this section">#</a></h2>
 <p>Facts due a re-check: <code>sources</code> entries retrieved at least N days ago, or on a concept past stale_after. Each lists <code>cites</code>, the lines whose claims rest on it. <code>calls</code> replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). Sources without a recorded call are under <code>manual</code>: open the resource (one never retrieved is due once its concept is stale). Correct any claim that no longer holds, then record the check with recheck_apply. Nothing is executed here.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py recheck_plan older_than_days=90 format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py recheck_plan older_than_days=90 output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -1246,9 +1254,9 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 </tbody>
 </table>
 <h2 id="reindex">reindex<a class="headerlink" href="#reindex" title="Link to this section">#</a></h2>
-<p>Build, inspect or delete the passage index (<code>index</code> in kbmcp.yaml). Default: build or refresh it from the whole knowledgebase, and its vectors when semantic is on. Only files that changed since the last run are read, so it is cheap to run from a pre-commit, post-merge or post-checkout hook; the first semantic run embeds every passage and takes minutes (an interrupted run resumes). full=true starts over. info=true only reports: the file, its size, files, passages and vectors held, the model they came from, and <code>behind</code> (files changed since the last build). drop=true deletes the file (a cache; reindex makes it again). Never edits the bundle. Pick one of full, info and drop.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py reindex format=text
-uv run bowerbird_mcp.py reindex info=true format=text
+<p>Build, inspect or delete the passage index (<code>index</code> in kbmcp.yaml). Default: build or refresh it from the whole collection, and its vectors when semantic is on. Only files that changed since the last run are read, so it is cheap to run from a pre-commit, post-merge or post-checkout hook; the first semantic run embeds every passage and takes minutes (an interrupted run resumes). full=true starts over. info=true only reports: the file, its size, files, passages and vectors held, the model they came from, and <code>behind</code> (files changed since the last build). drop=true deletes the file (a cache; reindex makes it again). Never edits the bundle. Pick one of full, info and drop.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py reindex output=text
+uv run bowerbird_mcp.py reindex info=true output=text
 uv run bowerbird_mcp.py reindex full=true
 uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <table>
@@ -1278,7 +1286,7 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 </tbody>
 </table>
 <h2 id="rename">rename<a class="headerlink" href="#rename" title="Link to this section">#</a></h2>
-<p>Rename or move a bundle within the knowledgebase (§3): bundle= (default: where the user is) to <code>to</code>, a path in the knowledgebase. Links into it from other bundles, its links out, and §6.2 paths are rewritten (§6.1); its own <code>/</code> links stay, since its root moves with it. The knowledgebase index follows. apply=False shows the plan and diff.</p>
+<p>Rename or move a bundle within the collection (§3): bundle= (default: where the user is) to <code>to</code>, a path in the collection. Links into it from other bundles, its links out, and §6.2 paths are rewritten (§6.1); its own <code>/</code> links stay, since its root moves with it. The collection index follows. apply=False shows the plan and diff.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py rename marketing bundle=mkt apply=true</code></pre>
 <table>
 <thead>
@@ -1307,7 +1315,7 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 </tbody>
 </table>
 <h2 id="seal">seal<a class="headerlink" href="#seal" title="Link to this section">#</a></h2>
-<p>Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the <code>seal</code> policy in kbmcp.yaml covers has one. The one function for every format; <code>verify</code> (okf) and <code>ratify</code> (ADRs) are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 <code>verified</code> entry {by, at, sha256} into the concept; markdown, adr and skos add one to verifications.yaml (commit it). The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; <code>seal.require</code> and <code>seal.exempt_status</code> in kbmcp.yaml say what it covers.</p>
+<p>Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the <code>seal</code> policy in kbmcp.yaml covers has one. The one function for every format; <code>verify</code> (okf) and <code>ratify</code> (ADRs) are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 <code>verified</code> entry {by, at, sha256} into the concept; markdown, adr and skos add one to .waxseal.yaml (commit it). The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; <code>seal.require</code> and <code>seal.exempt_status</code> in kbmcp.yaml say what it covers.</p>
 <pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py seal db.md bundle=eng --attest promote=true</code></pre>
 <table>
 <thead>
@@ -1357,8 +1365,8 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 </table>
 <h2 id="search">search<a class="headerlink" href="#search" title="Link to this section">#</a></h2>
 <p>Concepts holding every word of query (case-insensitive, anywhere in the concept), best first. Each field a word matches adds its weight to the score: title 5, id 4, tags 3, type 2, description 2, body 1. Each hit: {bundle, file, title, type, score, matched (the fields), line, text (the first line holding a word, body first)}. Filters: type, tag, dir (a directory in the bundle); fields limits where words are looked for.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py search postgres format=text
-uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py search postgres output=text
+uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -1479,8 +1487,8 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks format
 </tbody>
 </table>
 <h2 id="status">status<a class="headerlink" href="#status" title="Link to this section">#</a></h2>
-<p>Bundle summary: concepts by type, by status (absent = stable, §5.4), by trust tier (§5.3), stale count (<code>stale_after</code> passed, §5.5), unparseable files, declared okf_version, conformance and lint totals; and the upkeep queues, five oldest or largest each: review (days since last <code>verified</code>), drafts (days since <code>generated.at</code>), sources (concepts with and without), words (total, longest: split candidates), due (<code>stale_after</code> within due_days); hubs (most linked-to concepts) and wanted (missing pages links point at, most wanted first). At a knowledgebase root without bundle=, <code>bundles</code> holds the same for each bundle.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py status format=text</code></pre>
+<p>Bundle summary: concepts by type, by status (absent = stable, §5.4), by trust tier (§5.3), stale count (<code>stale_after</code> passed, §5.5), unparseable files, declared okf_version, conformance and lint totals; and the upkeep queues, five oldest or largest each: review (days since last <code>verified</code>), drafts (days since <code>generated.at</code>), sources (concepts with and without), words (total, longest: split candidates), due (<code>stale_after</code> within due_days); hubs (most linked-to concepts) and wanted (missing pages links point at, most wanted first). At a collection root without bundle=, <code>bundles</code> holds the same for each bundle.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py status output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -1553,7 +1561,7 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 </table>
 <h2 id="vocab">vocab<a class="headerlink" href="#vocab" title="Link to this section">#</a></h2>
 <p>Tags and types in use, most used first: the words <code>search</code>, <code>list</code> and <code>set</code> filter on.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py vocab format=text</code></pre>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py vocab output=text</code></pre>
 <table>
 <thead>
 <tr>
@@ -1571,9 +1579,9 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 </tbody>
 </table>
 <h2 id="web">web<a class="headerlink" href="#web" title="Link to this section">#</a></h2>
-<p>The link graph (§6): which concepts link to (<code>link</code>) or cite (<code>cite</code>: sources and §6.2 path fields, lineage, §5.1) which. Where the user is, like lint: at the knowledgebase root, bundles with edges counted; in a bundle (or concepts=true), concepts. Broken links are left out (lint reports them); archived and deprecated nodes are marked. Returns {level, nodes, edges}; mermaid=true returns a Mermaid diagram instead (CLI: format=mermaid), which GitHub and most markdown viewers draw.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py web format=text
-uv run bowerbird_mcp.py web format=mermaid</code></pre>
+<p>The link graph (§6): which concepts link to (<code>link</code>) or cite (<code>cite</code>: sources and §6.2 path fields, lineage, §5.1) which. Where the user is, like lint: at the collection root, bundles with edges counted; in a bundle (or concepts=true), concepts. Broken links are left out (lint reports them); archived and deprecated nodes are marked. Returns {level, nodes, edges}; mermaid=true returns a Mermaid diagram instead (CLI: output=mermaid), which GitHub and most markdown viewers draw.</p>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py web output=text
+uv run bowerbird_mcp.py web output=mermaid</code></pre>
 <table>
 <thead>
 <tr>
@@ -1607,7 +1615,7 @@ uv run bowerbird_mcp.py web format=mermaid</code></pre>
               <a class="btn btn-outline-secondary" href="../guide/">&larr; Guide</a>
             
             
-              <a class="btn btn-outline-secondary" href="../contributing/">Contributing &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../troubleshooting/">Troubleshooting &rarr;</a>
             
           </div>
         

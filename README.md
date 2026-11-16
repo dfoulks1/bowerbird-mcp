@@ -11,12 +11,12 @@
 
 Keep a folder of Markdown notes in order, and let an AI assistant, a script or
 you search and check them. It is for anyone who keeps notes, runbooks or documentation
-as Markdown in a folder or repository. It works on knowledgebases in [Open Knowledge Format][okf]
+as Markdown in a folder or repository. It works on collections in [Open Knowledge Format][okf]
 (OKF) v0.2: one Markdown file per *concept*, each starting with a small header of
 facts (its type, a description, where it came from, who checked it). A *bundle* is
-a folder of concepts; a knowledgebase is a bundle, or a folder of bundles.
+a folder of concepts; a collection is a bundle, or a folder of bundles.
 It is not tied to one format: one `format:` line in `kbmcp.yaml` points it at other
-knowledge formats too ([Formats](#formats)).
+formats too ([Formats](#formats)).
 
 It is an MCP server (MCP, the Model Context Protocol, is how AI assistants call
 tools) and a command line. It
@@ -32,11 +32,11 @@ if you prefer). In an empty folder:
 
 ```sh
 alias kb='uvx bowerbird-mcp'
-kb init apply=true format=text
+kb init apply=true output=text
 kb create deploy type=Playbook title="Deploy" description="How we deploy." \
-   body="Run the deploy script, then check the dashboard. To roll back, redeploy the previous tag." format=text
-kb passages 'how do we roll back' format=text     # the best passages, with file and line
-kb lint format=text                               # ends: bowerbird-mcp lint: ok: ...
+   body="Run the deploy script, then check the dashboard. To roll back, redeploy the previous tag." output=text
+kb passages 'how do we roll back' output=text     # the best passages, with file and line
+kb lint output=text                               # ends: bowerbird-mcp lint: ok: ...
 ```
 
 Personal project. Apache-2.0 (see [LICENSE](https://github.com/dfoulks1/bowerbird-mcp/blob/main/LICENSE); [NOTICE](https://github.com/dfoulks1/bowerbird-mcp/blob/main/NOTICE) credits the
@@ -60,27 +60,27 @@ To run the latest unreleased code instead of the PyPI release, give uv the repos
 
 ### Settings: kbmcp.yaml
 
-A `kbmcp.yaml` is the knowledgebase's configuration, and **any folder that holds one is a knowledgebase**: its
+A `kbmcp.yaml` is the collection's configuration, and **any folder that holds one is a collection**: its
 base, with its index, archive and bundles. Commit it. It sits at the root, not in a bundle. The tool finds the
 nearest one from the current directory up, or you name it with `--config`, so a server needs no env block. A
-folder inside a knowledgebase with its own `kbmcp.yaml` is another knowledgebase, and the outer one skips it.
+folder inside a collection with its own `kbmcp.yaml` is another collection, and the outer one skips it.
 `init` writes a mostly filled-in one (see below); `config apply=true` writes the all-commented example, and
 neither overwrites a file. The old `KB_ROOT` variable is gone and is refused: the base is wherever `kbmcp.yaml` is.
 
 ```yaml
-about: Engineering runbooks.   # shown to the agent; tells knowledgebases apart
+about: Engineering runbooks.   # shown to the agent; tells collections apart
 user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | adr | markdown | skos: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos | seal-only: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
-semantic: false       # also match by meaning (see Reading the knowledgebase)
+semantic: false       # also match by meaning (see Reading the collection)
 semantic_model: BAAI/bge-small-en-v1.5
 min_similarity: 0.6   # how close in meaning a passage must be
 vector_index: scan    # scan | sqlite-vec | hnsw: how semantic search finds neighbours
 index: .kbmcp/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
 build: auto           # auto: passages keeps the index current; manual: only `reindex`
-roles: [read, write, structure, lifecycle]   # roles the server may offer (see Register)
+roles: [read, write, structure, lifecycle, seal]   # roles the server may offer (see Register)
 seal: {require: ["**"], exempt_status: [proposed, draft]}   # who must have reviewed what (see Sealing)
 ```
 
@@ -90,7 +90,7 @@ seal: {require: ["**"], exempt_status: [proposed, draft]}   # who must have revi
 lists every override as a `KB_<KEY>` variable (`KB_USER`, `KB_ABOUT`, `KB_SEMANTIC`, `KB_VECTOR_INDEX`, `KB_BUILD`,
 and so on; lists are comma separated). Copy it to `.env` beside `kbmcp.yaml` and uncomment what you change: `.env` is
 not committed (`init` and `config` list it in `.gitignore`). Precedence, last wins: `kbmcp.yaml`, then `.env`, then
-real environment variables. `format` is the knowledgebase's own and no override touches it. `KB_ROLE` (singular)
+real environment variables. `format` is the collection's own and no override touches it. `KB_ROLE` (singular)
 is the same as `--role`.
 
 `init` fills in what it can: `format` is guessed from the folder (thesaurus files mean `skos`, Markdown with no OKF
@@ -107,7 +107,7 @@ itself). To build it apart from the server, run `reindex` (incremental: only
 changed files are read) and set `build: manual`, so `passages` only reads it:
 
 ```sh
-uvx bowerbird-mcp reindex format=text     # first semantic run embeds everything: minutes, once
+uvx bowerbird-mcp reindex output=text     # first semantic run embeds everything: minutes, once
 ```
 
 ```yaml
@@ -127,18 +127,18 @@ repos:
 
 ### Where tools look
 
-A knowledgebase is where its `kbmcp.yaml` is: the tool looks for one from the
+A collection is where its `kbmcp.yaml` is: the tool looks for one from the
 current directory up (or takes `--config path/to/kbmcp.yaml`) and treats that
 file's folder as the base. With none, it uses the current directory. It is one bundle at its root, or a set of sibling bundles. A
 directory whose `index.md` declares `okf_version` is a bundle root; bundles do
-not nest. An `index.md` at the knowledgebase root lists its bundles (`index
+not nest. An `index.md` at the collection root lists its bundles (`index
 apply=true` there writes it), and tools find the root from inside a bundle
 through it. `bundles` lists them, `split` makes a directory its own bundle,
 `rename` moves or renames one, `migrate` moves a concept between bundles,
 `archive` and `unarchive` retire and restore a concept or a whole bundle,
 `ingest keep_okf=true` merges one in, and `upgrade` converts OKF v0.1.
 
-Tools follow where you are: in a bundle, that bundle; at the knowledgebase
+Tools follow where you are: in a bundle, that bundle; at the collection
 root, every bundle (`lint`, `fix`, `baseline`, `status`, `list`, `search`,
 `recheck_plan`). Name files or directories to lint just those
 (`lint notes/a.md docs/`). Files are named the OKF way: a bundle and the
@@ -153,7 +153,7 @@ tree, files git ignores are skipped.
 wget https://raw.githubusercontent.com/dfoulks1/bowerbird-mcp/main/bowerbird_mcp.py
 uv run bowerbird_mcp.py help                 # every tool, one line each
 uv run bowerbird_mcp.py help move            # one tool: what it does, its arguments
-uv run bowerbird_mcp.py lint format=text
+uv run bowerbird_mcp.py lint output=text
 uv run bowerbird_mcp.py init apply=true       # start a new bundle
 ```
 
@@ -167,7 +167,7 @@ Write tools that touch many files default to `apply=false` and show a diff.
 (`verified`). It exists
 only on the command line: no MCP call can pass it.
 
-Output is JSON; `format=text` prints one key per line and diffs as is.
+Output is JSON; `output=text` prints one key per line and diffs as is.
 
 Exit codes: 0 ok, 1 findings, 2 usage error.
 
@@ -175,7 +175,7 @@ Exit codes: 0 ok, 1 findings, 2 usage error.
 ## Formats
 
 <!-- --8<-- [start:formats] -->
-Bowerbird is not tied to one knowledge format. `format` in `kbmcp.yaml` says what a folder holds, and the same
+Bowerbird is not tied to one format. `format` in `kbmcp.yaml` says what a folder holds, and the same
 search, index and review tools work across them.
 
 - `okf` (the default): [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md) bundles. Every tool is available.
@@ -187,9 +187,12 @@ search, index and review tools work across them.
 - `skos`: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (`*.ttl`, `*.rdf`, `*.jsonld`, `*.nt`, `*.n3`;
   needs `pip install rdflib`). One passage per concept, headed by its broader chain, with its labels, notes and
   broader, narrower and related concepts in the text.
+- `seal-only`: any text files you name (code, configuration), with nothing indexed or searched. List them in
+  `seal.require`; the one tool is `seal`, and `kb seal check=true` fails when a listed file has no human review of its
+  current version.
 
 Outside `okf` the server offers `passages`, `reindex` and `seal`. A hit is `unverified` until a human seals that exact
-file (see [Sealing](https://bowerbird.voltpop.com/guide/#sealing-who-reviewed-what)): reviews go in `verifications.yaml`, not in the file. `init` guesses
+file (see [Sealing](https://bowerbird.voltpop.com/guide/#sealing-who-reviewed-what)): reviews go in `.waxseal.yaml`, not in the file. `init` guesses
 the format from the folder, and the agent's instructions follow it.
 
 <!-- --8<-- [end:formats] -->
@@ -197,7 +200,7 @@ the format from the folder, and the agent's instructions follow it.
 ## Layout
 
 ```
-kb/                          the knowledgebase (kbmcp.yaml sits here)
+kb/                          the collection (kbmcp.yaml sits here)
   index.md                   lists the bundles; no frontmatter
   .gitattributes             log.md and index.md merge=union
   eng/                       a bundle
@@ -206,7 +209,7 @@ kb/                          the knowledgebase (kbmcp.yaml sits here)
     runbooks/
       index.md               optional: this directory's concepts
       deploy.md              a concept
-  archive/                   the archive: a knowledgebase of its own, set apart
+  archive/                   the archive: a collection of its own, set apart
     index.md                 lists the archived bundles
     eng/old-runbook.md       archived from eng (archive/eng is a bundle)
 ```
@@ -234,9 +237,9 @@ Hand-written text is kept.
 - The tool owns what is between the markers and rebuilds it from frontmatter
   (title, else first heading, else file name; `description`, else the first
   sentence). Write anything else around them.
-- **Knowledgebase root:** no frontmatter (it is not a bundle). The list has one
+- **Collection root:** no frontmatter (it is not a bundle). The list has one
   entry per bundle, titled by that bundle's first heading. Tools find the
-  knowledgebase by walking up from a bundle to the nearest `index.md` that links
+  collection by walking up from a bundle to the nearest `index.md` that links
   to it.
 - **Bundle root:** frontmatter holds only `okf_version: "0.2"`, which is what
   makes the directory a bundle (§12). The list covers every concept, a section
@@ -263,7 +266,7 @@ and the git commits that changed it. `log` alone shows the bundle's recent
 entries.
 
 `init` adds `log.md merge=union` and `index.md merge=union` to the
-knowledgebase's `.gitattributes`, so git keeps both sides when parallel
+collection's `.gitattributes`, so git keeps both sides when parallel
 branches log or index. After such a merge, `fix` merges duplicate log date
 sections, orders stamped entries by time, and rebuilds the generated index
 lists. A section with a
@@ -271,25 +274,25 @@ hand-written, unstamped entry keeps its order.
 
 ### The archive
 
-`archive/` is a knowledgebase within the knowledgebase, and a special one. Its
-`index.md` lists its bundles, like the knowledgebase root's. `archive file=x.md
+`archive/` is a collection within the collection, and a special one. Its
+`index.md` lists its bundles, like the collection root's. `archive file=x.md
 bundle=eng` moves a concept to `archive/eng/x.md` (starting `archive/eng` as a
 bundle); `archive bundle=eng` moves the whole bundle to `archive/eng/`, still a
 bundle. `unarchive eng/x.md` or `unarchive eng` puts them back. Links follow
 both ways.
 
-The live knowledgebase does not see the archive: lint, list, search, status
+The live collection does not see the archive: lint, list, search, status
 and web leave it out, nothing in it counts as nesting, and lint warns on links
 into it (`archived_link`). Editing tools refuse archived concepts. That is the
 only enforcement: the files are plain files, so an editor or a commit can still
-change them. It works whether the knowledgebase root is a set of bundles or a
+change them. It works whether the collection root is a set of bundles or a
 bundle itself.
 
 <!-- --8<-- [end:layout] -->
 <!-- --8<-- [start:register] -->
 ## Register with an MCP client
 
-`init` writes a `.mcp.json` at the root of the knowledgebase: commit it, and whoever clones the repository has the
+`init` writes a `.mcp.json` at the root of the collection: commit it, and whoever clones the repository has the
 tools with nothing to register on their own machine (Claude Code asks once to approve a project's server). For
 another client, or a folder without one, add this to the client's servers file: `.mcp.json` in the project for
 Claude Code, `claude_desktop_config.json` for Claude Desktop, `.cursor/mcp.json`
@@ -314,9 +317,9 @@ id is `user:` in it). To point at one elsewhere, add `"--config",
 claude mcp add bowerbird -- uvx bowerbird-mcp --config /path/to/kb/kbmcp.yaml
 ```
 
-Several knowledgebases at once: one entry each, with its own `--config`. The
+Several collections at once: one entry each, with its own `--config`. The
 client prefixes tool names with the entry name, and each file's `about:` tells
-the agent what that knowledgebase holds. Each keeps its own index.
+the agent what that collection holds. Each keeps its own index.
 
 The client loads the tool list at start. After editing the script, restart
 the client or reconnect the server (`/mcp` in Claude Code).
@@ -324,16 +327,17 @@ the client or reconnect the server (`/mcp` in Claude Code).
 ### Roles: a smaller tool list per agent
 
 All 35 tools cost an agent about 7,250 tokens of schema (an estimate: each tool's name, description and argument
-schema as the client receives them, in characters divided by four); each role is about a quarter of that. Register the same
+schema as the client receives them, in characters divided by four); the first four roles are each about a quarter of that, and `seal` is one tool. Register the same
 script more than once, each with a role (`--role`, or `KB_ROLE`; several with
 commas), and each server offers only that role's tools:
 
 | Role | Tools | Schema |
 |---|---|---|
 | `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~1,750 tokens |
-| `structure` | shape, repair and reorganization: `archive` `bundles` `dirs` `fix` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 11, ~1,900 tokens |
-| `write` | write a concept and check it: `cite` `create` `lint` `record` `seal` `set` | 6, ~1,850 tokens |
+| `structure` | shape, repair and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~1,700 tokens |
+| `write` | write a concept and check it: `cite` `create` `fix` `lint` `record` `set` | 6, ~1,600 tokens |
 | `lifecycle` | keep it current: `baseline` `config` `index` `init` `provenance` `recheck_apply` `recheck_plan` `reindex` `upgrade` | 9, ~1,800 tokens |
+| `seal` | a human's review of a file, and the check for it: `seal` | 1, ~450 tokens |
 
 ```json
 {
@@ -344,8 +348,8 @@ commas), and each server offers only that role's tools:
 }
 ```
 
-The `read` server is read-only, so a client can approve it without asking; the other
-three change files. A tool can belong to more than one role (`dirs` is in `read` and
+The `read` server is read-only, so a client can approve it without asking; the others
+change files (`seal` only writes a review: a ledger entry, or a concept's own `verified` key). A tool can belong to more than one role (`dirs` is in `read` and
 `structure`), and a server with no `--role` offers them all. With no `--role` the server offers every role that `roles:` in
 `kbmcp.yaml` leaves on; naming a role that is off refuses to start. The CLI
 always has every tool.
@@ -360,11 +364,11 @@ at a terminal `--attest` records you; an assistant can only seal as itself (`by=
 `verify` (the OKF word) and `ratify` (the ADR word) are its command-line names too.
 
 - **`okf`:** a `verified: {by, at, sha256}` entry in the concept's own frontmatter.
-- **`markdown` and `skos`:** an entry in `verifications.yaml` at the knowledgebase root (commit it): file, sha256, who,
+- **`markdown` and `skos`:** an entry in `.waxseal.yaml` at the collection root (commit it): file, sha256, who,
   when, and `decision=accepted|rejected` for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
   thesauri all work.
 
-The sha256 covers the file's exact bytes (line endings normalized; for `okf`, without the `verified` key). Edit the
+Like a wax seal, a review breaks when the file changes, and only a new review makes a new one. The sha256 covers the file's exact bytes (line endings normalized; for `okf`, without the `verified` key). Edit the
 file after sealing and the seal is broken: `passages` shows the hit `unverified` and `stale`. A ledger decision
 becomes the hit's `status`.
 
@@ -390,22 +394,22 @@ repos:
     hooks:
       - id: bowerbird-seal
         name: Bowerbird seal check
-        entry: uvx bowerbird-mcp seal check=true format=text
+        entry: uvx bowerbird-mcp seal check=true output=text
         language: system
         pass_filenames: false
         always_run: true
 ```
 
 Limits: a hook can be skipped (`--no-verify`), so run the same command in CI. `seal` proves a ledger entry exists
-for these bytes, not who typed it: protect `verifications.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
+for these bytes, not who typed it: protect `.waxseal.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
 protection so changes to them need a named reviewer. A SKOS file is sealed whole, not per concept.
 
 ## Before you push
 
 ```sh
-uv run bowerbird_mcp.py lint format=text      # what's wrong, each with a fix
+uv run bowerbird_mcp.py lint output=text      # what's wrong, each with a fix
 uv run bowerbird_mcp.py fix apply=true        # mechanical repairs, then re-lint
-uv run bowerbird_mcp.py lint format=text      # what's left needs you
+uv run bowerbird_mcp.py lint output=text      # what's left needs you
 ```
 
 `scope=okf` limits the check to the spec; `scope=house` to hygiene (links,
@@ -429,20 +433,20 @@ jobs:
         with:
           fetch-depth: 0          # provenance needs full history
       - uses: astral-sh/setup-uv@v6
-      - run: uv run bowerbird_mcp.py lint scope=okf format=github
+      - run: uv run bowerbird_mcp.py lint scope=okf output=github
 ```
 
-Findings show as annotations on the PR. `format=sarif` suits code scanning.
+Findings show as annotations on the PR. `output=sarif` suits code scanning.
 On PRs, `since=origin/${{ github.base_ref }}` limits findings to the files the PR
 changed.
 On a large existing collection, commit a `baseline apply=true` snapshot and
 run `lint baseline=.okf-baseline.json`, so only new findings fail. The
-snapshot sits at the knowledgebase root and matches from any directory. CI lints;
+snapshot sits at the collection root and matches from any directory. CI lints;
 it does not push fixes (fork PRs get a read-only token anyway).
 
 To skip files outright, list them in a `kbmcp.nolint` file. It works like
 `.gitignore`: it may sit in any directory, patterns are relative to it, the
-last match wins and `!` re-includes. At the knowledgebase root it covers every
+last match wins and `!` re-includes. At the collection root it covers every
 bundle. Skipped files are still read, so links to them resolve. One file can
 skip itself with the line `<!-- kbmcp-nolint -->`.
 
@@ -464,7 +468,7 @@ repos:
     hooks:
       - id: okf-lint
         name: OKF lint
-        entry: uv run bowerbird_mcp.py lint format=text
+        entry: uv run bowerbird_mcp.py lint output=text
         language: system
         pass_filenames: false
         verbose: true
@@ -472,7 +476,7 @@ repos:
 
 <!-- --8<-- [end:ci] -->
 <!-- --8<-- [start:limits] -->
-## Reading the knowledgebase
+## Reading the collection
 
 - Find things in three steps, each small: `dirs` maps the bundle (each
   directory and how many concepts it holds); `search` ranks concepts by where
@@ -481,9 +485,9 @@ repos:
   lists the tags and types in use, the words those filters take.
 
   ```sh
-  uv run bowerbird_mcp.py dirs format=text
-  uv run bowerbird_mcp.py search deploy rollback dir=runbooks format=text
-  uv run bowerbird_mcp.py get runbooks/deploy.md format=text
+  uv run bowerbird_mcp.py dirs output=text
+  uv run bowerbird_mcp.py search deploy rollback dir=runbooks output=text
+  uv run bowerbird_mcp.py get runbooks/deploy.md output=text
   ```
 
 - `passages` answers a question. It cuts concepts at
@@ -498,7 +502,7 @@ repos:
   passages), `sqlite-vec` (exact, in C; `pip install sqlite-vec`) or `hnsw`
   (approximate, for 100K+; `pip install hnswlib`; it keeps the top 500 before the
   type, tag and dir filters). No hit
-  returns `gap: true`: say the knowledgebase has nothing, don't guess. Passages
+  returns `gap: true`: say the collection has nothing, don't guess. Passages
   are indexed in one SQLite file (`index` in `kbmcp.yaml`), updated from the
   files that changed. `reindex` builds it ahead of time, for a hook, and with
   `build: manual` `passages` only reads it; `reindex info=true` reports what it
@@ -506,12 +510,12 @@ repos:
   both tools.
 
   ```sh
-  uv run bowerbird_mcp.py reindex format=text
-  uv run bowerbird_mcp.py passages 'how do we roll back a deploy' format=text
+  uv run bowerbird_mcp.py reindex output=text
+  uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text
   ```
 
-- `web` maps links and citations: bundles at the knowledgebase root, concepts
-  in a bundle. `format=text` for the terminal, `format=mermaid` for anything
+- `web` maps links and citations: bundles at the collection root, concepts
+  in a bundle. `output=text` for the terminal, `output=mermaid` for anything
   that draws Mermaid (GitHub, GitLab).
 - `heatmap days=30` ranks concepts by how many commits changed them (the ones
   most likely to collide across branches) and by how many people did; who
@@ -544,7 +548,7 @@ repos:
   with the installed package (`uvx bowerbird-mcp`) but not with the bare script, which
   needs `uv run --with fastembed` for `semantic: true`. The index lives in the file
   `index` names and is safe to delete; nothing in the
-  knowledgebase changes.
+  collection changes.
 
 <!-- --8<-- [end:limits] -->
 ## Self-check

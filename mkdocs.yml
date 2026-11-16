@@ -1,7 +1,7 @@
 site_name: Bowerbird
 site_description: >-
   An MCP server and command line for Open Knowledge Format (OKF) v0.2
-  knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.
+  collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.
 site_author: Bowerbird contributors
 copyright: Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review
 site_url: https://bowerbird.voltpop.com/
@@ -17,6 +17,12 @@ edit_uri: edit/main/docs-src/
 # (the build empties docs/, so a CNAME kept only there would be deleted).
 docs_dir: docs-src
 site_dir: docs
+
+# Pages that pull in files outside docs-src (the guide takes README.md sections, contributing takes CONTRIBUTING.md):
+# `mkdocs serve` rebuilds when these change too.
+watch:
+  - README.md
+  - CONTRIBUTING.md
 
 # Custom theme on Bootstrap 5 (Jinja2 templates in theme/, styles in docs-src/css/).
 theme:
@@ -57,6 +63,9 @@ markdown_extensions:
 # AI source material lives in docs-src/prompts/ for the repository, not for the website.
 exclude_docs: |
   prompts/
+  kbmcp.yaml
+  .waxseal.yaml
+  .env
 
 nav:
   - Home: index.md
@@ -65,6 +74,7 @@ nav:
   - Understanding OKF: understanding-okf.md
   - Guide: guide.md
   - Tools: tools.md
+  - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md
   - OKF v0.2: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md
 

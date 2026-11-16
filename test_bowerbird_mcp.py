@@ -21,7 +21,7 @@ HERE = Path(__file__).resolve().parent
 kb = Path(tempfile.mkdtemp()) / "kb"
 kb.mkdir()
 os.environ.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
-(kb / "kbmcp.yaml").write_text("")  # the config file marks the knowledgebase root
+(kb / "kbmcp.yaml").write_text("")  # the config file marks the collection root
 sys.argv[1:] = ["--config", str(kb / "kbmcp.yaml")]
 sys.path.insert(0, str(HERE))
 import bowerbird_mcp as k
@@ -423,7 +423,7 @@ assert g_["by"] == "human:ann" and g_["basis"] == "stated" and TS.fullmatch(g_["
 shutil.rmtree(u)
 k.KB_ROOT = saved
 
-# The archive also works when the knowledgebase root is itself a bundle: it is set apart, not nested.
+# The archive also works when the collection root is itself a bundle: it is set apart, not nested.
 one = Path(tempfile.mkdtemp()) / "solo"
 one.mkdir()
 k.KB_ROOT = one
@@ -435,7 +435,7 @@ k.unarchive("solo/x.md", apply=True)
 assert (one / "x.md").exists() and not (one / "archive/solo/x.md").exists()
 k.KB_ROOT = saved
 
-# A knowledgebase of sibling bundles: tools follow where the user is; bundles do not nest.
+# A collection of sibling bundles: tools follow where the user is; bundles do not nest.
 saved, cwd, ws = k.KB_ROOT, os.getcwd(), (kb.parent / "ws").resolve()
 ws.mkdir()
 k.KB_ROOT = ws
@@ -468,7 +468,7 @@ raises(k.lint, file="nope.md")
 k.set_({"status": "draft"}, file="a/n.md", apply=True)  # routes to bundle a: its log, not a root one
 assert "Set status" in (ws / "a/log.md").read_text() and not (ws / "log.md").exists()
 assert k.links("a/n.md")["in"] == ["sub/c.md"] and k.links("n.md", bundle="a")["bundle"] == "a"
-k.baseline(apply=True)  # fingerprints are knowledgebase-relative, so they hold from any directory
+k.baseline(apply=True)  # fingerprints are collection-relative, so they hold from any directory
 os.chdir(ws / "a")
 assert k.lint(baseline=".okf-baseline.json")["total"] == 0 and k.lint(baseline=".okf-baseline.json")["baselined"]
 os.chdir(ws)
@@ -514,16 +514,16 @@ k.unarchive("d", apply=True)
 assert k.declares(ws / "d/index.md") and "../d/m.md" in (ws / "a/n.md").read_text() and k.lint(bundle="d")["ok"]
 k.rename_bundle("b", bundle="d", apply=True)
 shutil.rmtree(ws / "archive")
-w = k.web()  # at the knowledgebase root: bundles, edges counted
+w = k.web()  # at the collection root: bundles, edges counted
 assert w["level"] == "bundles" and {"from": "a", "to": "b", "kind": "link", "count": 2} in w["edges"], w
 assert k.web(bundle="a")["level"] == "concepts" and k.graph(w).startswith("graph LR\n")
 code, out = cli("web", "format=mermaid")
 assert code == 0 and "-->|link|" in out
-assert k.knowledgebase(ws / "a/sub") == ws / "a"  # no index above yet: the bundle is the knowledgebase
+assert k.collection(ws / "a/sub") == ws / "a"  # no index above yet: the bundle is the collection
 assert "index_stale" not in kinds() and k.index(apply=True)["edited"] == {".": ["index.md"]}
-assert k.upgrade()["would_edit"] == {} and not k.declares(ws / "index.md")  # the knowledgebase root stays no bundle
+assert k.upgrade()["would_edit"] == {} and not k.declares(ws / "index.md")  # the collection root stays no bundle
 assert (ws / "index.md").read_text().count("* [") == 3 and "* [b](b/)" in (ws / "index.md").read_text()
-assert k.knowledgebase(ws / "a/sub") == ws and k.knowledgebase(ws) == ws
+assert k.collection(ws / "a/sub") == ws and k.collection(ws) == ws
 (ws / "c").mkdir()
 init(apply=True, bundle="c")
 assert "index_stale" in kinds() and k.fix(apply=True)["remaining"]["ok"] and "* [c](c/)" in (ws / "index.md").read_text()
@@ -560,6 +560,10 @@ assert cli("move", "bare.md", "bare2.md", "apply=true")[0] == 0 and (kb / "bare2
 assert set(k.EXAMPLES) == set(k.REG)  # every tool has an example
 code, out = cli("help", "move")
 assert code == 0 and "to: str  (required)" in out and cli("move", "--help")[1] == out
+c1, o1 = cli("bundles", "output=text")
+c2, o2 = cli("bundles", "format=text")  # the older name for output still works
+assert c1 == c2 == 0 and o1 == o2 and not o1.lstrip().startswith("{"), (o1, o2)
+assert cli("bundles", "output=json")[1].lstrip().startswith("{") and cli("bundles", "output=nope")[0] == 2
 code, out = cli("bundles", "format=text")
 assert code == 0 and out.startswith("bundles:")
 shutil.rmtree(kb / "bad")
@@ -715,9 +719,9 @@ L = kinds_of()
 assert ("island1.md", "island") in L and ("island1.md", "unused_ref") in L and not any(x == "island" and f.startswith("ops") for f, x in L), L
 assert {x for _, x in kinds_of(only=["stub"])} == {"stub"} and "stub" not in {x for _, x in kinds_of(ignore=["stub"])}
 raises(k.lint, only=["nope"])
-(rk / "kbmcp.yaml").write_text(k.EXAMPLE_CONFIG)  # at the knowledgebase root: right
+(rk / "kbmcp.yaml").write_text(k.EXAMPLE_CONFIG)  # at the collection root: right
 assert any(f.startswith("ops/") for f, _ in kinds_of())
-(rk / "ops/kbmcp.yaml").write_text("")  # any folder holding a kbmcp.yaml is its own knowledgebase: this one skips it
+(rk / "ops/kbmcp.yaml").write_text("")  # any folder holding a kbmcp.yaml is its own collection: this one skips it
 assert not any(f.startswith("ops/") for f, _ in kinds_of()) and not any(x == "nested_config" for _, x in kinds_of())
 (rk / "ops/kbmcp.yaml").unlink()
 (rk / "kbmcp.yaml").unlink()
@@ -876,7 +880,7 @@ assert r.returncode and "off in kbmcp.yaml" in r.stderr, r
 r = server("roles: [wizard]\n")
 assert r.returncode and "unknown role wizard" in r.stderr, r
 assert k.opt_arg(["--role", "write", "lint"], "--role") == ("write", ["lint"]) and k.opt_arg(["--role=a"], "--role") == ("a", [])
-# the config file marks the knowledgebase: found from the working directory or named by --config; KB_ROOT is refused.
+# the config file marks the collection: found from the working directory or named by --config; KB_ROOT is refused.
 probe = "import sys; sys.argv = ['x', *sys.argv[1:]]; import bowerbird_mcp as k; print(k.KB_ROOT); print(k.INSTRUCTIONS)"
 def where(cwd, *argv, **env):
     e = {kk: v for kk, v in os.environ.items() if kk != "KB_ROLE"} | {"PYTHONPATH": str(HERE)} | env
@@ -884,8 +888,8 @@ def where(cwd, *argv, **env):
 base = Path(tempfile.mkdtemp()).resolve()
 (base / "eng/deep").mkdir(parents=True)
 (base / "eng/kbmcp.yaml").write_text("about: Engineering runbooks.\n")
-r = where(base / "eng/deep")  # found from below: the file's own folder is the knowledgebase
-assert r.stdout.splitlines()[0] == str(base / "eng") and "This knowledgebase: Engineering runbooks." in r.stdout, r
+r = where(base / "eng/deep")  # found from below: the file's own folder is the collection
+assert r.stdout.splitlines()[0] == str(base / "eng") and "This collection: Engineering runbooks." in r.stdout, r
 assert where(base / "eng").stdout.splitlines()[0] == str(base / "eng")
 (base / "other").mkdir()
 r = where(base / "other", "--config", str(base / "eng/kbmcp.yaml"))  # --config wins over where we are
@@ -978,7 +982,7 @@ a2 = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = a2
 assert asyncio.run(k.init(apply=True, ctx=Ask("decline")))["config"]["missing"]  # no answer: written with what it has
 assert "about" not in k.load_config(a2)[1]
-# a folder holding its own kbmcp.yaml is another knowledgebase: the parent's lint does not see inside it.
+# a folder holding its own kbmcp.yaml is another collection: the parent's lint does not see inside it.
 k.KB_ROOT = gr
 (gr / "sub").mkdir()
 (gr / "sub/kbmcp.yaml").write_text("")
@@ -1051,6 +1055,43 @@ assert k.offered() == {"passages", "reindex", "seal"} and k.detect_holds(ar) == 
 k.OPTS["format"] = "markdown"
 (ar / "notes/queue-choice.md").unlink()
 (ar / "notes/README.md").unlink()
+# format: seal-only: nothing is indexed, one tool; the seal.require globs pick the files (any text file, code included).
+prev = (k.KB_ROOT, k.OPTS["format"], dict(k.OPTS["seal"]))
+so = Path(tempfile.mkdtemp()).resolve()
+(so / "src").mkdir()
+(so / "src/app.py").write_text("def add(a, b):\n    return a + b\n")
+(so / "src/util.py").write_text("X = 1\n")
+(so / "src/blob.py").write_bytes(b"\xff\xfe\x00")
+(so / "docs.md").write_text("# not in the policy\n")
+k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = so, "seal-only", {"require": ["src/**/*.py"], "exempt_status": []}
+assert k.offered() == {"seal"} and k.passages("add")["gap"]
+C = k.signatures()
+assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/util.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 2, C
+class AnyFile(Ctx):
+    async def elicit(self, message, schema):
+        assert "src/app.py" in message and "sha256" in message
+        return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
+asyncio.run(k.seal("src/app.py", by="process:ci"))  # a machine's review does not satisfy a policy that wants a human
+assert ("src/app.py", "unsigned") in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+asyncio.run(k.seal("src/app.py", ctx=AnyFile(), decision="accepted"))
+assert ("src/app.py", "unsigned") not in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+(so / "src/app.py").write_text("def add(a, b):\n    return a - b\n")  # edited after review: the seal is broken
+assert ("src/app.py", "stale_signature") in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+asyncio.run(k.seal("src/util.py", by="process:ci"))
+(so / "src/util.py").unlink()
+assert [f["file"] for f in k.signatures()["findings"] if f["kind"] == "orphan_signature"] == ["src/util.py"]
+k.OPTS["seal"] = {"require": [], "exempt_status": []}
+assert "seal.require" in raises(k.signatures)  # seal-only must say which files
+k.OPTS["format"] = "markdown"  # in any format, a file sealed by path outside it is checked for edits and is not an orphan
+k.OPTS["seal"] = {"require": ["**"], "exempt_status": []}
+assert not any(f["kind"] == "orphan_signature" and f["file"] == "src/app.py" for f in k.signatures()["findings"])
+assert ("src/app.py", "stale_signature") in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
+d1 = Path(tempfile.mkdtemp()).resolve()
+k.KB_ROOT = d1
+P = init(apply=True, holds="seal-only", about="Reviewed code.", user="you")
+assert k.load_config(d1)[1]["format"] == "seal-only" and k.load_config(d1)[1]["seal"] == {"require": [], "exempt_status": []}, P
+k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = prev
+
 # seal, in markdown mode: the ledger binds a review to exact bytes; `check` finds what lacks one; a decision is the status.
 k.OPTS["seal"] = {"require": ["docs/adr/*.md"], "exempt_status": ["proposed"]}
 adr1 = "docs/adr/0001-record-decisions.md"
@@ -1065,8 +1106,8 @@ class Any(Ctx):  # a human who confirms whatever file is shown
         assert "adr/0001" in message and "sha256" in message and "decision: accepted" in message
         return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
 asyncio.run(k.seal(adr1, ctx=Any(), decision="accepted"))
-led = (ar / "verifications.yaml").read_text()
-assert led.startswith("# verifications.yaml") and "sha256:" in led and "by: human:tester" in led and "decision: accepted" in led
+led = (ar / ".waxseal.yaml").read_text()
+assert led.startswith("# .waxseal.yaml") and "sha256:" in led and "by: human:tester" in led and "decision: accepted" in led
 assert (adr1, "unsigned") not in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
 h = k.passages("zebra")["hits"][0]
 assert h["tier"] == "human-reviewed" and h["status"] == "accepted" and not h["stale"], h
@@ -1156,5 +1197,32 @@ assert f"All {len(_tl)} tools" in _rm and _close(int(re.search(r"about ([\d,]+) 
 for _role, _names in k.ROLES.items():
     _m = re.search(rf"\| `{_role}` \|.*\| (\d+), ~([\d,]+) tokens \|", _rm)
     assert int(_m.group(1)) == len([n for n in _names if n in _tl]) and _close(int(_m.group(2).replace(",", "")), _cost(_names)), (_role, _cost(_names))
+
+# a result whose `findings` is a count (baseline's) prints as text, not as a list of lint findings.
+assert k.render({"findings": 3, "path": ".okf-baseline.json", "written": True}, "text") == "findings: 3\npath: .okf-baseline.json\nwritten: true"
+# --version: the running Bowerbird says what it is, including whether it is a development build.
+assert k.VERSION == re.search(r'^version = "(.*)"', (HERE / "pyproject.toml").read_text(), re.M).group(1)  # one number, two files
+ds = k.describe_source
+assert ds(None, True, None, False) == ("release", "")  # installed from an index such as PyPI
+assert ds('{"url": "https://github.com/x/y", "vcs_info": {"vcs": "git", "commit_id": "0123456789abcdef"}}', True, None, False) == ("development", "git 0123456")
+assert ds('{"url": "file:///src/y", "dir_info": {"editable": true}}', True, None, False) == ("development", "editable install")
+assert ds('{"url": "file:///src/y", "dir_info": {}}', True, None, False) == ("development", "local build")
+assert ds(None, False, "abc1234", False) == ("development", "git abc1234")  # run from a Bowerbird checkout
+assert ds(None, False, None, False) == ("standalone", "") and ds(None, False, None, True) == ("standalone", "vendored")
+b = k.build_info()
+assert b["version"] == k.VERSION and b["kind"] == "development" and b["detail"].startswith("git "), b  # these tests run from the checkout
+code, out = cli("--version")
+assert code == 0 and out.strip().startswith(f"bowerbird-mcp {k.VERSION} (development, git "), out
+assert cli("-V")[1] == out
+loose = Path(tempfile.mkdtemp()) / "bowerbird_mcp.py"
+loose.write_text((HERE / "bowerbird_mcp.py").read_text())
+r = subprocess.run([sys.executable, str(loose), "--version"], capture_output=True, text=True, check=False)
+assert r.stdout.strip() == f"bowerbird-mcp {k.VERSION} (standalone script)", r  # a lone copy, not a git checkout
+vend = Path(tempfile.mkdtemp()).resolve()
+subprocess.run(["git", "init", "-q", str(vend)], check=True)
+(vend / "bowerbird_mcp.py").write_text(loose.read_text())
+r = subprocess.run([sys.executable, str(vend / "bowerbird_mcp.py"), "--version"], capture_output=True, text=True, check=False)
+assert r.stdout.strip() == f"bowerbird-mcp {k.VERSION} (standalone script, vendored)", r  # vendored into someone else's repo
+assert k.mcp._mcp_server.create_initialization_options().server_version.startswith(f"{k.VERSION}+development.")  # what the client sees
 
 print("ok")

@@ -7,10 +7,10 @@
   <title>Getting started · Bowerbird</title>
   <link rel="icon" href="../img/favicon.png" type="image/png">
   <link rel="icon" href="../img/favicon.ico" sizes="any">
-  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Getting started · Bowerbird">
-  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -88,6 +88,14 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../troubleshooting/">Troubleshooting</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../contributing/">Contributing</a>
             </li>
           
@@ -140,38 +148,79 @@
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#2-make-a-knowledgebase">2. Make a knowledgebase</a>
+      <a class="nav-link py-1 px-0" href="#2-choose-what-it-holds">2. Choose what it holds</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#3-ask-it-a-question">3. Ask it a question</a>
+      <a class="nav-link py-1 px-0" href="#3-make-a-collection">3. Make a collection</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#4-let-it-catch-mistakes">4. Let it catch mistakes</a>
+      <a class="nav-link py-1 px-0" href="#4-search-it">4. Search it</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#deterministic-search">Deterministic: search</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#5-say-where-a-fact-came-from-and-who-checked-it">5. Say where a fact came from, and who checked it</a>
+      <a class="nav-link py-1 px-0" href="#ranked-result-passages">Ranked-result: passages</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#semantic-find-what-you-meant">Semantic: find what you meant</a>
+      
+    </li>
+  
+</ul>
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#5-seal-a-file">5. Seal a file</a>
       
     </li>
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#6-connect-an-ai-assistant">6. Connect an AI assistant</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#which-bowerbird-does-claude-run">Which Bowerbird does Claude run?</a>
+      
+    </li>
+  
+</ul>
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#7-check-it">7. Check it</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#run-it">Run it</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#7-keep-it-checked-automatically">7. Keep it checked automatically</a>
+      <a class="nav-link py-1 px-0" href="#adopt-it-on-an-existing-collection">Adopt it on an existing collection</a>
       
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#if-something-goes-wrong">If something goes wrong</a>
+      <a class="nav-link py-1 px-0" href="#narrow-it">Narrow it</a>
       
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#where-to-run-it">Where to run it</a>
+      
+    </li>
+  
+</ul>
     </li>
   
     <li class="nav-item">
@@ -195,146 +244,233 @@
         <article><h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Link to this section">#</a></h1>
 <div class="admonition note">
 <p class="admonition-title">AI-generated</p>
-<p>Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. Every command on this page was run for real. Long output lines are shortened (marked <code>...</code>), and a few fields are left out where noted.</p>
+<p>Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. Every command on this page was run for real. Long output lines are shortened, and the person sealing in the examples is a made-up user called <code>example</code>.</p>
 </div>
-<p>In about ten minutes you will have a small knowledgebase on your own disk, ask it a question and get an answer
-with the file and line to cite, catch a mistake with the checker, record where a fact came from and who checked
-it, and connect an AI assistant to it. You do not need to know anything about AI tooling to start, and nothing
-here sends your notes anywhere.</p>
+<p>In about ten minutes you will turn a folder into a collection, ask it a question and get an answer with the file and
+line to cite, have a person seal a file so a changed file is never mistaken for a reviewed one, and connect an AI
+assistant. You do not need to know anything about AI tooling to start, and nothing here sends your files anywhere.</p>
 <h2 id="what-this-is-in-plain-words">What this is, in plain words<a class="headerlink" href="#what-this-is-in-plain-words" title="Link to this section">#</a></h2>
-<p>A <strong>knowledgebase</strong> here is a folder of Markdown files, one idea per file. Each file starts with a short header
-of facts about it: what kind of thing it is, a one-line description, where it came from, who checked it. The
-file format is called <a href="../understanding-okf/">Open Knowledge Format</a> (OKF), and it is deliberately plain: if you
-can open a text file, you can read it, and if you use git, you can version it.</p>
-<p>Bowerbird is the tool that looks after such a folder. It does three jobs, for three kinds of user:</p>
+<p>A <strong>collection</strong> is a folder of files you want to keep in order: notes, decisions, vocabularies, even code. Bowerbird
+looks after it for three kinds of user:</p>
 <ul>
-<li><strong>A person at a terminal</strong> can search the notes, check them, and keep them tidy. No AI involved.</li>
-<li><strong>An AI assistant</strong> (through MCP, the protocol assistants use to call tools) can look things up in the notes
-  and answer from them, saying which file and line it used and how far to trust it.</li>
-<li><strong>CI</strong>, your automated checks, can fail a change that leaves the notes in a bad shape.</li>
+<li><strong>A person at a terminal</strong> can search the collection and seal files. No AI involved.</li>
+<li><strong>An AI assistant</strong> (through MCP, the protocol assistants use to call tools) can look things up and answer from them,
+  saying which file and line it used and whether a person has reviewed it.</li>
+<li><strong>CI</strong>, your automated checks, can fail a change that has no human review.</li>
 </ul>
-<p>It cares about <em>how a note is written</em>, never about <em>what it says</em>. It will tell you a note has no header, a link
-is broken or a fact has no source. It will not tell you the fact is wrong. That judgement stays with people.</p>
+<p>It is not tied to one format. A <code>format:</code> line in <code>kbmcp.yaml</code> says what a folder holds: Markdown, ADR, OKF, SKOS or
+seal-only. <a href="../formats/">Formats</a> shows each one. This page uses plain Markdown as the example: it asks nothing of your
+files, and it does more than seal them, because it searches them too. Use whichever is right for you.</p>
 <h2 id="1-install-uv">1. Install uv<a class="headerlink" href="#1-install-uv" title="Link to this section">#</a></h2>
 <p>The tool runs through <a href="https://docs.astral.sh/uv/">uv</a>, a fast Python launcher. If you do not have it:</p>
 <pre class="highlight"><code class="language-sh">curl -LsSf https://astral.sh/uv/install.sh | sh</code></pre>
-<p>There is nothing else to install and nothing to clone. This line runs the tool straight from PyPI, fetching
-what it needs the first time (to try the latest unreleased code, use <code>uvx --from git+https://github.com/dfoulks1/bowerbird-mcp bowerbird-mcp</code>). Make a shortcut so the rest of this page is short:</p>
+<p>There is nothing else to install and nothing to clone. Make a shortcut so the rest of this page is short:</p>
 <pre class="highlight"><code class="language-sh">alias kb='uvx bowerbird-mcp'
 kb help          # every tool, one line each (35 of them)</code></pre>
-<h2 id="2-make-a-knowledgebase">2. Make a knowledgebase<a class="headerlink" href="#2-make-a-knowledgebase" title="Link to this section">#</a></h2>
-<p>Make an empty folder and start a knowledgebase in it:</p>
+<h2 id="2-choose-what-it-holds">2. Choose what it holds<a class="headerlink" href="#2-choose-what-it-holds" title="Link to this section">#</a></h2>
+<p>A collection holds one kind of thing, and you say which when you make it. Pick the one that fits what you keep:</p>
+<table>
+<thead>
+<tr>
+<th><code>holds=</code></th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>markdown</code></td>
+<td>notes, runbooks, wikis, docs: any Markdown, with nothing to add to your files</td>
+</tr>
+<tr>
+<td><code>adr</code></td>
+<td>decision records (ADR or MADR), with each record's status</td>
+</tr>
+<tr>
+<td><code>okf</code></td>
+<td>knowledge that says where it came from, who checked it and when it expires, with the full toolset</td>
+</tr>
+<tr>
+<td><code>skos</code></td>
+<td>glossaries, vocabularies and thesauri</td>
+</tr>
+<tr>
+<td><code>seal-only</code></td>
+<td>any text files (code, configuration) with nothing searched: just a guaranteed human review of each</td>
+</tr>
+</tbody>
+</table>
+<p>Leave <code>holds=</code> out and <code>init</code> guesses from the folder, then asks you for what it cannot know. The choice is written to
+<code>kbmcp.yaml</code> as <code>format:</code>, and you can change it later by editing that line. <a href="../formats/">Formats</a> shows what each one
+looks like and what each can do. The examples on this page use <code>markdown</code>.</p>
+<h2 id="3-make-a-collection">3. Make a collection<a class="headerlink" href="#3-make-a-collection" title="Link to this section">#</a></h2>
+<p>Any folder of files will do. Make a small one:</p>
 <pre class="highlight"><code class="language-sh">mkdir notes &amp;&amp; cd notes
-kb init apply=true format=text</code></pre>
-<p>Most commands that change files show you a plan first and only act when you add <code>apply=true</code>. Here is what
-<code>init</code> wrote:</p>
-<pre class="highlight"><code class="language-text">edited: {".": ["index.md", "log.md"]}
-gitattributes: ["log.md merge=union", "index.md merge=union"]
-config: {"files": ["kbmcp.yaml", "env.example", ".env"], "missing": ["about", "holds"], "gitignore": "not a git work tree"}</code></pre>
-<p><code>index.md</code> is a generated table of contents for the folder, and <code>log.md</code> is its history, newest first. It also
-made a <code>.gitattributes</code>, which lets two people who edit <code>log.md</code> and <code>index.md</code> on different branches merge
-without a conflict. The <code>config</code> line is the knowledgebase's settings: <code>kbmcp.yaml</code> (commit it), <code>env.example</code>
-(every personal override, see step 6) and, when it knows your id from <code>KB_USER</code> or your git email, a <code>.env</code> with it
-(not committed). <code>missing</code> lists what it could not know: <code>about</code>, a sentence on what the folder holds, which you
-fill in; and <code>holds</code>, the format it guessed from the folder, here <code>okf</code>. At a terminal <code>init</code> asks you for
-these instead, and over MCP it asks in a prompt. Now
-write two notes. Each has a few real sentences, because a note with an empty body gives the search nothing to
-find:</p>
-<pre class="highlight"><code class="language-sh">kb create deploy type=Playbook title="Deploy" description="How we ship a release." tags=ops \
-   body='Run the deploy script, then check the dashboard. If something looks wrong, follow [the rollback steps](rollback.md).' format=text
+echo '# Deploy
 
-kb create rollback type=Playbook title="Rollback" description="How to undo a bad release." tags=ops \
-   body='To roll back a release, redeploy the previous tag, then confirm the dashboard is green. Back to [Deploy](deploy.md).' format=text</code></pre>
-<p>Open <code>deploy.md</code> in any editor. This is the whole file, and the whole format:</p>
-<pre class="highlight"><code class="language-markdown">---
-type: Playbook
-title: Deploy
-description: How we ship a release.
-tags:
-- ops
----
+Run the deploy script, then check the dashboard. If something looks wrong, follow [the rollback steps](rollback.md).' &gt; deploy.md
+echo '# Rollback
 
-# Deploy
-
-Run the deploy script, then check the dashboard. If something looks wrong, follow [the rollback steps](rollback.md).</code></pre>
-<p>The part between the <code>---</code> lines is the header (OKF calls it <em>frontmatter</em>); the rest is ordinary Markdown. The
-only header line OKF insists on is <code>type</code>. You can edit these files by hand at any time: the tool is a
-convenience, not a gatekeeper.</p>
-<h2 id="3-ask-it-a-question">3. Ask it a question<a class="headerlink" href="#3-ask-it-a-question" title="Link to this section">#</a></h2>
-<pre class="highlight"><code class="language-sh">kb passages 'how do I undo a bad release' format=text</code></pre>
+To roll back a release, redeploy the previous tag, then confirm the dashboard is green. Back to [Deploy](deploy.md).' &gt; rollback.md</code></pre>
+<p>Then make it a collection:</p>
+<pre class="highlight"><code class="language-sh">kb init holds=markdown about="Team notes." apply=true output=text</code></pre>
+<pre class="highlight"><code class="language-text">edited: {}
+config: {"files": ["kbmcp.yaml", ".env", "env.example", ".mcp.json"], "missing": [], "gitignore": "not a git work tree"}</code></pre>
+<p><code>output=text</code> asks for readable lines; without it a command prints JSON (<code>json</code> is the default; checks also take <code>github</code>
+and <code>sarif</code> for CI). It is only about how the answer is printed, and has nothing to do with a collection's format.</p>
+<p>Your notes are not touched. <code>init</code> wrote the collection's settings:</p>
+<ul>
+<li><code>kbmcp.yaml</code>: the collection's own configuration, with its <code>format</code>. Commit it.</li>
+<li><code>.mcp.json</code>: how an AI assistant starts the tool for this folder. Commit it too (see step 6).</li>
+<li><code>env.example</code> lists every personal override, and <code>.env</code> holds your id from <code>KB_USER</code> or your git email. <code>.env</code>
+  stays out of git.</li>
+</ul>
+<p>If you leave <code>holds=</code> or <code>about=</code> out, <code>init</code> asks (at a terminal, or in a prompt over MCP) for what it cannot know:
+the format, a sentence on what the folder holds, and your id.</p>
+<h2 id="4-search-it">4. Search it<a class="headerlink" href="#4-search-it" title="Link to this section">#</a></h2>
+<p>Bowerbird has three kinds of search, from the most predictable to the smartest. Use whichever fits the question.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Deterministic</strong></th>
+<th><strong>Ranked-result</strong></th>
+<th><strong>Semantic</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Command</strong></td>
+<td><code>search</code></td>
+<td><code>passages</code></td>
+<td><code>passages</code>, with <code>semantic: true</code></td>
+</tr>
+<tr>
+<td><strong>Finds</strong></td>
+<td>whole files holding every word you typed</td>
+<td>the best sections for a question</td>
+<td>sections that mean what you asked</td>
+</tr>
+<tr>
+<td><strong>Same answer every time</strong></td>
+<td>yes</td>
+<td>yes</td>
+<td>nearly: a different machine or library version can rank close calls differently</td>
+</tr>
+<tr>
+<td><strong>Needs</strong></td>
+<td>nothing</td>
+<td>the search index, built on first use</td>
+<td>the model download</td>
+</tr>
+</tbody>
+</table>
+<h3 id="deterministic-search">Deterministic: <code>search</code><a class="headerlink" href="#deterministic-search" title="Link to this section">#</a></h3>
+<p>Use it when you know the words. It returns the files that hold <strong>every</strong> word of your query, anywhere in the file:</p>
+<pre class="highlight"><code class="language-sh">kb search dashboard output=text</code></pre>
 <pre class="highlight"><code class="language-text">total: 2
+hits:
+  - bundle: ., file: deploy.md, title: Deploy, type: null, score: 1, matched: ["body"], line: 3, text: Run the deploy script, then check the dashboard. If something looks
+  - bundle: ., file: rollback.md, title: Rollback, type: null, score: 1, matched: ["body"], line: 3, text: To roll back a release, redeploy the previous tag, then confirm</code></pre>
+<ul>
+<li><strong>Matching is by substring, ignoring case.</strong> A word matches anywhere inside the text, so <code>roll</code> finds <code>rollback</code>, and
+  <code>kb search 'roll back'</code> also lists <code>deploy.md</code>, which links to <code>rollback.md</code>.</li>
+<li><strong>The score says where the words landed.</strong> Each field a word matches adds its weight: title 5, file path 4, tags 3,
+  type 2, description 2, body 1. <code>matched</code> lists the fields, so a hit explains itself. In plain Markdown there are no tags,
+  type or description, so only the title (the first heading), the path and the body count.</li>
+<li><strong>The same query on the same files always gives the same answer.</strong> There is no index and no model, and ties come out in a
+  fixed order. That makes it the one to script and to test against.</li>
+<li><strong>Narrow it with filters:</strong> <code>type=</code>, <code>tag=</code>, <code>dir=</code>, <code>fields=</code> (look only in some fields: <code>fields=title</code> finds only files
+  titled <code>Deploy</code>), and <code>limit=</code> and <code>offset=</code> to page through a long list.</li>
+</ul>
+<p>On an MCP server, <code>search</code> is offered for <code>okf</code> collections. The other formats offer <code>passages</code>. At the command line <code>search</code>
+reads any folder of Markdown, but it cannot see SKOS files.</p>
+<h3 id="ranked-result-passages">Ranked-result: <code>passages</code><a class="headerlink" href="#ranked-result-passages" title="Link to this section">#</a></h3>
+<p>Use it for a question. It cuts every file into sections at its headings and returns the <strong>sections</strong> that best answer it,
+best first:</p>
+<pre class="highlight"><code class="language-sh">kb passages 'how do I undo a bad release' output=text</code></pre>
+<pre class="highlight"><code class="language-text">total: 1
 gap: false
 hits:
-  - bundle: ., file: rollback.md, line: 10, heading: Rollback, match: 100, title: Rollback, type: Playbook, status: stable, tier: unverified, stale: false, links: 1, text: To roll back a release, redeploy the previous tag, ...
-  - bundle: ., file: deploy.md, line: 10, heading: Deploy, match: 58, title: Deploy, type: Playbook, status: stable, tier: unverified, stale: false, links: 1, text: Run the deploy script, then check the dashboard. ...</code></pre>
-<p>(<code>title</code>, <code>type</code>, <code>status</code> and <code>links</code>, the count of notes that link here, are in the real output too.) The first
-search also builds a small search index in a <code>.kbmcp/</code> folder beside your notes. It is a cache: safe to delete,
+  - bundle: ., file: rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 1, text: To roll back a release, redeploy the previous tag, then confirm the dashboard is gr...</code></pre>
+<p>The first <code>passages</code> also builds a small search index in a <code>.kbmcp/</code> folder beside your files. It is a cache: safe to delete,
 and it ignores itself in git.</p>
-<p><code>passages</code> cuts every note into sections at its headings and returns the sections that best answer the
-question, best first. For each one you get:</p>
+<p>For each section you get:</p>
 <ul>
 <li><strong>file and line</strong>, so an answer can say exactly where it came from;</li>
 <li><strong>match</strong>, a percentage of the <em>best hit's</em> score. The top hit is always 100, so read it as "how the others
   compare", not "how good the best one is";</li>
-<li><strong>tier</strong> and <strong>stale</strong>, so a reader knows whether anyone has checked the passage and whether it has expired
-  (section 5);</li>
-<li><strong>gap: true</strong> when nothing matches at all. That is a real answer: the knowledgebase has nothing on the
-  subject, and an assistant should say so, not guess.</li>
+<li><strong>tier</strong> and <strong>stale</strong>, so a reader knows whether a person has reviewed the file and whether it has changed since
+  (step 5);</li>
+<li><strong>links</strong>, how many other files link to this one;</li>
+<li><strong>gap: true</strong> when nothing matches at all. That is a real answer: the collection has nothing on the subject, and
+  an assistant should say so, not guess.</li>
 </ul>
-<p>Search is by words (rarer words count more), so "undo" finds the note whose description says "undo". It does not
-know that "revert" means "undo". If you want that, <a href="../guide/#reading-the-knowledgebase">semantic search</a> matches
-by meaning, at the cost of a model download. Other ways in: <code>dirs</code> (a map of what is there), <code>search</code> (whole
-notes by words), <code>get</code> (read one note) and <code>list</code> (filter by type, tag, status or trust).</p>
-<h2 id="4-let-it-catch-mistakes">4. Let it catch mistakes<a class="headerlink" href="#4-let-it-catch-mistakes" title="Link to this section">#</a></h2>
-<pre class="highlight"><code class="language-sh">kb lint format=text</code></pre>
-<pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 2 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True</code></pre>
-<p><code>lint</code> checks every file against the format and some house rules (broken links, empty notes, notes nothing links
-to, duplicate titles, secrets that look like keys). It always ends with that one verdict line, pass or fail, so
-you can see it ran. Now drop in a file with no header:</p>
-<pre class="highlight"><code class="language-sh">echo 'just some notes, no header' &gt; scratch.md
-kb lint format=text</code></pre>
-<pre class="highlight"><code class="language-text">scratch.md: error: no_frontmatter: no frontmatter (§4) | fix: start the file with a `---` block holding at least `type:`
-bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), conformant: False</code></pre>
-<p>Every finding names the file, what is wrong and how to fix it, and the command exits with a failure code, which
-is what makes it useful in CI. Some problems are purely mechanical (a stale table of contents, inconsistent tag
-spelling), and <code>kb fix apply=true</code> repairs those for you. Delete <code>scratch.md</code> before going on.</p>
-<h2 id="5-say-where-a-fact-came-from-and-who-checked-it">5. Say where a fact came from, and who checked it<a class="headerlink" href="#5-say-where-a-fact-came-from-and-who-checked-it" title="Link to this section">#</a></h2>
-<p>Notes get trusted too easily or not at all. OKF gives you two small, honest tools for that:</p>
-<pre class="highlight"><code class="language-sh">kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" format=text
-kb seal deploy.md by=process:docs-check format=text</code></pre>
-<p><code>cite</code> records a source and prints a footnote tag, <code>[^runbook]</code>, to put next to the claim it backs. <code>seal</code>
-(<code>verify</code> still works as its command-line name) records that someone or something confirmed this exact version of the note, and when. Both write to the header:</p>
-<pre class="highlight"><code class="language-yaml">sources:
-- id: runbook
-  resource: https://example.com/runbook
-  title: Ops runbook
-  retrieved_at: 2026-11-16T13:35:24Z
-verified:
-- by: process:docs-check
-  at: 2026-11-16T13:35:25Z
-  sha256: 22c9c7cfd0d84374acde099621e14887fac4b74b844cfa6e4eb0e5665cf5f29f</code></pre>
-<p>The <code>sha256</code> ties the review to this exact text: edit the note afterwards and the review no longer holds, and
-<code>passages</code> shows it as <code>unverified</code> and <code>stale</code>.</p>
-<p>The trust tier comes only from who verified: nobody means <strong>unverified</strong>, a script or agent means
-<strong>machine-confirmed</strong>, and a person (<code>human:&lt;id&gt;</code>) means <strong>human-reviewed</strong>. <code>passages</code> shows the tier on every
-hit, and <code>kb list tier=unverified</code> finds what still needs a person. A person's review is recorded only with
-that person's own confirmation (a prompt over MCP, or <code>--attest</code> at your terminal), never by an AI on your
-behalf. These tiers are advisory labels, not access control. If
-a note should expire, set <code>stale_after</code> in its header, and <code>passages</code> will flag it once the date passes.</p>
+<p>Unlike <code>search</code>, one word is enough to match, and <strong>rarer words count more</strong>, so a question does not have to be phrased
+exactly. The title, tags, type and description count too, and a file many others link to ranks a little higher. It does
+not know that "revert" means "undo": for that, there is semantic search.</p>
+<h3 id="semantic-find-what-you-meant">Semantic: find what you meant<a class="headerlink" href="#semantic-find-what-you-meant" title="Link to this section">#</a></h3>
+<p>By words alone, a search for something you wrote differently finds nothing:</p>
+<pre class="highlight"><code class="language-sh">kb passages revert output=text</code></pre>
+<pre class="highlight"><code class="language-text">total: 0
+gap: true
+hits: []</code></pre>
+<p>Semantic search also matches by <strong>meaning</strong>. Turn it on in <code>kbmcp.yaml</code> (or for your machine only, with <code>KB_SEMANTIC=true</code>
+in <code>.env</code>):</p>
+<pre class="highlight"><code class="language-yaml">semantic: true</code></pre>
+<pre class="highlight"><code class="language-sh">kb passages revert output=text</code></pre>
+<pre class="highlight"><code class="language-text">total: 1
+gap: false
+hits:
+  - bundle: ., file: rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 0, text: To roll back a release, redeploy the previous...</code></pre>
+<p><code>rollback.md</code> never says "revert", and now it is found. The two rankings, words and meaning, are combined, and a passage
+must be at least <code>min_similarity</code> close in meaning (0.6 by default) to count.</p>
+<ul>
+<li><strong>The model downloads once.</strong> It is <code>BAAI/bge-small-en-v1.5</code>, about 65 MB, fetched into <code>~/.cache/bowerbird-mcp/models</code>.
+  That download is the only network use in the whole tool: after it, searching runs on your machine and nothing leaves it.</li>
+<li><strong>The first search takes a moment,</strong> because every passage is embedded. On a large collection that takes minutes, and an
+  interrupted run resumes. <code>kb reindex</code> does it ahead of time (a good fit for a hook), and <code>kb reindex info=true</code> shows
+  what is held: here <code>passages: 2</code>, <code>vectors: 2</code>, <code>vectors_model: BAAI/bge-small-en-v1.5</code>.</li>
+<li><strong><code>uvx bowerbird-mcp</code> carries what it needs</strong> (the <code>fastembed</code> library). The bare one-file script needs
+  <code>uv run --with fastembed</code>.</li>
+<li><strong>For tens of thousands of passages,</strong> <code>vector_index: sqlite-vec</code> or <code>hnsw</code> makes the meaning search faster: see
+  <a href="../guide/#reading-the-collection">the guide</a>.</li>
+<li><strong>It applies to</strong> <code>markdown</code>, <code>adr</code>, <code>okf</code> and <code>skos</code>. <code>seal-only</code> searches nothing, so it has no use for it.</li>
+</ul>
+<h2 id="5-seal-a-file">5. Seal a file<a class="headerlink" href="#5-seal-a-file" title="Link to this section">#</a></h2>
+<p>Every hit says <code>tier: unverified</code>: nobody has said a person looked at these files. A <strong>seal</strong> is a person's review of
+one exact version of a file. At a terminal, <code>--attest</code> records you:</p>
+<pre class="highlight"><code class="language-sh">kb seal deploy.md --attest output=text</code></pre>
+<pre class="highlight"><code class="language-text">edited: {".": [".waxseal.yaml"]}
+file: deploy.md
+sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
+tier: human-reviewed</code></pre>
+<p>The review goes into <code>.waxseal.yaml</code> (commit it), and your file is not touched:</p>
+<pre class="highlight"><code class="language-yaml">entries:
+- file: deploy.md
+  sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
+  by: human:example
+  at: 2026-11-16T15:29:29Z</code></pre>
+<p>Search now shows the difference: <code>deploy.md</code> is <code>tier: human-reviewed</code>, and <code>rollback.md</code> is still <code>unverified</code>.</p>
+<p>Like a wax seal, a review breaks when the file changes. Edit <code>deploy.md</code> and check:</p>
+<pre class="highlight"><code class="language-sh">echo "Also tell the team in chat." &gt;&gt; deploy.md
+kb seal check=true output=text</code></pre>
+<pre class="highlight"><code class="language-text">deploy.md: error: stale_signature: edited since it was reviewed | fix: review it again: seal deploy.md
+rollback.md: error: unsigned: no review by a human | fix: a human reviews it: seal rollback.md
+bowerbird-mcp seal: FAILED: 2 file(s) checked, 2 finding(s)</code></pre>
+<p>The <code>sha256</code> ties the review to the file's exact contents, so an edited file can never pass for a reviewed one, and <code>passages</code> shows
+it as <code>unverified</code> and <code>stale</code> until a person reviews it again. <code>check=true</code> changes nothing and exits with a failure
+code, which is what makes it useful in a hook or in CI (step 7).</p>
+<p>A person's review is only ever recorded with that person's own confirmation: <code>--attest</code> at their terminal, or a
+prompt over MCP. An AI assistant can seal as itself (<code>by=process:&lt;id&gt;</code>), never as a person. These tiers are advisory
+labels, not access control: the guarantee is only as strong as who can write to the repository, so protect <code>.waxseal.yaml</code>
+and <code>kbmcp.yaml</code> with <code>CODEOWNERS</code> or branch protection.</p>
 <h2 id="6-connect-an-ai-assistant">6. Connect an AI assistant<a class="headerlink" href="#6-connect-an-ai-assistant" title="Link to this section">#</a></h2>
-<p>First, the settings file. <code>kbmcp.yaml</code> sits at the root of the knowledgebase, tells any server where it is, and is
-committed with your notes. <code>kb init apply=true</code> (step 2) already wrote one. If your folder predates it, or you want the
-all-commented example, run:</p>
-<pre class="highlight"><code class="language-sh">kb config apply=true format=text</code></pre>
-<p>Open <code>kbmcp.yaml</code> and check <code>about:</code>, a sentence on what this knowledgebase holds. That matters most when you load
-several at once, because the assistant is told it. Anything personal (your id, a different search setting on your
-machine) goes in a <code>.env</code> file instead: copy <code>env.example</code> to <code>.env</code>, which is not committed.</p>
-<p><code>kb init</code> also wrote a <code>.mcp.json</code> at the root of the knowledgebase. <strong>Commit it</strong>: anyone who clones the repository
-then has the tools, with nothing to set up on their own machine (Claude Code asks once to approve a project's
-server; <code>/mcp</code> shows it). The knowledgebase is the repository: its settings, its reviews and its client
-configuration all travel with it. If your folder has no <code>.mcp.json</code>, or you use another assistant, add the tool to
-your assistant's servers file (<code>.mcp.json</code> in your project for Claude Code; the same entry works in
-<code>claude_desktop_config.json</code> for Claude Desktop and <code>.cursor/mcp.json</code> for Cursor):</p>
+<p><code>kb init</code> wrote a <code>.mcp.json</code> at the root of the collection. <strong>Commit it</strong>: anyone who clones the repository then has the
+tools, with nothing to set up on their own machine (Claude Code asks once to approve a project's server; <code>/mcp</code> shows
+it). The collection is the repository: its settings, its reviews and its client configuration all travel with it.</p>
+<p>If your folder has no <code>.mcp.json</code>, or you use another assistant, add the tool to your assistant's servers file
+(<code>.mcp.json</code> in your project for Claude Code; the same entry works in <code>claude_desktop_config.json</code> for Claude Desktop and
+<code>.cursor/mcp.json</code> for Cursor):</p>
 <pre class="highlight"><code class="language-json">{
   "mcpServers": {
     "notes": {
@@ -344,49 +480,131 @@ your assistant's servers file (<code>.mcp.json</code> in your project for Claude
     }
   }
 }</code></pre>
-<p>Restart the assistant (in Claude Code, <code>/mcp</code> reconnects). It now has the tools and a short instruction on how to
-use them: look at <code>dirs</code>, then <code>passages</code>, then <code>get</code> only what it needs, cite the file and line, and say so
-when the answer is a gap or the passage is unverified or stale.</p>
-<p>All 35 tools cost an assistant about 7,250 tokens of tool definitions (an estimate: each tool's name, description and
-argument schema, in characters divided by four) before it has said a word. Give each
-assistant only what it needs by adding <code>"--role", "read"</code> (find and read only, 10 tools, safe to auto-approve),
-<code>write</code> (write a concept and check it), <code>structure</code> (reorganize) or <code>lifecycle</code> (keep it current). Each role is
-about a quarter of the total. You can register the same
-knowledgebase several times, one per role, and you can load several different knowledgebases side by side, each
-with its own <code>--config</code>. <a href="../guide/#roles-a-smaller-tool-list-per-agent">The guide</a> has the tool lists.</p>
-<p>Not an OKF knowledgebase? A plain folder of Markdown (ADR and MADR records among them) or a set of SKOS
-thesauri works too: set <code>format: markdown</code> or <code>format: skos</code> in <code>kbmcp.yaml</code>, and the server offers <code>passages</code>
-and <code>reindex</code> over it. <a href="../formats/">Formats</a> has the details.</p>
-<h2 id="7-keep-it-checked-automatically">7. Keep it checked automatically<a class="headerlink" href="#7-keep-it-checked-automatically" title="Link to this section">#</a></h2>
-<p>The easiest habit is a check on every commit. With <a href="https://pre-commit.com/">pre-commit</a>, add this to
-<code>.pre-commit-config.yaml</code>:</p>
+<p>Restart the assistant (in Claude Code, <code>/mcp</code> reconnects). It now has the tools and a short instruction on how to use
+them: look at <code>passages</code>, cite the file and line, and say so when the answer is a gap or the file is unverified or stale.
+Open <code>kbmcp.yaml</code> and check <code>about:</code>; the assistant is told it, which matters most when you load several collections.</p>
+<p>An OKF collection gets all 35 tools, about 7,250 tokens of tool definitions (an estimate: each tool's name, description
+and argument schema, in characters divided by four) before the assistant has said a word. Give each assistant only what
+it needs with a role: <code>"--role", "read"</code> (find and read only, 10 tools, safe to auto-approve), <code>write</code>, <code>structure</code>,
+<code>lifecycle</code> or <code>seal</code> (record a human's review). The first four are each about a quarter of the total. <a href="../guide/#roles-a-smaller-tool-list-per-agent">The
+guide</a> has the tool lists. You can load several different collections side
+by side, each with its own <code>--config</code>.</p>
+<h3 id="which-bowerbird-does-claude-run">Which Bowerbird does Claude run?<a class="headerlink" href="#which-bowerbird-does-claude-run" title="Link to this section">#</a></h3>
+<p>There can be two on one machine: the one the project's <code>.mcp.json</code> starts (the project's own choice, usually pinned to a
+version), and one you installed and registered for yourself, for every project (<code>claude mcp add -s user bowerbird -- uvx
+bowerbird-mcp</code>). If both are called <code>bowerbird</code>, <strong>the project's wins</strong>: Claude Code's documentation ranks a local entry
+first, then the project's <code>.mcp.json</code>, then your user-level one, and uses the winning entry whole, without merging.</p>
+<p>To use your own instead, switch the project's off <strong>for you only</strong>, without touching the committed file. In
+<code>.claude/settings.local.json</code>, which is personal and not committed:</p>
+<pre class="highlight"><code class="language-json">{
+  "disabledMcpjsonServers": ["bowerbird"]
+}</code></pre>
+<p>Claude then skips the project's entry and uses the user-level one. To see which entry a name resolves to and exactly what
+it would run, ask Claude Code:</p>
+<pre class="highlight"><code class="language-sh">claude mcp get bowerbird</code></pre>
+<pre class="highlight"><code class="language-text">bowerbird:
+  Scope: Project config (shared via .mcp.json)
+  Status: ✘ Rejected (see disabledMcpjsonServers in settings)
+  Type: stdio
+  Command: uvx
+  ...</code></pre>
+<p>The <code>Scope:</code> line says where the entry came from, and <code>Command:</code> is what would start. A project's server also needs your
+approval the first time Claude Code sees it, and shows <code>Pending approval</code> until you run <code>claude</code> and say yes.</p>
+<h2 id="7-check-it">7. Check it<a class="headerlink" href="#7-check-it" title="Link to this section">#</a></h2>
+<p>Bowerbird is also a checker. Two commands read a collection and <strong>exit with a failure code when something is wrong</strong>, so
+anything that can run a command can use them: your terminal, an editor task, a script, a scheduled job, CI, a git hook.
+Nothing about them needs git.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>It checks</th>
+<th>For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lint</code></td>
+<td>the form of every file: a header, links that resolve, no empty files, no duplicate titles, no secrets that look like keys, index and log files well formed</td>
+<td><code>okf</code></td>
+</tr>
+<tr>
+<td><code>seal check=true</code></td>
+<td>that a person has reviewed the current version of every file the policy requires</td>
+<td>every format</td>
+</tr>
+</tbody>
+</table>
+<p>Each finding names the file, what is wrong and how to fix it, and a last line says the check ran, whether it passed or not.
+The exit code is 0 when clean, 1 when there are findings, and 2 for a usage error. <code>seal check=true</code> you met in step 5.</p>
+<h3 id="run-it">Run it<a class="headerlink" href="#run-it" title="Link to this section">#</a></h3>
+<pre class="highlight"><code class="language-sh">kb lint output=text</code></pre>
+<pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 1 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True</code></pre>
+<p>Add a file that breaks the rules and run it again:</p>
+<pre class="highlight"><code class="language-text">old1.md: error: no_frontmatter: no frontmatter (§4) | fix: start the file with a `---` block holding at least `type:`
+bowerbird-mcp lint: FAILED: 2 concept(s) in 1 bundle(s) checked, 1 finding(s), conformant: False</code></pre>
+<p>Some problems are purely mechanical (a stale table of contents, inconsistent tag spelling), and <code>kb fix apply=true</code>
+repairs those for you.</p>
+<h3 id="adopt-it-on-an-existing-collection">Adopt it on an existing collection<a class="headerlink" href="#adopt-it-on-an-existing-collection" title="Link to this section">#</a></h3>
+<p>A collection with years of old problems would fail every check on day one. Take a snapshot of today's findings, and only
+<strong>new</strong> ones fail from then on:</p>
+<pre class="highlight"><code class="language-sh">kb baseline apply=true output=text</code></pre>
+<pre class="highlight"><code class="language-text">findings: 1
+path: .okf-baseline.json
+written: true</code></pre>
+<pre class="highlight"><code class="language-sh">kb lint baseline=.okf-baseline.json output=text</code></pre>
+<pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 2 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: False</code></pre>
+<p>The old file is still not conformant (<code>conformant: False</code> says so), but it no longer fails the check. Add another bad file
+and it does:</p>
+<pre class="highlight"><code class="language-text">new1.md: error: no_frontmatter: no frontmatter (§4) | fix: start the file with a `---` block holding at least `type:`
+bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), conformant: False</code></pre>
+<h3 id="narrow-it">Narrow it<a class="headerlink" href="#narrow-it" title="Link to this section">#</a></h3>
+<ul>
+<li><code>since=origin/main</code> checks only the files changed since that ref, which suits a pull request. It is the one option that
+  needs git.</li>
+<li><code>only=stub,island</code> keeps just those kinds of finding, and <code>ignore=</code> drops some.</li>
+<li>Name files or folders (<code>kb lint notes/a.md docs/</code>) to check just those.</li>
+<li><code>scope=okf</code> is the format's own rules; <code>scope=house</code> is the tidiness rules on top.</li>
+<li>A <code>kbmcp.nolint</code> file lists files to skip, in <code>.gitignore</code> syntax.</li>
+</ul>
+<h3 id="where-to-run-it">Where to run it<a class="headerlink" href="#where-to-run-it" title="Link to this section">#</a></h3>
+<ul>
+<li><strong>By hand, or as an editor or build task.</strong> It is just a command.</li>
+<li><strong>In CI.</strong> <code>output=github</code> turns each finding into an annotation on the pull request, and <code>output=sarif</code> feeds code
+  scanning:</li>
+</ul>
+<pre class="highlight"><code class="language-text">::error file=new1.md,title=no_frontmatter::no frontmatter (§4) | fix: start the file with a `---` block holding at least `type:`</code></pre>
+<ul>
+<li><strong>On a schedule</strong>, such as a nightly job that reports what has drifted.</li>
+<li><strong>As a git hook.</strong> One option among these. With <a href="https://pre-commit.com/">pre-commit</a>, in <code>.pre-commit-config.yaml</code>:</li>
+</ul>
 <pre class="highlight"><code class="language-yaml">repos:
   - repo: local
     hooks:
-      - id: okf-lint
-        name: OKF lint
-        entry: uvx bowerbird-mcp lint format=text
+      - id: bowerbird-lint
+        name: Bowerbird lint
+        entry: uvx bowerbird-mcp lint output=text
         language: system
         pass_filenames: false
+        verbose: true
+      - id: bowerbird-seal
+        name: Bowerbird seal check
+        entry: uvx bowerbird-mcp seal check=true output=text
+        language: system
+        pass_filenames: false
+        always_run: true
         verbose: true</code></pre>
-<p><code>verbose: true</code> is what makes pre-commit print the verdict line even when the check passes. For pull requests,
-<code>lint</code> can also write GitHub annotations or SARIF, keep a baseline so only new problems fail the build, and check
-only what changed: see <a href="../guide/#ci">the guide</a>.</p>
-<h2 id="if-something-goes-wrong">If something goes wrong<a class="headerlink" href="#if-something-goes-wrong" title="Link to this section">#</a></h2>
-<ul>
-<li><strong><code>KB_ROOT is no longer read</code></strong>: the old environment variable is gone. Put the folder's <code>kbmcp.yaml</code> where the
-  tool runs, or name it with <code>--config</code>.</li>
-<li><strong><code>uvx</code> runs an old build while you test local changes</strong>: add <code>--no-cache</code>.</li>
-<li><strong><code>passages</code> says <code>gap: true</code> for something you know is there</strong>: search is by words and has no stemming, so
-  "rolling" does not match "roll". Try the note's own words, or turn on semantic search.</li>
-<li><strong>A note exists but <code>passages</code> cannot find it</strong>: it may be an empty stub. <code>lint</code> warns about notes with almost
-  no body.</li>
-</ul>
+<p>Keep the hooks you use: <code>lint</code> is for OKF collections, <code>seal check</code> for any. <code>verbose: true</code> makes pre-commit print the
+  verdict line even when the check passes. What <code>seal check</code> requires is the <code>seal</code> key in <code>kbmcp.yaml</code>: by default every
+  file in the collection needs a person's review.</p>
+<p><a href="../guide/#ci">The guide</a> has full workflows for GitHub Actions, baselines and pull requests.</p>
 <h2 id="where-next">Where next<a class="headerlink" href="#where-next" title="Link to this section">#</a></h2>
 <ul>
-<li><a href="../understanding-okf/">Understanding OKF</a>: what the format is and why it is built this way.</li>
-<li><a href="../guide/">The guide</a>: layout, the archive, several bundles, CI, and every setting in <code>kbmcp.yaml</code>.</li>
+<li><a href="../formats/">Formats</a>: what each kind of collection looks like.</li>
+<li><a href="../guide/">The guide</a>: layout, settings, sealing, CI and every setting in <code>kbmcp.yaml</code>.</li>
 <li><a href="../tools/">Tools</a>: every command, with its arguments and examples.</li>
+<li><a href="../troubleshooting/">Troubleshooting</a>: when something does not behave.</li>
+<li><a href="../understanding-okf/">Understanding OKF</a>: what the richest format is and why it is built this way.</li>
 </ul></article>
         
           <hr class="my-5">

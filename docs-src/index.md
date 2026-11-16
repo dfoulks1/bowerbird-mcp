@@ -2,9 +2,9 @@
   <img class="logo-light" src="img/logo-v2.svg" alt="Bowerbird: a bower of sticks rising from an open book, with a small bird" width="240" height="175">
   <img class="logo-dark" src="img/logo-dark-v2.svg" alt="Bowerbird: a bower of sticks rising from an open book, with a small bird" width="240" height="175">
   <h1 id="bowerbird-mcp">Bowerbird</h1>
-  <p class="lead">Keep a knowledgebase in order: checked, maintained, searched and signed off, by agents and people alike. It cares how a note is written, never what it says, and it is not tied to one <a href="formats/">knowledge format</a>.</p>
+  <p class="lead">Curate a collection of files, and know a human looked at them. Bowerbird keeps notes, decisions, vocabularies or code searchable and in order, for agents and people alike. Guarantee integrity across <a href="formats/">formats</a> with one tool.</p>
   <p>
-    <a class="btn btn-brand me-2" href="guide/">Get started</a>
+    <a class="btn btn-brand me-2" href="getting-started/">Get started</a>
     <a class="btn btn-outline-secondary" href="https://github.com/dfoulks1/bowerbird-mcp">View on GitHub</a>
   </p>
 </div>
@@ -16,7 +16,7 @@
   </div></div>
   <div class="col-md-4"><div class="card p-3">
     <h3>CI</h3>
-    <p><code>lint</code> as GitHub annotations or SARIF, a baseline for old findings, and <code>since=</code> for pull requests.</p>
+    <p><code>lint</code> as GitHub annotations or SARIF, a baseline for old findings, <code>since=</code> for pull requests, and <code>seal check=true</code> to fail a commit that has no human review.</p>
   </div></div>
   <div class="col-md-4"><div class="card p-3">
     <h3>A person at a terminal</h3>
@@ -24,7 +24,23 @@
   </div></div>
 </div>
 
-<p class="note">Local files only. No network, except the one-time model download if you turn on semantic search. Never writes to git. One Python file, installed or run with <a href="https://docs.astral.sh/uv/">uv</a>. These pages were written with Claude Opus 5.5 and Claude Sonnet 5.5 and are under human review.</p>
+<p class="note">Local files only. No network, except the one-time model download if you turn on semantic search. Never writes to git. One Python file, installed or run with <a href="https://docs.astral.sh/uv/">uv</a>. These pages were written with Claude Opus 5.5 and Claude Sonnet 5.5 and are sealed with Bowerbird.</p>
+
+## Pick the format that fits
+
+A `format:` line in `kbmcp.yaml` says what a folder holds. Each exists for a reason:
+
+- **Markdown**: notes, runbooks, wikis, docs. Nothing to write but Markdown.
+- **ADR**: decision records (ADR or MADR), with each record's status.
+- **OKF**: knowledge that says where it came from, who checked it and when it expires, with the full toolset.
+- **SKOS**: glossaries, vocabularies and thesauri.
+- **Seal-only**: code and other files, with nothing searched: just a guaranteed human review of each one.
+
+[Formats](formats.md) shows what each one looks like, side by side.
+
+Use whatever type is right for you: plain Markdown needs no header and no conversion, ADR reads decision records, OKF adds
+sources and trust, SKOS holds vocabularies, and seal-only does no searching at all, just a guaranteed human review of each
+file you name.
 
 ## Quickstart
 
@@ -32,13 +48,6 @@ Nothing to clone. [uv](https://docs.astral.sh/uv/) installs it from PyPI, with i
 
 ```sh
 uvx bowerbird-mcp help
-```
-
-Or take the one file and run it:
-
-```sh
-wget https://raw.githubusercontent.com/dfoulks1/bowerbird-mcp/main/bowerbird_mcp.py
-uv run bowerbird_mcp.py help
 ```
 
 No uv yet? `curl -LsSf https://astral.sh/uv/install.sh | sh`
@@ -57,110 +66,22 @@ Then add it to your MCP client's servers file (`.mcp.json` for Claude Code;
 }
 ```
 
-A `kbmcp.yaml` marks the base of a knowledgebase: the server finds it from the
-project folder up (or take `--config path`), and it sets what the
-knowledgebase holds and the search settings. Commit it: any folder holding one is a knowledgebase. Your own overrides go in a `.env` file or `KB_*` variables, not committed (`init` writes a filled-in one; [the guide](guide.md#run) has every key). To give an agent fewer
-tools, register the server with a role: `read` (find and read, nothing written), `structure`
-(reorganize), `write` (author and check) or `lifecycle` (keep it current). [The guide](guide.md#roles-a-smaller-tool-list-per-agent) has the lists.
-
-Or work from the terminal, no AI needed:
+Or work from the terminal, no AI needed. In any folder, with the format that fits what you keep (Markdown here, as an example):
 
 ```sh
-# start a bundle
-uv run bowerbird_mcp.py init bundle=eng apply=true
+# make it a collection: settings files only, your files are not touched
+# holds= is markdown, adr, okf, skos or seal-only
+uvx bowerbird-mcp init holds=markdown about="Team notes." apply=true
 
-# write a concept (a few real sentences, or `passages` has nothing to find)
-uv run bowerbird_mcp.py create eng/runbooks/deploy type=Playbook title="Deploy" \
-    description="How we deploy." \
-    body="Run the deploy script, then check the dashboard. To roll back, redeploy the previous tag."
-
-# find it: the map, then the best matches
-uv run bowerbird_mcp.py dirs format=text
-uv run bowerbird_mcp.py search deploy format=text
-
-# ask a question: the best sections, each with file, line and trust to cite
-uv run bowerbird_mcp.py passages 'how do we deploy' format=text
-
-# what's wrong, each with a fix; then the mechanical repairs
-uv run bowerbird_mcp.py lint format=text
-uv run bowerbird_mcp.py fix apply=true
+# ask a question: the best sections, each with the file and line to cite
+uvx bowerbird-mcp passages 'how do we deploy' output=text
 
 # any tool: what it does, its arguments
-uv run bowerbird_mcp.py help move
+uvx bowerbird-mcp help passages
 ```
 
-## What a knowledgebase looks like
-
-A knowledgebase is a folder of bundles. A bundle is a folder of concepts, one
-Markdown file each. Two small bundles:
-
-```text
-kb/
-  index.md                 lists the bundles
-  eng/                     a bundle: its index.md declares okf_version "0.2"
-    index.md
-    log.md                 what changed, newest first
-    db.md
-    runbooks/ship.md
-    refs/pg.md
-  mkt/
-    index.md
-    log.md
-    launch.md
-```
-
-Each concept is frontmatter (what kind of thing it is, where its facts came
-from, who checked it) over an ordinary Markdown body. Here is `eng/db.md`:
-
-```markdown
----
-type: Reference
-title: Database
-description: The PostgreSQL cluster behind every service.
-sources:
-  - id: pg
-    resource: refs/pg.md
-verified: { by: human:dfoulks, at: 2026-10-27T14:00:00Z }
----
-
-We run PostgreSQL 16.4.[^pg] Deploys follow [the ship runbook](/runbooks/ship.md).
-
-[^pg]: PostgreSQL release notes
-```
-
-Concepts point at each other in two ways: a Markdown **link** in the body,
-and a **citation** in `sources`, which records where a fact came from. `web
-format=mermaid` draws both for the whole knowledgebase:
-
-```mermaid
-graph LR
-  subgraph eng
-    db["db.md"]
-    ship["runbooks/ship.md"]
-    pg["refs/pg.md"]
-  end
-  subgraph mkt
-    launch["launch.md"]
-  end
-  db -.->|cites| pg
-  db -->|links| ship
-  ship -->|links| db
-  ship -->|links| launch
-  launch -->|links| db
-```
-
-Solid arrows are links; dotted ones are citations. The boxes are bundles, so
-an arrow that leaves its box crosses into another bundle. That is allowed,
-but lint flags it because the link breaks if one bundle is published alone.
-From here, `dirs` and `search` find a concept, `passages` answers a question
-from the best sections (and says so when there is nothing to find), `lint` checks every file
-against the spec, `status` says what needs a person next (including the
-pages links want that nobody has written), and `heatmap` shows where the
-work is.
-
-Next: [getting started](getting-started.md) for a ten-minute walkthrough,
-[understanding OKF](understanding-okf.md) for what the format is and why it is built this way,
-the [guide](guide.md) for layout and workflows, the [tools](tools.md)
-for every command, and the [OKF v0.2 specification][okf] it implements.
+Next: [getting started](getting-started.md) for a ten-minute walkthrough, [formats](formats.md) for what each kind of
+collection looks like, the [guide](guide.md) for settings and workflows, the [tools](tools.md) for every command, and
+[understanding OKF](understanding-okf.md) for the richest format, with its [specification][okf].
 
 [okf]: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md

@@ -4,7 +4,7 @@ Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> n
 
 ## archive
 
-Retire a concept, or (no file) the whole bundle= named, into the archive: `archive/`, a knowledgebase within the knowledgebase (started when absent), at archive/&lt;bundle&gt;/&lt;path&gt;, so `unarchive` can put it back. Archived bundles stay bundles; the live knowledgebase (lint, list, search, status, web) does not see them, and editing tools refuse them. Links to it are rewritten and warn afterwards (archived_link); status is left alone. apply=False shows the plan and diff.
+Retire a concept, or (no file) the whole bundle= named, into the archive: `archive/`, a collection within the collection (started when absent), at archive/&lt;bundle&gt;/&lt;path&gt;, so `unarchive` can put it back. Archived bundles stay bundles; the live collection (lint, list, search, status, web) does not see them, and editing tools refuse them. Links to it are rewritten and warn afterwards (archived_link); status is left alone. apply=False shows the plan and diff.
 
 ```sh
 uv run bowerbird_mcp.py archive file=runbooks/old.md bundle=eng apply=true
@@ -19,7 +19,7 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true
 
 ## baseline
 
-Snapshot today's lint findings so CI fails only on new ones (`lint baseline=<path>`; same bundle and `all`, and like lint it defaults to where the user is). For adopting OKF on a large existing collection. The snapshot's path is relative to the knowledgebase. apply=False only counts.
+Snapshot today's lint findings so CI fails only on new ones (`lint baseline=<path>`; same bundle and `all`, and like lint it defaults to where the user is). For adopting OKF on a large existing collection. The snapshot's path is relative to the collection. apply=False only counts.
 
 ```sh
 uv run bowerbird_mcp.py baseline apply=true
@@ -37,7 +37,7 @@ uv run bowerbird_mcp.py baseline apply=true
 Bundle roots under a directory: each index.md declaring okf_version (§12). A bundle without that declaration looks like any folder; pass it as bundle= directly.
 
 ```sh
-uv run bowerbird_mcp.py bundles format=text
+uv run bowerbird_mcp.py bundles output=text
 ```
 
 | Argument | Type | Default |
@@ -69,7 +69,7 @@ uv run bowerbird_mcp.py cite db.md resource=https://www.postgresql.org/docs/rele
 
 ## config
 
-Write a kbmcp.yaml at the root of the knowledgebase from the built-in example (every setting commented out at its default; commit it, it is the knowledgebase's shared configuration, and any folder holding one is a knowledgebase) and an env.example beside it that lists every KB_* override (copy it to .env, which is not committed and which this lists in the .gitignore beside it in a git work tree). Never overwrites a file; one that exists is skipped. apply=false shows what would change.
+Write a kbmcp.yaml at the root of the collection from the built-in example (every setting commented out at its default; commit it, it is the collection's shared configuration, and any folder holding one is a collection) and an env.example beside it that lists every KB_* override (copy it to .env, which is not committed and which this lists in the .gitignore beside it in a git work tree). Never overwrites a file; one that exists is skipped. apply=false shows what would change.
 
 ```sh
 uv run bowerbird_mcp.py config
@@ -106,7 +106,7 @@ uv run bowerbird_mcp.py create runbooks/deploy type=Playbook description="How we
 The map: each directory holding concepts and how many. Small; read it before search or get.
 
 ```sh
-uv run bowerbird_mcp.py dirs format=text
+uv run bowerbird_mcp.py dirs output=text
 ```
 
 | Argument | Type | Default |
@@ -133,7 +133,7 @@ uv run bowerbird_mcp.py fix apply=true
 One .md file of a bundle (a concept, index.md or log.md), or several at once with files=[...]. A missing index.md is synthesized from frontmatter (§8; `synthesized: true`). offset/limit page by line; limit=0 = all.
 
 ```sh
-uv run bowerbird_mcp.py get db.md bundle=eng format=text
+uv run bowerbird_mcp.py get db.md bundle=eng output=text
 ```
 
 | Argument | Type | Default |
@@ -146,10 +146,10 @@ uv run bowerbird_mcp.py get db.md bundle=eng format=text
 
 ## heatmap
 
-The hottest concepts and who heats them, from git history (.mailmap names). files: commits that changed each concept in the last `days`, most first, and how many people did. bundles: the same per bundle. authors: each person's changes and concepts in the window. single_author: concepts only one person has ever changed (all history; a bus-factor flag). index.md and log.md are left out: every write touches them. Like lint, it covers where the user is (at the knowledgebase root, every bundle). limit=0 lists all.
+The hottest concepts and who heats them, from git history (.mailmap names). files: commits that changed each concept in the last `days`, most first, and how many people did. bundles: the same per bundle. authors: each person's changes and concepts in the window. single_author: concepts only one person has ever changed (all history; a bus-factor flag). index.md and log.md are left out: every write touches them. Like lint, it covers where the user is (at the collection root, every bundle). limit=0 lists all.
 
 ```sh
-uv run bowerbird_mcp.py heatmap days=30 format=text
+uv run bowerbird_mcp.py heatmap days=30 output=text
 ```
 
 | Argument | Type | Default |
@@ -160,7 +160,7 @@ uv run bowerbird_mcp.py heatmap days=30 format=text
 
 ## index
 
-Rebuild generated document lists from frontmatter (title, type, tags, `description`, §8): the bundle-root index.md (a table, added if missing) and every index.md that already has a list. At a knowledgebase root, its index.md lists the bundles (created if missing). dirs=true also gives every directory an index.md listing its concepts and subdirectories (§8 progressive disclosure). apply=False shows the diff.
+Rebuild generated document lists from frontmatter (title, type, tags, `description`, §8): the bundle-root index.md (a table, added if missing) and every index.md that already has a list. At a collection root, its index.md lists the bundles (created if missing). dirs=true also gives every directory an index.md listing its concepts and subdirectories (§8 progressive disclosure). apply=False shows the diff.
 
 ```sh
 uv run bowerbird_mcp.py index apply=true
@@ -178,7 +178,7 @@ uv run bowerbird_mcp.py index dirs=true apply=true bundle=eng
 Bring markdown from a local directory or git clone into an OKF bundle, or adopt it in place (bundle = source; needs a clean git tree, so the diff is the review). Each file gets frontmatter: `type` from rules ({glob: type}, first match, else Document), `title` (its own, its H1, or the filename), `status` (default draft: imported, not reviewed), optional stale_after, and provenance where git has it: `sources` (a permalink and last_modified) and `generated` {by, at, basis: git-history}. Existing keys are kept. Never overwrites; files that already have `type` are skipped, so a re-run is a no-op. A reserved index.md/log.md carrying frontmatter is renamed &lt;dir&gt;-index.md/&lt;dir&gt;-log.md. apply=False is the plan: run it first, sample files, set rules. keep_okf=true merges another OKF bundle: files that have `type` are copied as they are (plus an origin source when git has one) and the source's index.md/log.md are left behind. It does not clone, convert other formats or check licenses. Files holding a credential-shaped string are skipped (`secrets` in the plan); run gitleaks on the source's history too.
 
 ```sh
-uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki format=text
+uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki output=text
 uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true
 ```
 
@@ -197,7 +197,7 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true
 
 ## init
 
-Start a knowledgebase: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; `holds` is okf, markdown, adr or skos, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with `type:` frontmatter) and lint.
+Start a collection: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; `holds` is okf, markdown, adr, skos or seal-only, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with `type:` frontmatter) and lint.
 
 ```sh
 uv run bowerbird_mcp.py init bundle=eng apply=true
@@ -216,7 +216,7 @@ uv run bowerbird_mcp.py init bundle=eng apply=true
 Edges of one concept (§6): `out` = its links, and its §6.2 path fields as `field` entries (sources are lineage, §5.1); exists false = broken; target names the bundle and file. `in` = concepts in its bundle that link to it or cite it. Check `in` before moving, renaming or deprecating a concept.
 
 ```sh
-uv run bowerbird_mcp.py links db.md bundle=eng format=text
+uv run bowerbird_mcp.py links db.md bundle=eng output=text
 ```
 
 | Argument | Type | Default |
@@ -226,13 +226,13 @@ uv run bowerbird_mcp.py links db.md bundle=eng format=text
 
 ## lint
 
-Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: `fix` clears it). conformant: §11 holds for what was linted (frontmatter parses, `type` set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a `baseline` snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the knowledgebase root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A kbmcp.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line `<!-- kbmcp-nolint -->` skips itself. only / ignore: finding kinds to keep or drop, like only=stub.
+Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: `fix` clears it). conformant: §11 holds for what was linted (frontmatter parses, `type` set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a `baseline` snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the collection root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A kbmcp.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line `<!-- kbmcp-nolint -->` skips itself. only / ignore: finding kinds to keep or drop, like only=stub.
 
 ```sh
-uv run bowerbird_mcp.py lint format=text
-uv run bowerbird_mcp.py lint eng/runbooks/ format=text
-uv run bowerbird_mcp.py lint only=stub,island format=text
-uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github
+uv run bowerbird_mcp.py lint output=text
+uv run bowerbird_mcp.py lint eng/runbooks/ output=text
+uv run bowerbird_mcp.py lint only=stub,island output=text
+uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github
 ```
 
 | Argument | Type | Default |
@@ -254,7 +254,7 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main format=github
 Concepts, filtered by type, tag, status (draft | stable | deprecated; absent = stable), trust tier (unverified | machine-confirmed | human-reviewed) or stale=true. The review worklist after an ingest: status=draft tier=unverified.
 
 ```sh
-uv run bowerbird_mcp.py list status=draft tier=unverified format=text
+uv run bowerbird_mcp.py list status=draft tier=unverified output=text
 ```
 
 | Argument | Type | Default |
@@ -273,7 +273,7 @@ uv run bowerbird_mcp.py list status=draft tier=unverified format=text
 History, newest first. With file: the entries in every log.md over that concept that link to it (§9), and the git commits that changed it. Without: the bundle's recent entries from all its log.md files. `record` writes an entry.
 
 ```sh
-uv run bowerbird_mcp.py log db.md bundle=eng format=text
+uv run bowerbird_mcp.py log db.md bundle=eng output=text
 ```
 
 | Argument | Type | Default |
@@ -284,7 +284,7 @@ uv run bowerbird_mcp.py log db.md bundle=eng format=text
 
 ## migrate
 
-Move a concept to another bundle of the knowledgebase (`move` stays inside one). to_bundle: the target bundle's path in the knowledgebase ("." for its root). to: the path inside it (default: the same path). Links to the concept in both bundles are rewritten; its own `/` links, which meant the old bundle's root, become relative paths (cross-bundle: lint warns). Links from other bundles are not touched. apply=False shows the diff.
+Move a concept to another bundle of the collection (`move` stays inside one). to_bundle: the target bundle's path in the collection ("." for its root). to: the path inside it (default: the same path). Links to the concept in both bundles are rewritten; its own `/` links, which meant the old bundle's root, become relative paths (cross-bundle: lint warns). Links from other bundles are not touched. apply=False shows the diff.
 
 ```sh
 uv run bowerbird_mcp.py migrate db.md mkt bundle=eng apply=true
@@ -315,10 +315,10 @@ uv run bowerbird_mcp.py move runbooks/deploy.md runbooks/ship.md bundle=eng appl
 
 ## passages
 
-The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section (a long one is cut again, each piece repeating the last short paragraph of the one before; with format: skos each skos:Concept is a passage), ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused (vector_index in kbmcp.yaml picks scan, sqlite-vec or hnsw). Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the knowledgebase has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by `reindex` when build is manual; semantic mode also downloads its model once.
+The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section (a long one is cut again, each piece repeating the last short paragraph of the one before; with format: skos each skos:Concept is a passage), ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused (vector_index in kbmcp.yaml picks scan, sqlite-vec or hnsw). Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the collection has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by `reindex` when build is manual; semantic mode also downloads its model once.
 
 ```sh
-uv run bowerbird_mcp.py passages 'how do we roll back a deploy' format=text
+uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text
 uv run bowerbird_mcp.py passages rollback tag=ops limit=3
 ```
 
@@ -369,7 +369,7 @@ uv run bowerbird_mcp.py recheck_apply db.md bundle=eng --attest
 Facts due a re-check: `sources` entries retrieved at least N days ago, or on a concept past stale_after. Each lists `cites`, the lines whose claims rest on it. `calls` replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). Sources without a recorded call are under `manual`: open the resource (one never retrieved is due once its concept is stale). Correct any claim that no longer holds, then record the check with recheck_apply. Nothing is executed here.
 
 ```sh
-uv run bowerbird_mcp.py recheck_plan older_than_days=90 format=text
+uv run bowerbird_mcp.py recheck_plan older_than_days=90 output=text
 ```
 
 | Argument | Type | Default |
@@ -394,11 +394,11 @@ uv run bowerbird_mcp.py record "Reviewed the runbooks against the new pipeline."
 
 ## reindex
 
-Build, inspect or delete the passage index (`index` in kbmcp.yaml). Default: build or refresh it from the whole knowledgebase, and its vectors when semantic is on. Only files that changed since the last run are read, so it is cheap to run from a pre-commit, post-merge or post-checkout hook; the first semantic run embeds every passage and takes minutes (an interrupted run resumes). full=true starts over. info=true only reports: the file, its size, files, passages and vectors held, the model they came from, and `behind` (files changed since the last build). drop=true deletes the file (a cache; reindex makes it again). Never edits the bundle. Pick one of full, info and drop.
+Build, inspect or delete the passage index (`index` in kbmcp.yaml). Default: build or refresh it from the whole collection, and its vectors when semantic is on. Only files that changed since the last run are read, so it is cheap to run from a pre-commit, post-merge or post-checkout hook; the first semantic run embeds every passage and takes minutes (an interrupted run resumes). full=true starts over. info=true only reports: the file, its size, files, passages and vectors held, the model they came from, and `behind` (files changed since the last build). drop=true deletes the file (a cache; reindex makes it again). Never edits the bundle. Pick one of full, info and drop.
 
 ```sh
-uv run bowerbird_mcp.py reindex format=text
-uv run bowerbird_mcp.py reindex info=true format=text
+uv run bowerbird_mcp.py reindex output=text
+uv run bowerbird_mcp.py reindex info=true output=text
 uv run bowerbird_mcp.py reindex full=true
 uv run bowerbird_mcp.py reindex drop=true
 ```
@@ -411,7 +411,7 @@ uv run bowerbird_mcp.py reindex drop=true
 
 ## rename
 
-Rename or move a bundle within the knowledgebase (§3): bundle= (default: where the user is) to `to`, a path in the knowledgebase. Links into it from other bundles, its links out, and §6.2 paths are rewritten (§6.1); its own `/` links stay, since its root moves with it. The knowledgebase index follows. apply=False shows the plan and diff.
+Rename or move a bundle within the collection (§3): bundle= (default: where the user is) to `to`, a path in the collection. Links into it from other bundles, its links out, and §6.2 paths are rewritten (§6.1); its own `/` links stay, since its root moves with it. The collection index follows. apply=False shows the plan and diff.
 
 ```sh
 uv run bowerbird_mcp.py rename marketing bundle=mkt apply=true
@@ -425,7 +425,7 @@ uv run bowerbird_mcp.py rename marketing bundle=mkt apply=true
 
 ## seal
 
-Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the `seal` policy in kbmcp.yaml covers has one. The one function for every format; `verify` (okf) and `ratify` (ADRs) are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit `by`; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 `verified` entry {by, at, sha256} into the concept; markdown, adr and skos add one to verifications.yaml (commit it). The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; `seal.require` and `seal.exempt_status` in kbmcp.yaml say what it covers.
+Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the `seal` policy in kbmcp.yaml covers has one. The one function for every format; `verify` (okf) and `ratify` (ADRs) are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit `by`; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 `verified` entry {by, at, sha256} into the concept; markdown, adr and skos add one to .waxseal.yaml (commit it). The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; `seal.require` and `seal.exempt_status` in kbmcp.yaml say what it covers.
 
 ```sh
 uv run bowerbird_mcp.py seal db.md bundle=eng --attest promote=true
@@ -446,8 +446,8 @@ uv run bowerbird_mcp.py seal db.md bundle=eng --attest promote=true
 Concepts holding every word of query (case-insensitive, anywhere in the concept), best first. Each field a word matches adds its weight to the score: title 5, id 4, tags 3, type 2, description 2, body 1. Each hit: {bundle, file, title, type, score, matched (the fields), line, text (the first line holding a word, body first)}. Filters: type, tag, dir (a directory in the bundle); fields limits where words are looked for.
 
 ```sh
-uv run bowerbird_mcp.py search postgres format=text
-uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks format=text
+uv run bowerbird_mcp.py search postgres output=text
+uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output=text
 ```
 
 | Argument | Type | Default |
@@ -493,10 +493,10 @@ uv run bowerbird_mcp.py split notes apply=true
 
 ## status
 
-Bundle summary: concepts by type, by status (absent = stable, §5.4), by trust tier (§5.3), stale count (`stale_after` passed, §5.5), unparseable files, declared okf_version, conformance and lint totals; and the upkeep queues, five oldest or largest each: review (days since last `verified`), drafts (days since `generated.at`), sources (concepts with and without), words (total, longest: split candidates), due (`stale_after` within due_days); hubs (most linked-to concepts) and wanted (missing pages links point at, most wanted first). At a knowledgebase root without bundle=, `bundles` holds the same for each bundle.
+Bundle summary: concepts by type, by status (absent = stable, §5.4), by trust tier (§5.3), stale count (`stale_after` passed, §5.5), unparseable files, declared okf_version, conformance and lint totals; and the upkeep queues, five oldest or largest each: review (days since last `verified`), drafts (days since `generated.at`), sources (concepts with and without), words (total, longest: split candidates), due (`stale_after` within due_days); hubs (most linked-to concepts) and wanted (missing pages links point at, most wanted first). At a collection root without bundle=, `bundles` holds the same for each bundle.
 
 ```sh
-uv run bowerbird_mcp.py status format=text
+uv run bowerbird_mcp.py status output=text
 ```
 
 | Argument | Type | Default |
@@ -536,7 +536,7 @@ uv run bowerbird_mcp.py upgrade apply=true
 Tags and types in use, most used first: the words `search`, `list` and `set` filter on.
 
 ```sh
-uv run bowerbird_mcp.py vocab format=text
+uv run bowerbird_mcp.py vocab output=text
 ```
 
 | Argument | Type | Default |
@@ -545,11 +545,11 @@ uv run bowerbird_mcp.py vocab format=text
 
 ## web
 
-The link graph (§6): which concepts link to (`link`) or cite (`cite`: sources and §6.2 path fields, lineage, §5.1) which. Where the user is, like lint: at the knowledgebase root, bundles with edges counted; in a bundle (or concepts=true), concepts. Broken links are left out (lint reports them); archived and deprecated nodes are marked. Returns {level, nodes, edges}; mermaid=true returns a Mermaid diagram instead (CLI: format=mermaid), which GitHub and most markdown viewers draw.
+The link graph (§6): which concepts link to (`link`) or cite (`cite`: sources and §6.2 path fields, lineage, §5.1) which. Where the user is, like lint: at the collection root, bundles with edges counted; in a bundle (or concepts=true), concepts. Broken links are left out (lint reports them); archived and deprecated nodes are marked. Returns {level, nodes, edges}; mermaid=true returns a Mermaid diagram instead (CLI: output=mermaid), which GitHub and most markdown viewers draw.
 
 ```sh
-uv run bowerbird_mcp.py web format=text
-uv run bowerbird_mcp.py web format=mermaid
+uv run bowerbird_mcp.py web output=text
+uv run bowerbird_mcp.py web output=mermaid
 ```
 
 | Argument | Type | Default |

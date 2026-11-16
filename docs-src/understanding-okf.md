@@ -116,7 +116,7 @@ A **bundle** is a folder of concepts, with subfolders as you like. Two filenames
 - **`log.md`** is the history of changes to that folder, newest first, grouped by date.
 
 A bundle can travel as a git repository (recommended, for the history and the diffs), a zip, or a subfolder of a
-bigger repository. The word **knowledgebase**, as this site uses it, is not part of OKF: it means a bundle, or a
+bigger repository. The word **collection**, as this site uses it, is not part of OKF: it means a bundle, or a
 folder of bundles, that Bowerbird manages together.
 
 ## Why it is good
@@ -172,7 +172,7 @@ never what it says:
 Bowerbird can also search a plain Markdown folder (ADR and MADR records among them) and SKOS thesauri, and `seal` a
 human review of those too, with one `format:` line in `kbmcp.yaml` (see [Formats](formats.md)).
 
-The practical effect is that a knowledgebase kept this way can answer a question *and* say how far to trust the
+The practical effect is that a collection kept this way can answer a question *and* say how far to trust the
 answer. That is the whole idea.
 
 ## Read on

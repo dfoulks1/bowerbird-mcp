@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Changed
+- The command-line option that picks how a result is printed is now `output=` (`text`, `json`, `github` or `sarif`),
+  so it no longer shares a name with a collection's `format`. `format=` still works as an alias.
 - Releases are published to PyPI by hand (`uv publish`), not by a GitHub Actions workflow; the publish workflow is removed.
   See `CONTRIBUTING.md`.
 
@@ -13,18 +15,23 @@ A major version: several things a 1.x user relied on changed.
 ### Breaking
 - The MCP tool `verify` is now `seal` (one function for a human's review, in every format). `verify` and `ratify`
   remain command-line names for it, but an MCP client calling `verify` must call `seal`.
-- `kbmcp.yaml` is the knowledgebase's committed, shared configuration (it was local and ignored by git). `config` no
+- `kbmcp.yaml` is the collection's committed, shared configuration (it was local and ignored by git). `config` no
   longer lists it in `.gitignore`. Personal overrides now go in a `.env` file or `KB_*` variables.
-- Any folder holding a `kbmcp.yaml` is its own knowledgebase, so the outer one skips it and `lint` no longer reports
+- Any folder holding a `kbmcp.yaml` is its own collection, so the outer one skips it and `lint` no longer reports
   `nested_config`.
 - `init` writes more (a filled-in `kbmcp.yaml`, `env.example`, `.mcp.json`, and your id in `.env`) and is async.
 - The `KB_ROOT` message no longer points at a `root:` key (there is none).
 
 ### Added
+- `format: seal-only`: a collection of any text files (code, configuration) with nothing indexed or searched. The
+  `seal.require` globs name the files, and `seal check=true` fails when one has no human review of its current version.
+  `init holds=seal-only` writes only `about`, `format` and an empty `seal.require`.
+- `seal` is its own role (`roles: [read, write, structure, lifecycle, seal]`), so a server can offer review without
+  `write`. `fix` moved back to `write`; the four older roles stay within about 15% of each other.
 - `seal` (command-line names `verify` for okf and `ratify` for ADRs): one function for a human's review, in every
   format, replacing `verify` as the tool. Over MCP it asks the human in a prompt, as `verify` did. okf records
   `verified: {by, at, sha256}` in the concept; markdown and skos add an entry (file, sha256, by, at, decision) to a
-  committed `verifications.yaml`. The sha256 binds the review to the exact bytes: an edit breaks the seal and the
+  committed `.waxseal.yaml`. The sha256 binds the review to the exact bytes: an edit breaks the seal and the
   hit shows `unverified` and `stale`. A ledger decision becomes the hit's `status`.
 - `seal check=true` (a pre-commit hook, CI; `since=` for pull requests) exits 1 on `unsigned`, `stale_signature`,
   `claims_accepted` and `orphan_signature` (a warning). The policy is the `seal` key in the committed `kbmcp.yaml`:
@@ -44,11 +51,11 @@ A major version: several things a 1.x user relied on changed.
 
 ### Changed
 - `init` also writes a `.mcp.json` (commit it): whoever clones the repository has the tools, with nothing to register
-  on their own machine (Claude Code asks once to approve a project's server). The knowledgebase's settings, reviews and
+  on their own machine (Claude Code asks once to approve a project's server). The collection's settings, reviews and
   client configuration all travel with the repository.
 - The roles are evened out by moving `fix` from `write` to `structure`: about 1,750, 1,900, 1,850 and 1,800 tokens.
-- `kbmcp.yaml` is now the knowledgebase's committed, shared configuration, and any folder holding one is a
-  knowledgebase. `config` no longer lists it in `.gitignore`; a folder inside a knowledgebase that has its own
+- `kbmcp.yaml` is now the collection's committed, shared configuration, and any folder holding one is a
+  collection. `config` no longer lists it in `.gitignore`; a folder inside a collection that has its own
   `kbmcp.yaml` is skipped by the outer one, and `lint` no longer reports `nested_config`.
 - Personal and machine overrides: every key but `format` has a `KB_<KEY>` variable. `env.example` lists them; copy it to
   `.env` (not committed; `init` and `config` ignore it). Precedence: `kbmcp.yaml`, then `.env`, then real environment

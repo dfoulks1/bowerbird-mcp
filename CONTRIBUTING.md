@@ -38,14 +38,13 @@ use cases drive changes to it. Core stays one file.
 ## Running the checks
 
 ```sh
-uv run bowerbird_mcp.py lint     # exits 1 on problems; use as a pre-merge gate
 uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
 uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # also the optional backends (skipped otherwise)
 ```
 
 ## Releasing
 
-1. Set `version` in `pyproject.toml`, add a section to `CHANGELOG.md`, and run the checks above (the tests
+1. Set `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), add a section to `CHANGELOG.md`, and run the checks above (the tests
    run on Python 3.10 to 3.14: `uv run --python 3.10 test_bowerbird_mcp.py`).
 2. Rebuild the docs site (below) and commit. Merge to `main`.
 3. Tag and publish a GitHub release, `git tag -a vX.Y.Z` then `gh release create vX.Y.Z`, with the

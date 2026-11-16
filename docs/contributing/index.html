@@ -7,10 +7,10 @@
   <title>Contributing · Bowerbird</title>
   <link rel="icon" href="../img/favicon.png" type="image/png">
   <link rel="icon" href="../img/favicon.ico" sizes="any">
-  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Contributing · Bowerbird">
-  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -81,6 +81,14 @@
               <a class="nav-link "
                  
                  href="../tools/">Tools</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../troubleshooting/">Troubleshooting</a>
             </li>
           
         
@@ -204,12 +212,11 @@ use cases drive changes to it. Core stays one file.</p>
 </ul>
 <pre class="highlight"><code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></pre>
 <h2 id="running-the-checks">Running the checks<a class="headerlink" href="#running-the-checks" title="Link to this section">#</a></h2>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint     # exits 1 on problems; use as a pre-merge gate
-uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
+<pre class="highlight"><code class="language-sh">uv run test_bowerbird_mcp.py     # self-check against throwaway bundles
 uv run --with rdflib --with sqlite-vec --with hnswlib test_bowerbird_mcp.py   # also the optional backends (skipped otherwise)</code></pre>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Link to this section">#</a></h2>
 <ol>
-<li>Set <code>version</code> in <code>pyproject.toml</code>, add a section to <code>CHANGELOG.md</code>, and run the checks above (the tests
+<li>Set <code>version</code> in <code>pyproject.toml</code> and <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), add a section to <code>CHANGELOG.md</code>, and run the checks above (the tests
    run on Python 3.10 to 3.14: <code>uv run --python 3.10 test_bowerbird_mcp.py</code>).</li>
 <li>Rebuild the docs site (below) and commit. Merge to <code>main</code>.</li>
 <li>Tag and publish a GitHub release, <code>git tag -a vX.Y.Z</code> then <code>gh release create vX.Y.Z</code>, with the
@@ -232,7 +239,7 @@ uvx --with pymdown-extensions mkdocs build    # docs-src/ -&gt; docs/</code></pr
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
             
-              <a class="btn btn-outline-secondary" href="../tools/">&larr; Tools</a>
+              <a class="btn btn-outline-secondary" href="../troubleshooting/">&larr; Troubleshooting</a>
             
             
           </div>

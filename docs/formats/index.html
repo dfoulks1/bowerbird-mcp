@@ -7,10 +7,10 @@
   <title>Formats · Bowerbird</title>
   <link rel="icon" href="../img/favicon.png" type="image/png">
   <link rel="icon" href="../img/favicon.ico" sizes="any">
-  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Formats · Bowerbird">
-  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 knowledgebases, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -88,6 +88,14 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../troubleshooting/">Troubleshooting</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../contributing/">Contributing</a>
             </li>
           
@@ -130,7 +138,32 @@
             <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#formats">Formats</a>
+      <a class="nav-link py-1 px-0" href="#markdown">Markdown</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#adr">ADR</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#okf">OKF</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#skos">SKOS</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#seal-only">Seal-only</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#changing-your-mind">Changing your mind</a>
       
     </li>
   
@@ -150,24 +183,338 @@
         <article><h1 id="formats">Formats<a class="headerlink" href="#formats" title="Link to this section">#</a></h1>
 <div class="admonition note">
 <p class="admonition-title">AI-generated</p>
-<p>Drawn from the README, written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review.</p>
+<p>Written with Claude Opus 5.5 and Claude Sonnet 5.5, under human review. Every command and output on this page was run for real; long lines are shortened.</p>
 </div>
-<p>Bowerbird is not tied to one knowledge format. <code>format</code> in <code>kbmcp.yaml</code> says what a folder holds, and the same
-search, index and review tools work across them.</p>
-<ul>
-<li><code>okf</code> (the default): <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">Open Knowledge Format</a> bundles. Every tool is available.</li>
-<li><code>adr</code>: ADR and MADR decision records. Every Markdown file is a record (except <code>README.md</code> and <code>index.md</code>), whatever
-  its name or folder, and no frontmatter is needed. A hit gets type <code>adr</code> and its <code>status</code>, read from MADR frontmatter,
-  a <code>## Status</code> section (Nygard) or a <code>* Status:</code> line (MADR 2).</li>
-<li><code>markdown</code>: any other folder of Markdown, no frontmatter needed; <code>index.md</code> and <code>log.md</code> are ordinary files. A
-  numbered file name (<code>0007-use-queue.md</code>) or a path through <code>adr</code>, <code>adrs</code> or <code>decisions</code> still counts as an ADR.</li>
-<li><code>skos</code>: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (<code>*.ttl</code>, <code>*.rdf</code>, <code>*.jsonld</code>, <code>*.nt</code>, <code>*.n3</code>;
-  needs <code>pip install rdflib</code>). One passage per concept, headed by its broader chain, with its labels, notes and
-  broader, narrower and related concepts in the text.</li>
-</ul>
-<p>Outside <code>okf</code> the server offers <code>passages</code>, <code>reindex</code> and <code>seal</code>. A hit is <code>unverified</code> until a human seals that exact
-file (see <a href="https://bowerbird.voltpop.com/guide/#sealing-who-reviewed-what">Sealing</a>): reviews go in <code>verifications.yaml</code>, not in the file. <code>init</code> guesses
-the format from the folder, and the agent's instructions follow it.</p></article>
+<p>Bowerbird is not tied to one way of keeping knowledge. A <code>kbmcp.yaml</code> at the root of a folder says what the folder
+holds, with one line:</p>
+<pre class="highlight"><code class="language-yaml">format: markdown      # markdown | adr | okf | skos | seal-only</code></pre>
+<p>Each format exists for a reason. Pick whichever fits what you keep; you can change your mind later by changing
+that line (the search index rebuilds itself).</p>
+<p>What you can do in each format (the tools a server offers, by job):</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th><strong>Markdown</strong></th>
+<th><strong>ADR</strong></th>
+<th><strong>OKF</strong></th>
+<th><strong>SKOS</strong></th>
+<th><strong>Seal-only</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Find</strong>: ask a question, get the file and line to cite</td>
+<td>yes: <code>passages</code></td>
+<td>yes: <code>passages</code></td>
+<td>yes: <code>passages</code>, <code>search</code>, <code>dirs</code>, <code>get</code>, <code>list</code>, <code>links</code> and more</td>
+<td>yes: <code>passages</code></td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong>Author</strong>: add files without breaking the collection</td>
+<td>no</td>
+<td>no</td>
+<td>yes: <code>create</code>, <code>cite</code>, <code>record</code>, <code>set</code>, <code>lint</code>, <code>fix</code></td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong>Reorganize</strong>: move, rename, split, import, with every link kept</td>
+<td>no</td>
+<td>no</td>
+<td>yes: <code>move</code>, <code>rename</code>, <code>split</code>, <code>migrate</code>, <code>archive</code>, <code>ingest</code></td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong>Maintain</strong>: keep it current and trustworthy</td>
+<td>the search index only: <code>reindex</code></td>
+<td>the search index only: <code>reindex</code></td>
+<td>yes: <code>index</code>, <code>provenance</code>, <code>recheck_plan</code>, <code>recheck_apply</code>, <code>baseline</code>, <code>upgrade</code> and more</td>
+<td>the search index only: <code>reindex</code></td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong>Attest</strong>: a person's review, broken by any edit</td>
+<td>yes: <code>seal</code></td>
+<td>yes: <code>seal</code>, with a decision</td>
+<td>yes: <code>seal</code>, written into the file</td>
+<td>yes: <code>seal</code></td>
+<td>yes: <code>seal</code></td>
+</tr>
+<tr>
+<td><strong>Tools offered</strong></td>
+<td>3</td>
+<td>3</td>
+<td>35</td>
+<td>3</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>Over the command line every tool exists in every format, but outside OKF the other tools are written for OKF files and are
+not meant for the rest. A server only offers the ones that fit.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Markdown</strong></th>
+<th><strong>ADR</strong></th>
+<th><strong>OKF</strong></th>
+<th><strong>SKOS</strong></th>
+<th><strong>Seal-only</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>For</strong></td>
+<td>notes, runbooks, wikis, docs</td>
+<td>decisions, and why they were made</td>
+<td>knowledge with sources, trust and freshness, kept by people and agents</td>
+<td>glossaries, vocabularies, thesauri</td>
+<td>code, configuration, any files that need a guaranteed human review</td>
+</tr>
+<tr>
+<td><strong>Files</strong></td>
+<td>any <code>.md</code></td>
+<td><code>.md</code> decision records</td>
+<td><code>.md</code> concepts with frontmatter</td>
+<td><code>.ttl</code> <code>.rdf</code> <code>.jsonld</code> <code>.nt</code> <code>.n3</code></td>
+<td>any text files you name</td>
+</tr>
+<tr>
+<td><strong>You must write</strong></td>
+<td>nothing special</td>
+<td>nothing special</td>
+<td>frontmatter, at least <code>type</code></td>
+<td>RDF</td>
+<td>nothing; you list the files</td>
+</tr>
+<tr>
+<td><strong>A search hit is</strong></td>
+<td>a section of a note</td>
+<td>a section of a record, with its <code>status</code></td>
+<td>a section, with its trust tier and staleness</td>
+<td>one concept</td>
+<td>none: nothing is searched</td>
+</tr>
+<tr>
+<td><strong>A review (<code>seal</code>) is kept in</strong></td>
+<td><code>.waxseal.yaml</code></td>
+<td><code>.waxseal.yaml</code>, with a decision</td>
+<td>the concept's own frontmatter</td>
+<td><code>.waxseal.yaml</code></td>
+<td><code>.waxseal.yaml</code></td>
+</tr>
+</tbody>
+</table>
+<p>All four share the same ideas: the folder is a git repository, <code>kbmcp.yaml</code> is committed with it, and a human's
+review is recorded against the exact bytes they reviewed (see <a href="../guide/#sealing-who-reviewed-what">Sealing</a>).</p>
+<h2 id="markdown">Markdown<a class="headerlink" href="#markdown" title="Link to this section">#</a></h2>
+<p><strong>Use it when</strong> you have a folder of notes and want to ask questions of it and know which of them a person has
+checked. There is nothing to learn and nothing to convert.</p>
+<pre class="highlight"><code class="language-text">notes/
+  kbmcp.yaml             format: markdown
+  deploy.md              plain Markdown, no header needed
+  rollback.md
+  .waxseal.yaml     appears when someone seals a note (commit it)</code></pre>
+<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+format: markdown
+about: Team notes.</code></pre>
+<pre class="highlight"><code class="language-sh">kb init holds=markdown about="Team notes." apply=true
+kb passages 'how do I roll back' output=text</code></pre>
+<p>A hit is a section of a note, with its file and line:</p>
+<pre class="highlight"><code class="language-text">file: rollback.md, line: 2, heading: Rollback, match: 100, type: null, status: stable, tier: unverified, links: 1
+text: To roll back, redeploy the previous tag and confirm the dashboard is green.</code></pre>
+<p>Every hit says <code>tier: unverified</code> until a human has sealed that file. <code>links</code> counts the notes that link to it
+(<code>deploy.md</code> links to <code>rollback.md</code>, so it is 1). Files named <code>index.md</code> and <code>log.md</code> are ordinary notes here.</p>
+<p><strong>Reviewing.</strong> At a terminal, <code>kb seal deploy.md --attest</code> records you; over MCP a prompt asks you instead. The review
+goes into <code>.waxseal.yaml</code>, never into the note:</p>
+<pre class="highlight"><code class="language-yaml">entries:
+- file: deploy.md
+  sha256: 6205ee8f20e4fa49559acc629e6639e87cc7ac5233fe496f18158236bdf659f6
+  by: human:you
+  at: 2026-11-16T14:40:51Z</code></pre>
+<p>Edit the note afterwards and the <code>sha256</code> no longer matches: the review is broken, and the hit shows <code>unverified</code> and
+<code>stale</code>. <code>kb seal check=true</code> lists what has no review (for a pre-commit hook or CI).</p>
+<h2 id="adr">ADR<a class="headerlink" href="#adr" title="Link to this section">#</a></h2>
+<p><strong>Use it when</strong> you keep decision records (ADR or MADR) and want to find them, see which are accepted, and have
+a person ratify them.</p>
+<pre class="highlight"><code class="language-text">platform/
+  kbmcp.yaml             format: adr
+  docs/adr/
+    0001-use-a-managed-queue.md      a Nygard record
+    0002-use-postgresql.md           a MADR record
+  .waxseal.yaml</code></pre>
+<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+format: adr
+about: Platform decisions.
+seal: {require: ["docs/adr/*.md"], exempt_status: [proposed, draft]}</code></pre>
+<p>Every Markdown file is a record (except <code>README.md</code> and <code>index.md</code>), whatever its name or folder. Bowerbird reads each
+record's status as the author wrote it: from MADR 3 frontmatter, from a <code>## Status</code> section (Nygard), or from a
+<code>* Status:</code> line (MADR 2).</p>
+<pre class="highlight"><code class="language-markdown"># 1. Use a managed queue
+
+Date: 2026-11-16
+
+## Status
+
+Accepted
+
+## Context
+
+The platypus service needs a queue.</code></pre>
+<pre class="highlight"><code class="language-markdown">---
+status: proposed
+date: 2026-11-16
+decision-makers: platform team
+---
+# Use PostgreSQL
+
+## Context and Problem Statement
+
+Which database for the narwhal?</code></pre>
+<p>Hits carry <code>type: adr</code> and the record's <code>status</code>:</p>
+<pre class="highlight"><code class="language-text">file: docs/adr/0001-use-a-managed-queue.md, heading: 1. Use a managed queue &gt; Decision, type: adr, status: Accepted, tier: unverified
+file: docs/adr/0002-use-postgresql.md, heading: Use PostgreSQL &gt; Context and Problem Statement, type: adr, status: proposed, tier: unverified</code></pre>
+<p><strong>Ratifying.</strong> A record that says "Accepted" has only said so about itself. <code>kb ratify</code> (the same function as <code>seal</code>,
+under the word ADRs use) records that a person reviewed it and what they decided:</p>
+<pre class="highlight"><code class="language-sh">kb ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest</code></pre>
+<p>The <code>decision</code> goes into <code>.waxseal.yaml</code>, and from then on it is the hit's <code>status</code>, with <code>tier: human-reviewed</code>.
+<code>kb seal check=true</code> fails a commit when a record that needs a review lacks one: <code>unsigned</code> for a required record,
+<code>claims_accepted</code> for one whose own status says accepted but no person reviewed it, and <code>stale_signature</code> for one
+edited after its review. A <code>proposed</code> or <code>draft</code> record is exempt, so you can commit a proposal before it is reviewed.</p>
+<h2 id="okf">OKF<a class="headerlink" href="#okf" title="Link to this section">#</a></h2>
+<p><strong>Use it when</strong> the knowledge needs to say where it came from, who checked it and when it expires, especially when
+agents write part of it. <a href="../understanding-okf/">Open Knowledge Format</a> is a Markdown convention for exactly that: each
+note (a <em>concept</em>) starts with a small header of facts, and the tools check that the whole folder is well formed.
+It is the only format with the full toolset: <code>lint</code>, <code>fix</code>, <code>cite</code>, <code>provenance</code>, <code>status</code>, <code>move</code>, <code>rename</code> and the rest.</p>
+<p>A collection is a folder of <em>bundles</em>; a bundle is a folder of concepts, one Markdown file each.</p>
+<pre class="highlight"><code class="language-text">kb/
+  kbmcp.yaml               format: okf (the default)
+  index.md                 lists the bundles
+  eng/                     a bundle: its index.md declares okf_version "0.2"
+    index.md
+    log.md                 what changed, newest first
+    db.md
+    runbooks/ship.md
+    refs/pg.md
+  mkt/
+    index.md
+    log.md
+    launch.md</code></pre>
+<p>Each concept is frontmatter (what kind of thing it is, where its facts came from, who checked it) over an ordinary
+Markdown body. Here is <code>eng/db.md</code>:</p>
+<pre class="highlight"><code class="language-markdown">---
+type: Reference
+title: Database
+description: The PostgreSQL cluster behind every service.
+sources:
+  - id: pg
+    resource: refs/pg.md
+verified: { by: human:dfoulks, at: 2026-10-27T14:00:00Z }
+---
+
+We run PostgreSQL 16.4.[^pg] Deploys follow [the ship runbook](/runbooks/ship.md).
+
+[^pg]: PostgreSQL release notes</code></pre>
+<p>Concepts point at each other in two ways: a Markdown <strong>link</strong> in the body, and a <strong>citation</strong> in <code>sources</code>, which
+records where a fact came from. <code>web output=mermaid</code> draws both for the whole collection:</p>
+<pre class="mermaid"><code>graph LR
+  subgraph eng
+    db["db.md"]
+    ship["runbooks/ship.md"]
+    pg["refs/pg.md"]
+  end
+  subgraph mkt
+    launch["launch.md"]
+  end
+  db -.-&gt;|cites| pg
+  db --&gt;|links| ship
+  ship --&gt;|links| db
+  ship --&gt;|links| launch
+  launch --&gt;|links| db</code></pre>
+<p>Solid arrows are links; dotted ones are citations. The boxes are bundles, so an arrow that leaves its box crosses into
+another bundle. That is allowed, but <code>lint</code> flags it, because the link breaks if one bundle is published alone.</p>
+<p><strong>Try it.</strong> In an empty folder:</p>
+<pre class="highlight"><code class="language-sh">kb init holds=okf about="Team runbooks." apply=true
+kb create deploy type=Playbook title="Deploy" description="How we ship a release." \
+   body='Run the deploy script, then check the dashboard.' output=text
+kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
+kb lint output=text</code></pre>
+<p><code>create</code> writes a file with its header, <code>cite</code> records a source and prints the footnote tag (<code>[^runbook]</code>) to put next to
+the claim it backs, and <code>lint</code> checks the whole collection:</p>
+<pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 1 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True</code></pre>
+<p>A file with no header, a broken link or a fact with no source is a finding, each naming the file, what is wrong and how to
+fix it, and <code>kb fix apply=true</code> repairs the mechanical ones.</p>
+<p><strong>Reviewing.</strong> <code>kb seal</code> writes a <code>verified</code> entry into the concept itself, with a <code>sha256</code> of the note. The trust tier
+comes only from who verified: nobody means <em>unverified</em>, a script or agent means <em>machine-confirmed</em>, and a person
+means <em>human-reviewed</em>. Hits show the tier and whether the note has gone stale. See
+<a href="../understanding-okf/">Understanding OKF</a> for the format itself.</p>
+<h2 id="skos">SKOS<a class="headerlink" href="#skos" title="Link to this section">#</a></h2>
+<p><strong>Use it when</strong> you keep a controlled vocabulary: a glossary, a taxonomy, a thesaurus. SKOS is the W3C standard for
+that, written as RDF (Turtle, RDF/XML, JSON-LD, N-Triples or N3).</p>
+<pre class="highlight"><code class="language-text">glossary/
+  kbmcp.yaml             format: skos
+  glossary.ttl</code></pre>
+<pre class="highlight"><code class="language-turtle">@prefix : &lt;http://example.org/glossary/&gt; .
+@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
+@prefix dct: &lt;http://purl.org/dc/terms/&gt; .
+
+:scheme a skos:ConceptScheme ; dct:title "Infrastructure glossary" .
+
+:service a skos:Concept ; skos:prefLabel "Service"@en ;
+  skos:definition "A long-running process other systems depend on."@en ;
+  skos:narrower :queue .
+
+:queue a skos:Concept ; skos:prefLabel "Queue"@en ; skos:altLabel "message queue"@en ;
+  skos:definition "A buffer that decouples a producer from a consumer."@en ;
+  skos:broader :service .</code></pre>
+<p>Each <code>skos:Concept</code> is one passage. Its heading is the broader chain, and its text holds the labels, notes and
+neighbouring concepts, so a search for the alternate label finds it:</p>
+<pre class="highlight"><code class="language-text">file: glossary.ttl, line: 11, heading: Infrastructure glossary &gt; Service &gt; Queue, type: skos, tier: unverified
+text: Also: message queue / Definition: A buffer that decouples a producer from a consumer. / Broader: Service</code></pre>
+<p>SKOS needs the <code>rdflib</code> library. With <code>uvx</code>, ask for the extra in the client config: <code>"--from", "bowerbird-mcp[skos]&gt;=2,&lt;3"</code>
+(the <code>.mcp.json</code> that <code>init</code> writes does not include it yet). A SKOS file is sealed as a whole, not per concept, and
+links between concepts do not count towards ranking.</p>
+<h2 id="seal-only">Seal-only<a class="headerlink" href="#seal-only" title="Link to this section">#</a></h2>
+<p><strong>Use it when</strong> you have files (code, configuration, policy) and want a guarantee that a human looked at the exact
+version, enforced at commit time. Nothing is indexed or searched, so there are no hits and no <code>passages</code>: the only
+tool is <code>seal</code>. It is the same review as in the other formats, with none of the knowledge machinery around it.</p>
+<pre class="highlight"><code class="language-text">service/
+  kbmcp.yaml             format: seal-only
+  .waxseal.yaml          the reviews (commit it)
+  src/app.py
+  config/limits.yaml</code></pre>
+<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+format: seal-only
+about: Reviewed code.
+seal: {require: ["src/**/*.py", "config/*.yaml"]}</code></pre>
+<p><code>seal.require</code> is the list of files that need a review, as globs. It has to be set: <code>init holds=seal-only</code> writes it
+empty, and <code>kb seal check=true</code> refuses to run until you fill it in. Any text file can be named; a file that is not
+UTF-8 text is reported as <code>unreadable</code>, because it cannot be reviewed here.</p>
+<pre class="highlight"><code class="language-sh">kb init holds=seal-only about="Reviewed code." apply=true
+kb seal check=true output=text</code></pre>
+<pre class="highlight"><code class="language-text">config/limits.yaml: error: unsigned: no review by a human | fix: a human reviews it: seal config/limits.yaml
+src/app.py: error: unsigned: no review by a human | fix: a human reviews it: seal src/app.py
+bowerbird-mcp seal: FAILED: 2 file(s) checked, 2 finding(s)</code></pre>
+<p>A person reviews each file and seals it (<code>kb seal src/app.py --attest</code> at a terminal, or the prompt over MCP). The review
+goes into <code>.waxseal.yaml</code>, bound to the file's exact bytes:</p>
+<pre class="highlight"><code class="language-yaml">entries:
+- file: src/app.py
+  sha256: ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772
+  by: human:you
+  at: 2026-11-16T15:01:31Z</code></pre>
+<p>Edit the file afterwards and the check fails again, until a person reviews the new version:</p>
+<pre class="highlight"><code class="language-text">src/app.py: error: stale_signature: edited since it was reviewed | fix: review it again: seal src/app.py</code></pre>
+<p>Wire <code>kb seal check=true</code> into a pre-commit hook and into CI (<code>since=origin/main</code> limits it to a pull request's files) and
+no change to a listed file lands without a human review of that version. The prompt shows the start of the file; the
+reviewer is trusted to have read the whole thing, or the diff.</p>
+<h2 id="changing-your-mind">Changing your mind<a class="headerlink" href="#changing-your-mind" title="Link to this section">#</a></h2>
+<p>Change the <code>format</code> line and run <code>kb reindex</code>; nothing else moves. Reviews are not converted between formats: an OKF
+concept keeps its <code>verified</code> entries in its own frontmatter, while the other formats keep theirs in
+<code>.waxseal.yaml</code>, so after a switch the notes may need sealing again.</p></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">

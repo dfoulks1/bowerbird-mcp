@@ -1,0 +1,4 @@
+# The website's pages as a knowledgebase: a human reviews each one (`seal`), and `seal check=true` lists what has not been.
+format: markdown
+about: Bowerbird's documentation pages (the site source). Each top-level page needs a human review.
+seal: {require: ["/*.md"], exempt_status: []}
