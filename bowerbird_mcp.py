@@ -70,7 +70,7 @@ ROLES = {  # who needs which tools; the MCP server offers the union of its roles
     "lifecycle": {"baseline", "config", "index", "init", "provenance", "recheck_apply", "recheck_plan", "reindex",
                   "upgrade"}}  # each role is about a quarter of the tool descriptions (tests keep every tool in one)
 CONFIG_KEYS = {"user", "ai_producers", *DEFAULTS}
-MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "bowerbird-mcp>=2,<3", "bowerbird-mcp"]}}}  # a repo pins the major
+MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "bowerbird>=2,<3", "bowerbird"]}}}  # a repo pins the major
 LEDGER = ".waxseals.yaml"  # the latest review of each file, one dense line each: markdown, adr, skos, asciidoc, seal-only (okf keeps them in frontmatter); committed
 SHARED_ONLY = {"format", "seal"}  # what the folder is, and who must review it: only kbmcp.yaml sets these, never .env or the environment
 NOT_IN_DEFAULTS = {"user": "", "ai_producers": []}  # types of the keys DEFAULTS does not hold (for KB_USER, KB_AI_PRODUCERS)
@@ -116,7 +116,7 @@ EXAMPLE_CONFIG = """\
 # Concepts many others link to rank a little higher in passages.
 # hubs: true
 
-# Also match passages by meaning. Nothing to install with `uvx bowerbird-mcp` (fastembed is a dependency of the
+# Also match passages by meaning. Nothing to install with `uvx bowerbird` (fastembed is a dependency of the
 # package); run the bare script and it needs `uv run --with fastembed`. The model (~65 MB) downloads on first use
 # into ~/.cache/bowerbird-mcp/models, and the vectors are kept in the index.
 # semantic: false
@@ -363,7 +363,7 @@ def kb_user() -> str:
     return os.environ.get("KB_USER") or str(CFG.get("user") or "")
 
 
-VERSION = "2.0.1"  # keep equal to `version` in pyproject.toml (a test checks)
+VERSION = "2.1.0"  # keep equal to `version` in pyproject.toml (a test checks)
 OKF_VERSION = "0.2"
 RESERVED = ("index.md", "log.md")  # §3.1
 ARCHIVE = "archive"  # archive/: a collection within the collection, read-only, set apart from the live one
@@ -1732,7 +1732,7 @@ def embedder(model: str):
         try:
             from fastembed import TextEmbedding
         except ImportError:
-            raise ValueError("fastembed is missing | fix: run the installed tool (`uvx bowerbird-mcp`), which carries it, or add "
+            raise ValueError("fastembed is missing | fix: run the installed tool (`uvx bowerbird`), which carries it, or add "
                              "`--with fastembed` to `uv run`, or set semantic: false in kbmcp.yaml")
         cache = Path(os.environ.get("XDG_CACHE_HOME") or "~/.cache").expanduser() / "bowerbird-mcp" / "models"
         m = TextEmbedding(model, cache_dir=str(cache))
@@ -2951,8 +2951,13 @@ def build_info() -> dict:
     here, dist, direct = Path(__file__).resolve(), None, None
     try:
         import importlib.metadata as md
-        dist = md.distribution("bowerbird-mcp")
-        direct = dist.read_text("direct_url.json")
+        for name in ("bowerbird", "bowerbird-mcp"):  # bowerbird-mcp: installs from before the rename
+            try:
+                dist = md.distribution(name)
+                break
+            except md.PackageNotFoundError:
+                pass
+        direct = dist.read_text("direct_url.json") if dist else None
     except Exception:  # not installed: the bare script
         pass
     installed = dist is not None and any(x in ("site-packages", "dist-packages") for x in here.parts)
@@ -2961,7 +2966,7 @@ def build_info() -> dict:
         top = git(here.parent, "rev-parse", "--show-toplevel")
         if top.returncode == 0:
             t = Path(top.stdout.strip())
-            if (t / "pyproject.toml").is_file() and 'name = "bowerbird-mcp"' in (read(t / "pyproject.toml") or ""):  # our own checkout, not a repo that vendors the file
+            if (t / "pyproject.toml").is_file() and re.search(r'^name = "bowerbird(-mcp)?"', read(t / "pyproject.toml") or "", re.M):  # our own checkout, not a repo that vendors the file
                 commit = git(here.parent, "rev-parse", "--short", "HEAD").stdout.strip() or None
                 if commit and git(t, "status", "--porcelain", "--untracked-files=no").stdout.strip():
                     commit += "+dirty"  # uncommitted changes to tracked files: the hash alone would mislead
@@ -3767,7 +3772,8 @@ def help_text(full: bool) -> str:
     for g, ns in rows:
         if ns:
             out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
-    out += ["  help all       every command" if not full else "",
+    out += ["  serve [port]   browse the collection in a browser, in the background (26937; `serve stop` ends it; needs bowerbird[serve])",
+            "  help all       every command" if not full else "",
             "  help <tool>    its arguments and examples", "",
             "Arguments are name=value (lists a,b or JSON) or flags: lint scope=okf output=github is lint -s okf -O github.",
             "--attest records you as a human: terminal only, the MCP server cannot."]
@@ -3896,6 +3902,13 @@ def cli(argv) -> int:
     if argv and argv[0] in ("--version", "-V"):
         print(version_line())
         return 0
+    if argv and argv[0] == "serve":  # a browser view of the collection, not an MCP tool; read-only
+        import bowerbird_serve
+        rest = [a for a in argv[1:] if a not in ("-f", "--foreground")]
+        port = int(rest[-1]) if rest and rest[-1].isdigit() else bowerbird_serve.PORT
+        if rest[:1] == ["stop"]:
+            return bowerbird_serve.stop(port)
+        return bowerbird_serve.run(sys.modules[__name__], port, len(rest) < len(argv) - 1)
     argv = [ALIASES.get(argv[0], argv[0]), *argv[1:]] if argv else argv
     if "--attest" in argv[1:]:  # CLI only, by design: an MCP caller cannot pass it
         argv = [a for a in argv if a != "--attest"]

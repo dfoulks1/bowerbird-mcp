@@ -2,7 +2,7 @@
 
 <!-- seal-banner: Written with Claude Sonnet 5.5, from the code's own help output. A person must review it. -->
 
-Every tool is also a command: `bowerbird-mcp <tool> ...` (or `uvx bowerbird-mcp`, or `uv run bowerbird_mcp.py` from a
+Every tool is also a command: `bowerbird-mcp <tool> ...` (or `uvx bowerbird`, or `uv run bowerbird_mcp.py` from a
 checkout). The command line has all the tools; an MCP server offers only the ones its [roles](guide.md#roles-a-smaller-tool-list-per-agent)
 allow. For CI see the [guide](guide.md#ci), and for connecting an assistant see [getting started](getting-started.md).
 
@@ -45,6 +45,22 @@ required arguments in order (`move a.md b.md`); on `set`, any other `key=value` 
 
 - Every other command takes the first free letter of each argument, in order. Those can shift, so use long flags in scripts.
 - `-h` and `-O`/`-F` are reserved: `-h` is help, `-O` (or `-F`, or `output=`) chooses the output.
+
+## Serve
+
+`bowerbird serve` opens the collection in a browser at `http://127.0.0.1:26937/`: a folder tree, search, each page's
+outline and backlinks, and its seal state (sealed, unsealed, or broken by an edit). It is read-only and rereads the
+files on every request, so an edit shows on reload. It listens on localhost only.
+
+```
+bowerbird serve          # in the background
+bowerbird serve -f       # in the foreground (ctrl-c stops)
+bowerbird serve 8080     # another port
+bowerbird serve stop     # end the background server (add the port if it is not 26937)
+```
+
+It needs the `serve` extra: `pip install 'bowerbird[serve]'`, or `uvx --from 'bowerbird[serve]' bowerbird serve`.
+Keys: `/` search, `n`/`p` next/previous unsealed page, `j`/`k` next/previous page, `t` theme (system, light, dark).
 
 ## Output
 

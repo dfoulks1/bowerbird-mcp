@@ -190,7 +190,7 @@
           </nav>
         
         <article><h1 id="skos">SKOS<a class="headerlink" href="#skos" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:43:57Z</p>
+<p class="seal-badge" data-state="edited">AI Generated, edited since its last human review</p>
 
 <p><strong>Use it when</strong> you keep a controlled vocabulary: a glossary, a taxonomy, a thesaurus. SKOS is the W3C standard for
 that, written as RDF (Turtle, RDF/XML, JSON-LD, N-Triples or N3).</p>
@@ -214,7 +214,7 @@ that, written as RDF (Turtle, RDF/XML, JSON-LD, N-Triples or N3).</p>
 neighbouring concepts, so a search for the alternate label finds it:</p>
 <pre class="highlight"><code class="language-text">file: glossary.ttl, line: 11, heading: Infrastructure glossary &gt; Service &gt; Queue, type: skos, tier: unverified
 text: Also: message queue / Definition: A buffer that decouples a producer from a consumer. / Broader: Service</code></pre>
-<p>SKOS needs the <code>rdflib</code> library. With <code>uvx</code>, ask for the extra in the client config: <code>"--from", "bowerbird-mcp[skos]&gt;=2,&lt;3"</code>
+<p>SKOS needs the <code>rdflib</code> library. With <code>uvx</code>, ask for the extra in the client config: <code>"--from", "bowerbird[skos]&gt;=2,&lt;3"</code>
 (the <code>.mcp.json</code> that <code>init</code> writes does not include it yet). A SKOS file is sealed as a whole, not per concept, and
 links between concepts do not count towards ranking.</p></article>
         

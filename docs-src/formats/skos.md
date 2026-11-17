@@ -35,6 +35,6 @@ file: glossary.ttl, line: 11, heading: Infrastructure glossary > Service > Queue
 text: Also: message queue / Definition: A buffer that decouples a producer from a consumer. / Broader: Service
 ```
 
-SKOS needs the `rdflib` library. With `uvx`, ask for the extra in the client config: `"--from", "bowerbird-mcp[skos]>=2,<3"`
+SKOS needs the `rdflib` library. With `uvx`, ask for the extra in the client config: `"--from", "bowerbird[skos]>=2,<3"`
 (the `.mcp.json` that `init` writes does not include it yet). A SKOS file is sealed as a whole, not per concept, and
 links between concepts do not count towards ranking.

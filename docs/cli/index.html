@@ -182,6 +182,11 @@
     </li>
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#serve">Serve</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#output">Output</a>
       
     </li>
@@ -227,9 +232,9 @@
           </nav>
         
         <article><h1 id="command-line">Command line<a class="headerlink" href="#command-line" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-17T16:23:53Z</p>
+<p class="seal-badge" data-state="edited">AI Generated, edited since its last human review</p>
 
-<p>Every tool is also a command: <code>bowerbird-mcp &lt;tool&gt; ...</code> (or <code>uvx bowerbird-mcp</code>, or <code>uv run bowerbird_mcp.py</code> from a
+<p>Every tool is also a command: <code>bowerbird-mcp &lt;tool&gt; ...</code> (or <code>uvx bowerbird</code>, or <code>uv run bowerbird_mcp.py</code> from a
 checkout). The command line has all the tools; an MCP server offers only the ones its <a href="../guide/#roles-a-smaller-tool-list-per-agent">roles</a>
 allow. For CI see the <a href="../guide/#ci">guide</a>, and for connecting an assistant see <a href="../getting-started/">getting started</a>.</p>
 <h2 id="finding-your-way">Finding your way<a class="headerlink" href="#finding-your-way" title="Link to this section">#</a></h2>
@@ -292,6 +297,16 @@ required arguments in order (<code>move a.md b.md</code>); on <code>set</code>, 
 <li>Every other command takes the first free letter of each argument, in order. Those can shift, so use long flags in scripts.</li>
 <li><code>-h</code> and <code>-O</code>/<code>-F</code> are reserved: <code>-h</code> is help, <code>-O</code> (or <code>-F</code>, or <code>output=</code>) chooses the output.</li>
 </ul>
+<h2 id="serve">Serve<a class="headerlink" href="#serve" title="Link to this section">#</a></h2>
+<p><code>bowerbird serve</code> opens the collection in a browser at <code>http://127.0.0.1:26937/</code>: a folder tree, search, each page's
+outline and backlinks, and its seal state (sealed, unsealed, or broken by an edit). It is read-only and rereads the
+files on every request, so an edit shows on reload. It listens on localhost only.</p>
+<pre class="highlight"><code>bowerbird serve          # in the background
+bowerbird serve -f       # in the foreground (ctrl-c stops)
+bowerbird serve 8080     # another port
+bowerbird serve stop     # end the background server (add the port if it is not 26937)</code></pre>
+<p>It needs the <code>serve</code> extra: <code>pip install 'bowerbird[serve]'</code>, or <code>uvx --from 'bowerbird[serve]' bowerbird serve</code>.
+Keys: <code>/</code> search, <code>n</code>/<code>p</code> next/previous unsealed page, <code>j</code>/<code>k</code> next/previous page, <code>t</code> theme (system, light, dark).</p>
 <h2 id="output">Output<a class="headerlink" href="#output" title="Link to this section">#</a></h2>
 <p>At a terminal the output is text. Piped, in CI or in a script it is JSON. <code>-O json|text|github|sarif</code> overrides either
 (<code>github</code> and <code>sarif</code> are for <code>lint</code>). Text prints diffs as they are.</p>
