@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bowerbird"
-version = "2.0.1"
+version = "2.1.0"
 description = "Manage knowledge, retrieve it, and verify it: keyword and semantic search over Markdown, ADR and MADR, OKF, SKOS and AsciiDoc (ADOC), and a human review (seal) bound to the exact text. An MCP server and CLI."
 readme = "README.md"
 requires-python = ">=3.10"

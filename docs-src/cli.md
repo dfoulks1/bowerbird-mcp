@@ -46,6 +46,22 @@ required arguments in order (`move a.md b.md`); on `set`, any other `key=value` 
 - Every other command takes the first free letter of each argument, in order. Those can shift, so use long flags in scripts.
 - `-h` and `-O`/`-F` are reserved: `-h` is help, `-O` (or `-F`, or `output=`) chooses the output.
 
+## Serve
+
+`bowerbird serve` opens the collection in a browser at `http://127.0.0.1:26937/`: a folder tree, search, each page's
+outline and backlinks, and its seal state (sealed, unsealed, or broken by an edit). It is read-only and rereads the
+files on every request, so an edit shows on reload. It listens on localhost only.
+
+```
+bowerbird serve          # in the background
+bowerbird serve -f       # in the foreground (ctrl-c stops)
+bowerbird serve 8080     # another port
+bowerbird serve stop     # end the background server (add the port if it is not 26937)
+```
+
+It needs the `serve` extra: `pip install 'bowerbird[serve]'`, or `uvx --from 'bowerbird[serve]' bowerbird serve`.
+Keys: `/` search, `n`/`p` next/previous unsealed page, `j`/`k` next/previous page, `t` theme (system, light, dark).
+
 ## Output
 
 At a terminal the output is text. Piped, in CI or in a script it is JSON. `-O json|text|github|sarif` overrides either

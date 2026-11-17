@@ -26,6 +26,10 @@ CSS = """
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#161616;--fg:#e6e6e6;--mut:#9a9a9a;--acc:#6ea8ff;--bad:#ef5350;--ok:#66bb6a;--warn:#ffb74d;--logo:#e8ecf5}}
 :root{color-scheme:light dark}:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 :root[data-theme=dark]{--bg:#161616;--fg:#e6e6e6;--mut:#9a9a9a;--acc:#6ea8ff;--bad:#ef5350;--ok:#66bb6a;--warn:#ffb74d;--logo:#e8ecf5}
+.logo-dark{display:none}  /* docs pages carry both logos, as the MkDocs theme expects: show the one that fits */
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .logo-light{display:none}:root:not([data-theme=light]) .logo-dark{display:inline}}
+:root[data-theme=dark] .logo-light{display:none}:root[data-theme=dark] .logo-dark{display:inline}
+img{max-width:100%;height:auto}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui}a{color:var(--acc)}
 .wrap{display:grid;grid-template-columns:17rem minmax(0,1fr) 15rem;gap:1.5rem;max-width:100rem;margin:0 auto;padding:0 1rem}
 nav,aside{position:sticky;top:3rem;align-self:start;max-height:calc(100vh - 3rem);overflow:auto;padding:1rem 0;font-size:13px}
@@ -151,12 +155,12 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 node = node.setdefault(part + "/", {})
             node[rel.parts[-1]] = rel.as_posix()
 
-        def walk(node):
+        def walk(node, pre=""):
             out = []
             for k in sorted(node, key=lambda k: (not k.endswith("/"), k.lower())):
                 v = node[k]
                 if isinstance(v, dict):
-                    out.append(f"<details open><summary>{esc(k)}</summary>{walk(v)}</details>")
+                    out.append(f"<details{' open' if cur.startswith(pre + k) else ''}><summary>{esc(k)}</summary>{walk(v, pre + k)}</details>")  # folded unless it holds the current page
                 elif v in docs:
                     st = docs[v]["state"]
                     out.append(f'<a href="{href(v)}" data-seal="{st}" title="{esc(docs[v]["title"])}" class="{"cur" if v == cur else ""}"><span class="dot {st}"></span>{esc(k)}</a>')
@@ -203,7 +207,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         def do_GET(self):
             u = urllib.parse.urlparse(self.path)
             if u.path == "/_logo.svg":
-                svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{VIEWBOX}"><style>path{{fill:#1e2a4a}}@media(prefers-color-scheme:dark){{path{{fill:#e8ecf5}}}}</style>{PATHS}</svg>')
+                svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -173.5 1213 1213"><style>path{{fill:#1e2a4a}}@media(prefers-color-scheme:dark){{path{{fill:#e8ecf5}}}}</style>{PATHS}</svg>')
                 return self.send_bytes(svg.encode(), "image/svg+xml")
             q = urllib.parse.parse_qs(u.query).get("q", [""])[0].strip()
             if u.path == "/_search.json":

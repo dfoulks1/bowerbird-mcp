@@ -363,7 +363,7 @@ def kb_user() -> str:
     return os.environ.get("KB_USER") or str(CFG.get("user") or "")
 
 
-VERSION = "2.0.1"  # keep equal to `version` in pyproject.toml (a test checks)
+VERSION = "2.1.0"  # keep equal to `version` in pyproject.toml (a test checks)
 OKF_VERSION = "0.2"
 RESERVED = ("index.md", "log.md")  # §3.1
 ARCHIVE = "archive"  # archive/: a collection within the collection, read-only, set apart from the live one
@@ -2951,8 +2951,13 @@ def build_info() -> dict:
     here, dist, direct = Path(__file__).resolve(), None, None
     try:
         import importlib.metadata as md
-        dist = md.distribution("bowerbird-mcp")
-        direct = dist.read_text("direct_url.json")
+        for name in ("bowerbird", "bowerbird-mcp"):  # bowerbird-mcp: installs from before the rename
+            try:
+                dist = md.distribution(name)
+                break
+            except md.PackageNotFoundError:
+                pass
+        direct = dist.read_text("direct_url.json") if dist else None
     except Exception:  # not installed: the bare script
         pass
     installed = dist is not None and any(x in ("site-packages", "dist-packages") for x in here.parts)
@@ -2961,7 +2966,7 @@ def build_info() -> dict:
         top = git(here.parent, "rev-parse", "--show-toplevel")
         if top.returncode == 0:
             t = Path(top.stdout.strip())
-            if (t / "pyproject.toml").is_file() and 'name = "bowerbird-mcp"' in (read(t / "pyproject.toml") or ""):  # our own checkout, not a repo that vendors the file
+            if (t / "pyproject.toml").is_file() and re.search(r'^name = "bowerbird(-mcp)?"', read(t / "pyproject.toml") or "", re.M):  # our own checkout, not a repo that vendors the file
                 commit = git(here.parent, "rev-parse", "--short", "HEAD").stdout.strip() or None
                 if commit and git(t, "status", "--porcelain", "--untracked-files=no").stdout.strip():
                     commit += "+dirty"  # uncommitted changes to tracked files: the hash alone would mislead
