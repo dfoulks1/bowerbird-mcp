@@ -258,7 +258,9 @@ assert cli("verify", "file=note.md", "--attest")[0] == 0  # a human at the termi
 assert k.meta((kb / "note.md").read_text())[0]["verified"][-1]["by"] == "human:drew"
 assert cli("verify", "file=note.md", "by=human:drew")[0] == 2 and cli("lint", "--attest")[0] == 2
 k.at_terminal = lambda: False  # a pipe or script is refused
-assert k.cli(["verify", "file=note.md", "--attest"]) == 2 and k.meta((kb / "note.md").read_text())[0]["verified"][-1]["by"] == "human:drew"
+with contextlib.redirect_stderr(io.StringIO()):
+    assert k.cli(["verify", "file=note.md", "--attest"]) == 2
+assert k.meta((kb / "note.md").read_text())[0]["verified"][-1]["by"] == "human:drew"
 k.CLI, k.ATTEST = False, ""
 assert "only a human" in raises(k.recheck_apply, file="note.md", id="x", by="human:drew")
 
@@ -570,6 +572,10 @@ assert c1 == c2 == 0 and o1 == o2 and not o1.lstrip().startswith("{"), (o1, o2)
 assert cli("bundles", "output=json")[1].lstrip().startswith("{") and cli("bundles", "output=nope")[0] == 2
 code, out = cli("bundles", "format=text")
 assert code == 0 and out.startswith("bundles:")
+assert cli("bundles")[1].lstrip().startswith("{")  # CI contract: piped output is JSON by default
+k.out_terminal = lambda: True  # a person at a terminal gets text by default; output=json still wins
+assert cli("bundles")[1].startswith("bundles:") and cli("bundles", "output=json")[1].lstrip().startswith("{")
+k.out_terminal = lambda: False
 shutil.rmtree(kb / "bad")
 
 # MCP surface: annotations, and the context parameter is not a tool argument.
@@ -1105,6 +1111,8 @@ k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = so, "seal-only", {"require": ["src
 assert k.offered() == {"seal"} and k.passages("add")["gap"]
 C = k.signatures()
 assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/util.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 2, C
+code, out = cli("seal", "check=true")  # CI contract: unsigned files exit 1, and the output is JSON
+assert code == 1 and json.loads(out)["findings"], (code, out)
 k.OPTS["seal"] = {"require": ["src/**/*.py", "!src/util.py"], "exempt_status": []}  # a leading ! takes a file back out
 C = k.signatures()
 assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 1, C

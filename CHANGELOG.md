@@ -3,6 +3,8 @@
 ## 2.1.0 (unreleased)
 
 ### Changed
+- At a terminal the command line prints text by default; piped, in CI or in a script it still prints JSON.
+  `output=json` or `output=text` overrides either.
 - `--attest` now needs a terminal (stdin a TTY). A pipe or script is refused with exit 2. This stops headless runs; a
   hardware-backed seal is planned as the stronger gate.
 

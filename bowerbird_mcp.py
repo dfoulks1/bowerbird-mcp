@@ -3661,6 +3661,10 @@ def at_terminal() -> bool:
     return sys.stdin.isatty()
 
 
+def out_terminal() -> bool:
+    return sys.stdout.isatty()
+
+
 def cli(argv) -> int:
     """Terminal front end, no AI. `help` lists tools; args are name=value (lists: a,b or JSON) or one JSON object.
     output=text|json|github|sarif renders lint (github/sarif for CI). Inside the collection, paths are
@@ -3708,7 +3712,7 @@ def cli(argv) -> int:
         return 0 if argv[0] in ("help", "-h", "--help") else 2
     fn = REG[argv[0]]
     params = {k: p for k, p in inspect.signature(fn).parameters.items() if k != "ctx"}
-    args, fmt = {}, "json"
+    args, fmt = {}, "text" if out_terminal() else "json"  # a person gets text; a pipe, CI or script gets JSON
     try:
         if len(argv) == 2 and argv[1].lstrip().startswith("{"):
             args = json.loads(argv[1])
