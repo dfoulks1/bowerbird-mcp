@@ -69,7 +69,7 @@ To roll back a release, redeploy the previous tag, then confirm the dashboard is
 Then make it a collection:
 
 ```sh
-kb init holds=markdown about="Team notes." apply=true output=text
+kb init -t markdown -a "Team notes." --apply
 ```
 
 ```text
@@ -77,8 +77,10 @@ edited: {}
 config: {"files": ["kbmcp.yaml", ".env", "env.example", ".mcp.json"], "missing": [], "gitignore": "not a git work tree"}
 ```
 
-`output=text` asks for readable lines; without it a command prints JSON (`json` is the default; checks also take `github`
-and `sarif` for CI). It is only about how the answer is printed, and has nothing to do with a collection's format.
+At a terminal a command prints readable lines. Piped, in a script or in CI it prints JSON; `-O text` or `-O json` (checks
+also take `github` and `sarif` for CI) overrides either. That is only about how the answer is printed, and has nothing to do
+with a collection's format. Every flag has a `name=value` form too (`holds=markdown` is `-t markdown`), which is what scripts
+and AI assistants use; `kb help init` lists both.
 
 Your notes are not touched. `init` wrote the collection's settings:
 
@@ -106,7 +108,7 @@ Bowerbird has three kinds of search, from the most predictable to the smartest. 
 Use it when you know the words. It returns the files that hold **every** word of your query, anywhere in the file:
 
 ```sh
-kb search dashboard output=text
+kb search dashboard
 ```
 
 ```text
@@ -135,7 +137,7 @@ Use it for a question. It cuts every file into sections at its headings and retu
 best first:
 
 ```sh
-kb passages 'how do I undo a bad release' output=text
+kb passages 'how do I undo a bad release'
 ```
 
 ```text
@@ -168,7 +170,7 @@ not know that "revert" means "undo": for that, there is semantic search.
 By words alone, a search for something you wrote differently finds nothing:
 
 ```sh
-kb passages revert output=text
+kb passages revert
 ```
 
 ```text
@@ -185,7 +187,7 @@ semantic: true
 ```
 
 ```sh
-kb passages revert output=text
+kb passages revert
 ```
 
 ```text
@@ -201,7 +203,7 @@ must be at least `min_similarity` close in meaning (0.6 by default) to count.
 - **The model downloads once.** It is `BAAI/bge-small-en-v1.5`, about 65 MB, fetched into `~/.cache/bowerbird-mcp/models`.
   That download is the only network use in the whole tool: after it, searching runs on your machine and nothing leaves it.
 - **The first search takes a moment,** because every passage is embedded. On a large collection that takes minutes, and an
-  interrupted run resumes. `kb reindex` does it ahead of time (a good fit for a hook), and `kb reindex info=true` shows
+  interrupted run resumes. `kb reindex` does it ahead of time (a good fit for a hook), and `kb reindex --info` shows
   what is held: here `passages: 2`, `vectors: 2`, `vectors_model: BAAI/bge-small-en-v1.5`.
 - **`uvx bowerbird-mcp` carries what it needs** (the `fastembed` library). The bare one-file script needs
   `uv run --with fastembed`.
@@ -215,7 +217,7 @@ Every hit says `tier: unverified`: nobody has said a person looked at these file
 one exact version of a file. At a terminal, `--attest` records you:
 
 ```sh
-kb seal deploy.md --attest output=text
+kb seal deploy.md --attest
 ```
 
 ```text
@@ -240,7 +242,7 @@ Like a wax seal, a review breaks when the file changes. Edit `deploy.md` and che
 
 ```sh
 echo "Also tell the team in chat." >> deploy.md
-kb seal check=true output=text
+kb seal -c
 ```
 
 ```text
@@ -250,7 +252,7 @@ bowerbird-mcp seal: FAILED: 2 file(s) checked, 2 finding(s)
 ```
 
 The `sha256` ties the review to the file's exact contents, so an edited file can never pass for a reviewed one, and `passages` shows
-it as `unverified` and `stale` until a person reviews it again. `check=true` changes nothing and exits with a failure
+it as `unverified` and `stale` until a person reviews it again. `-c` (`--check`) changes nothing and exits with a failure
 code, which is what makes it useful in a hook or in CI (step 7).
 
 A person's review is only ever recorded with that person's own confirmation: `--attest` at their terminal, or a
@@ -335,15 +337,15 @@ Nothing about them needs git.
 | Command | It checks | For |
 |---|---|---|
 | `lint` | the form of every file: a header, links that resolve, no empty files, no duplicate titles, no secrets that look like keys, index and log files well formed | `okf` |
-| `seal check=true` | that a person has reviewed the current version of every file the policy requires | every format |
+| `seal -c` | that a person has reviewed the current version of every file the policy requires | every format |
 
 Each finding names the file, what is wrong and how to fix it, and a last line says the check ran, whether it passed or not.
-The exit code is 0 when clean, 1 when there are findings, and 2 for a usage error. `seal check=true` you met in step 5.
+The exit code is 0 when clean, 1 when there are findings, and 2 for a usage error. `seal -c` you met in step 5.
 
 ### Run it
 
 ```sh
-kb lint output=text
+kb lint
 ```
 
 ```text
@@ -357,7 +359,7 @@ old1.md: error: no_frontmatter: no frontmatter (§4) | fix: start the file with 
 bowerbird-mcp lint: FAILED: 2 concept(s) in 1 bundle(s) checked, 1 finding(s), conformant: False
 ```
 
-Some problems are purely mechanical (a stale table of contents, inconsistent tag spelling), and `kb fix apply=true`
+Some problems are purely mechanical (a stale table of contents, inconsistent tag spelling), and `kb fix --apply`
 repairs those for you.
 
 ### Adopt it on an existing collection
@@ -366,7 +368,7 @@ A collection with years of old problems would fail every check on day one. Take 
 **new** ones fail from then on:
 
 ```sh
-kb baseline apply=true output=text
+kb baseline --apply
 ```
 
 ```text
@@ -376,7 +378,7 @@ written: true
 ```
 
 ```sh
-kb lint baseline=.okf-baseline.json output=text
+kb lint -b .okf-baseline.json
 ```
 
 ```text
@@ -393,17 +395,17 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
 
 ### Narrow it
 
-- `since=origin/main` checks only the files changed since that ref, which suits a pull request. It is the one option that
+- `--since origin/main` (`-S`) checks only the files changed since that ref, which suits a pull request. It is the one option that
   needs git.
-- `only=stub,island` keeps just those kinds of finding, and `ignore=` drops some.
+- `--only stub,island` keeps just those kinds of finding, and `--ignore` (`-i`) drops some.
 - Name files or folders (`kb lint notes/a.md docs/`) to check just those.
-- `scope=okf` is the format's own rules; `scope=house` is the tidiness rules on top.
+- `--scope okf` is the format's own rules; `--scope house` is the tidiness rules on top.
 - A `kbmcp.nolint` file lists files to skip, in `.gitignore` syntax.
 
 ### Where to run it
 
 - **By hand, or as an editor or build task.** It is just a command.
-- **In CI.** `output=github` turns each finding into an annotation on the pull request, and `output=sarif` feeds code
+- **In CI.** `-O github` turns each finding into an annotation on the pull request, and `-O sarif` feeds code
   scanning:
 
   ```text
@@ -419,13 +421,13 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
       hooks:
         - id: bowerbird-lint
           name: Bowerbird lint
-          entry: uvx bowerbird-mcp lint output=text
+          entry: uvx bowerbird-mcp lint -O text
           language: system
           pass_filenames: false
           verbose: true
         - id: bowerbird-seal
           name: Bowerbird seal check
-          entry: uvx bowerbird-mcp seal check=true output=text
+          entry: uvx bowerbird-mcp seal -c -O text
           language: system
           pass_filenames: false
           always_run: true

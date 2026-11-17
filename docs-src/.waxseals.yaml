@@ -1,4 +1,5 @@
 # .waxseals.yaml: the latest review of each file (`seal`); an edit breaks it, git has the earlier ones. Commit it.
+- {file: cli.md, sha256: c9f90b9816aca7d1992ba5ce6dad28e86e5a921d9f86b34a1e6232c803cba256, by: 'human:dfoulks@apache.org', at: '2026-11-17T16:23:53Z', bowerbird: 2.0.0}
 - {file: contributing.md, sha256: 92089f0ecb0fa6079f14bb2e8bafb12beaf15c08878c8b69740f6aa00a3d9958, by: 'human:dfoulks', at: '2026-11-16T20:14:31Z', bowerbird: 2.0.0}
 - {file: formats.md, sha256: aca62333cc2d1a816bb284376c10aa3ef0364f4868cc08be218a2b9a96d1481e, by: 'human:dfoulks', at: '2026-11-16T19:43:09Z'}
 - {file: formats/adr.md, sha256: 9c5bbbc9dc91f8af102414765598f4ae8560be06d5eeb69e0744aaaeb6300b2c, by: 'human:dfoulks', at: '2026-11-16T19:43:41Z'}
@@ -6,8 +7,8 @@
 - {file: formats/markdown.md, sha256: dac45f7e1e85239efab01c8b8a7f35d6c348da1a5c3d56ea453493baeeb1f6b5, by: 'human:dfoulks', at: '2026-11-16T20:16:34Z', bowerbird: 2.0.0}
 - {file: formats/okf.md, sha256: 3e0d68e0ed6315910f473136765a0d82b65986f5bc116e978364c3a522bec4af, by: 'human:dfoulks', at: '2026-11-16T19:56:21Z', bowerbird: 2.0.0}
 - {file: formats/skos.md, sha256: 2670938eaed0c88d67e179d0fdc11a7722d800ce72f6283dbccbfdd6690df21a, by: 'human:dfoulks', at: '2026-11-16T19:43:57Z'}
-- {file: getting-started.md, sha256: bfa1fc4c2908acb1fca4bc7f4dc33827d08abad4b430cb635387ec0662e97b6a, by: 'human:dfoulks', at: '2026-11-16T19:56:33Z', bowerbird: 2.0.0}
-- {file: guide.md, sha256: 99c37a01e241a358d2f046e0b51497335cb6ef89eab111d3baac1b797d82fed0, by: 'human:dfoulks', at: '2026-11-16T20:04:18Z', bowerbird: 2.0.0}
+- {file: getting-started.md, sha256: d17b2725a8ab6808cd929fa635ee650aed77fc83a8d14c83cfad564bea17427c, by: 'human:dfoulks@apache.org', at: '2026-11-17T16:24:54Z', bowerbird: 2.0.0}
+- {file: guide.md, sha256: 99c37a01e241a358d2f046e0b51497335cb6ef89eab111d3baac1b797d82fed0, by: 'human:dfoulks', at: '2026-11-17T16:28:25Z', bowerbird: 2.0.0}
 - {file: index.md, sha256: 5ef456cd34186c54a99dd4f06fbfc6d5b1fcddd8d2346f417788cb3b52187cbc, by: 'human:dfoulks', at: '2026-11-16T19:56:25Z', bowerbird: 2.0.0}
 - {file: sealing.md, sha256: 1574052431f0b0ddf09bee58aceeaf1efb413b8d28220e48ca7ae1afdd878be6, by: 'human:dfoulks', at: '2026-11-16T19:58:06Z', bowerbird: 2.0.0}
 - {file: troubleshooting.md, sha256: 28672d9d764ba8357697b67e228b09bc8a1a6feb88cb79f43919697a03df4b06, by: 'human:dfoulks', at: '2026-11-16T20:08:02Z', bowerbird: 2.0.0}

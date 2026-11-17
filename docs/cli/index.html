@@ -1,0 +1,425 @@
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Command line · Bowerbird</title>
+  <link rel="icon" href="../img/favicon.ico" sizes="32x32">
+  <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Command line · Bowerbird">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/pygments.css"><link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+  
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="..">
+      <img src="../img/logo-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-light"><img src="../img/logo-dark-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-dark">Bowerbird
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#site-nav" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="site-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="..">Home</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Docs
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../guide/">Guide</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">Command line</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../tools/">Tools</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../contributing/">Contributing</a>
+            </li>
+          
+        
+      </ul>
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/dfoulks1/bowerbird-mcp"
+               target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-github"></i> GitHub
+            </a>
+          </li>
+        
+        <li class="nav-item d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary ms-lg-2" id="theme-toggle"
+                  type="button" title="Toggle light/dark" aria-label="Toggle theme">
+            <i class="bi bi-circle-half"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="docs-grid with-toc">
+      
+        <aside class="d-none d-lg-block docs-toc">
+          <div class="position-sticky py-5" style="top: 3.5rem; max-height: calc(100vh - 3.5rem); overflow-y: auto;">
+            <h6 class="text-uppercase small text-body-secondary fw-semibold mb-3">On this page</h6>
+            <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#finding-your-way">Finding your way</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#two-ways-to-pass-arguments">Two ways to pass arguments</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#output">Output</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#exit-codes">Exit codes</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#changing-things-safely">Changing things safely</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#lint-then-fix">Lint, then fix</a>
+      
+    </li>
+  
+</ul>
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#sealing-as-a-person">Sealing as a person</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#settings">Settings</a>
+      
+    </li>
+  
+</ul>
+          </div>
+        </aside>
+      
+      <main class="py-5 docs-content">
+        
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+              <li class="breadcrumb-item"><a href="..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Command line</li>
+            </ol>
+          </nav>
+        
+        <article><h1 id="command-line">Command line<a class="headerlink" href="#command-line" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-17T16:23:53Z</p>
+
+<p>Every tool is also a command: <code>bowerbird-mcp &lt;tool&gt; ...</code> (or <code>uvx bowerbird-mcp</code>, or <code>uv run bowerbird_mcp.py</code> from a
+checkout). The command line has all the tools; an MCP server offers only the ones its <a href="../guide/#roles-a-smaller-tool-list-per-agent">roles</a>
+allow. For CI see the <a href="../guide/#ci">guide</a>, and for connecting an assistant see <a href="../getting-started/">getting started</a>.</p>
+<h2 id="finding-your-way">Finding your way<a class="headerlink" href="#finding-your-way" title="Link to this section">#</a></h2>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp help            # the everyday commands for this collection's format, grouped
+bowerbird-mcp help all        # every command, one line each
+bowerbird-mcp help seal       # one tool: what it does, its arguments, examples
+bowerbird-mcp seal -h         # the same, as flags
+bowerbird-mcp --version</code></pre>
+<p><code>help</code> shows only what the collection's <code>format</code> uses. An unknown command prints the help and exits 2.</p>
+<h2 id="two-ways-to-pass-arguments">Two ways to pass arguments<a class="headerlink" href="#two-ways-to-pass-arguments" title="Link to this section">#</a></h2>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp lint scope=okf output=github      # name=value: the stable form, for scripts and agents
+bowerbird-mcp lint -s okf -O github             # flags: the same call, for people
+bowerbird-mcp seal '{"file": "db.md"}'          # or one JSON object</code></pre>
+<p>Flags are turned into the same <code>name=value</code> words, so both behave alike. Lists are <code>a,b</code> or JSON. Bare words fill the
+required arguments in order (<code>move a.md b.md</code>); on <code>set</code>, any other <code>key=value</code> is frontmatter
+(<code>set a.md status=deprecated tags=[x,y]</code>).</p>
+<ul>
+<li>Long flags are the argument's name (<code>--due-days</code>) and are never abbreviated: <code>--app</code> is not <code>--apply</code>.</li>
+<li>The everyday commands have pinned short flags that never change, and <code>-B</code> is <code>bundle</code> on all of them:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Short flags</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>init</code></td>
+<td><code>-A</code> apply, <code>-a</code> about, <code>-t</code> holds, <code>-B</code> bundle, <code>-u</code> user</td>
+</tr>
+<tr>
+<td><code>seal</code></td>
+<td><code>-f</code> file, <code>-b</code> by, <code>-p</code> promote, <code>-d</code> decision, <code>-c</code> check, <code>-s</code> since, <code>-B</code> bundle</td>
+</tr>
+<tr>
+<td><code>lint</code></td>
+<td><code>-s</code> scope, <code>-l</code> limit, <code>-b</code> baseline, <code>-S</code> since, <code>-a</code> all, <code>-f</code> file, <code>-i</code> ignore, <code>-B</code> bundle</td>
+</tr>
+<tr>
+<td><code>search</code>, <code>passages</code></td>
+<td><code>-q</code> query, <code>-t</code> type, <code>-g</code> tag, <code>-d</code> dir, <code>-l</code> limit, <code>-B</code> bundle</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td><code>-t</code> type, <code>-g</code> tag, <code>-s</code> status, <code>-T</code> tier, <code>-S</code> stale, <code>-l</code> limit, <code>-B</code> bundle</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>-d</code> due-days, <code>-B</code> bundle</td>
+</tr>
+<tr>
+<td><code>get</code>, <code>links</code></td>
+<td><code>-f</code> file, <code>-B</code> bundle (<code>get</code> also <code>-l</code> limit)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Every other command takes the first free letter of each argument, in order. Those can shift, so use long flags in scripts.</li>
+<li><code>-h</code> and <code>-O</code>/<code>-F</code> are reserved: <code>-h</code> is help, <code>-O</code> (or <code>-F</code>, or <code>output=</code>) chooses the output.</li>
+</ul>
+<h2 id="output">Output<a class="headerlink" href="#output" title="Link to this section">#</a></h2>
+<p>At a terminal the output is text. Piped, in CI or in a script it is JSON. <code>-O json|text|github|sarif</code> overrides either
+(<code>github</code> and <code>sarif</code> are for <code>lint</code>). Text prints diffs as they are.</p>
+<h2 id="exit-codes">Exit codes<a class="headerlink" href="#exit-codes" title="Link to this section">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>done, or nothing found</td>
+</tr>
+<tr>
+<td>1</td>
+<td>findings: <code>lint</code> errors, or <code>seal check=true</code> has unsigned, stale or claimed-accepted files</td>
+</tr>
+<tr>
+<td>2</td>
+<td>a usage error: unknown flag, missing argument, or <code>--attest</code> without a terminal</td>
+</tr>
+</tbody>
+</table>
+<h2 id="changing-things-safely">Changing things safely<a class="headerlink" href="#changing-things-safely" title="Link to this section">#</a></h2>
+<p>Tools that touch many files default to <code>apply=false</code>: they print the plan and the diff and write nothing. Read it, then
+repeat with <code>--apply</code> (or <code>apply=true</code>).</p>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp rename new-name --bundle old-name            # the plan and diff
+bowerbird-mcp rename new-name --bundle old-name --apply    # write it</code></pre>
+<h3 id="lint-then-fix">Lint, then fix<a class="headerlink" href="#lint-then-fix" title="Link to this section">#</a></h3>
+<p><code>lint</code> only reports: it never changes a file. <code>fix</code> is its repair half, for what needs no judgment (generated index lists,
+tag spelling, <code>log.md</code> order, <code>index.md</code> frontmatter). It follows the same rule: no <code>--apply</code>, a diff.</p>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp lint                # what is wrong (exit 1 on errors)
+bowerbird-mcp fix                 # the repairs as a diff (exit 1 if there is work)
+bowerbird-mcp fix --apply         # write them, re-lint, report what remains</code></pre>
+<h2 id="sealing-as-a-person">Sealing as a person<a class="headerlink" href="#sealing-as-a-person" title="Link to this section">#</a></h2>
+<p><code>--attest</code> records you as a human, as <code>human:&lt;KB_USER&gt;</code> (else your git <code>user.email</code>). It works only on the command line,
+needs a terminal (stdin a TTY), and no MCP call can pass it. It applies to <code>seal</code>, <code>create</code>, <code>provenance</code> and
+<code>recheck_apply</code>.</p>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp seal deploy.md --attest
+bowerbird-mcp ratify docs/adr/0001-queue.md --attest decision=accepted   # ratify and verify are names for seal
+bowerbird-mcp seal check=true since=origin/main                          # what lacks a review (exits 1 if any)</code></pre>
+<h2 id="settings">Settings<a class="headerlink" href="#settings" title="Link to this section">#</a></h2>
+<p><code>kbmcp.yaml</code> at the collection root sets the defaults, <code>.env</code> and <code>KB_*</code> variables override it, and the flags
+<code>--config &lt;path&gt;</code> and <code>--role &lt;role&gt;</code> pick a collection and a role for the server. <a href="../guide/">The guide</a> lists every key.</p></article>
+        
+          <hr class="my-5">
+          <div class="d-flex justify-content-between gap-3">
+            
+              <a class="btn btn-outline-secondary" href="../guide/">&larr; Guide</a>
+            
+            
+              <a class="btn btn-outline-secondary" href="../tools/">Tools &rarr;</a>
+            
+          </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top mt-4 py-3">
+    <div class="container-fluid small text-muted d-flex flex-wrap justify-content-between gap-2">
+      <span>Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review</span>
+      <span>Built with MkDocs + Bootstrap 5.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      // Restore saved theme before paint-sensitive work.
+      var root = document.documentElement;
+      var saved = localStorage.getItem('docs-theme');
+      if (saved) root.setAttribute('data-bs-theme', saved);
+
+      // Make Markdown tables look like Bootstrap tables.
+      document.querySelectorAll('.docs-content table').forEach(function (t) {
+        t.classList.add('table', 'table-sm', 'table-striped', 'table-bordered', 'align-middle');
+        if (!t.parentElement.classList.contains('table-responsive')) {
+          var wrap = document.createElement('div');
+          wrap.className = 'table-responsive';
+          t.parentNode.insertBefore(wrap, t);
+          wrap.appendChild(t);
+        }
+      });
+
+      // A Copy button on every listing.
+      document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.classList.contains('mermaid')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code') || pre;
+          navigator.clipboard.writeText(code.innerText.replace(/\n$/, '')).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+          });
+        });
+        pre.classList.add('has-copy');
+        pre.appendChild(btn);
+      });
+
+      // Theme toggle (reload keeps mermaid in sync with the new theme).
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-bs-theme', next);
+        localStorage.setItem('docs-theme', next);
+        location.reload();
+      });
+
+      // Render mermaid: superfences emits <pre class="mermaid"><code>…</code></pre>.
+      if (window.mermaid) {
+        var dark = root.getAttribute('data-bs-theme') === 'dark';
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+        document.querySelectorAll('pre.mermaid').forEach(function (pre) {
+          var code = pre.querySelector('code');
+          if (code) pre.textContent = code.textContent;
+        });
+        try { mermaid.run({ querySelector: 'pre.mermaid' }); } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>

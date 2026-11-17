@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Docs · Bowerbird</title>
+  <title>Guide · Bowerbird</title>
   <link rel="icon" href="../img/favicon.ico" sizes="32x32">
   <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
   <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Docs · Bowerbird">
+  <meta property="og:title" content="Guide · Bowerbird">
   <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
   <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -103,26 +103,34 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link active"
-                 aria-current="page"
-                 href="./">Docs</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../tools/">Tools</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../troubleshooting/">Troubleshooting</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Docs
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">Guide</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../cli/">Command line</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../tools/">Tools</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -214,6 +222,11 @@
       
     </li>
   
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#mixed-formats-in-one-collection">Mixed formats in one collection</a>
+      
+    </li>
+  
 </ul>
     </li>
   
@@ -263,12 +276,12 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb small">
               <li class="breadcrumb-item"><a href="..">Home</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Docs</li>
+              <li class="breadcrumb-item active" aria-current="page">Guide</li>
             </ol>
           </nav>
         
         <article><h1 id="docs">Docs<a class="headerlink" href="#docs" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:04:18Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-17T16:28:25Z</p>
 <p class="seal-note">Text included from the README is not covered by this seal.</p>
 
 <h2 id="run">Run<a class="headerlink" href="#run" title="Link to this section">#</a></h2>
@@ -280,10 +293,10 @@ from a checkout of this repository (or beside a saved copy of that one file).
 To run the latest unreleased code instead of the PyPI release, give uv the repository:
 <code>uvx --from git+https://github.com/dfoulks1/bowerbird-mcp bowerbird-mcp help</code>.</p>
 <h3 id="settings-kbmcpyaml">Settings: kbmcp.yaml<a class="headerlink" href="#settings-kbmcpyaml" title="Link to this section">#</a></h3>
-<p>A <code>kbmcp.yaml</code> is the collection's configuration, and <strong>any folder that holds one is a collection</strong>: its
-base, with its index, archive and bundles. Commit it. It sits at the root, not in a bundle. The tool finds the
-nearest one from the current directory up, or you name it with <code>--config</code>, so a server needs no env block. A
-folder inside a collection with its own <code>kbmcp.yaml</code> is another collection, and the outer one skips it.
+<p>A <code>kbmcp.yaml</code> is the collection's configuration. Commit it. The collection's root is the outermost one at or above
+the current directory, inside the same git work tree (a repository inside another is its own collection), or you
+name one with <code>--config</code>, so a server needs no env block. A <code>kbmcp.yaml</code> in a folder below the root overrides the
+root's for that folder and everything under it (<a href="#mixed-formats-in-one-collection">mixed formats</a>).
 <code>init</code> writes a mostly filled-in one (see below); <code>config apply=true</code> writes the all-commented example, and
 neither overwrites a file. The old <code>KB_ROOT</code> variable is gone and is refused: the base is wherever <code>kbmcp.yaml</code> is.</p>
 <pre class="highlight"><code class="language-yaml">about: Engineering runbooks.   # shown to the agent; tells collections apart
@@ -352,11 +365,18 @@ you are. Write tools act in the bundle the file belongs to. In a git work
 tree, files git ignores are skipped.</p>
 <h3 id="running-a-tool">Running a tool<a class="headerlink" href="#running-a-tool" title="Link to this section">#</a></h3>
 <pre class="highlight"><code class="language-sh">wget https://raw.githubusercontent.com/dfoulks1/bowerbird-mcp/main/bowerbird_mcp.py
-uv run bowerbird_mcp.py help                 # every tool, one line each
+uv run bowerbird_mcp.py help                 # the everyday commands for your format
+uv run bowerbird_mcp.py help all             # every tool, one line each
 uv run bowerbird_mcp.py help move            # one tool: what it does, its arguments
 uv run bowerbird_mcp.py lint output=text
 uv run bowerbird_mcp.py init apply=true       # start a new bundle</code></pre>
-<p>Any tool runs as <code>&lt;name&gt; name=value ...</code> or <code>&lt;name&gt; '&lt;json object&gt;'</code>. Bare
+<p>Any tool runs as <code>&lt;name&gt; name=value ...</code> or <code>&lt;name&gt; '&lt;json object&gt;'</code>. Flags work
+the same way, for people: <code>init -t markdown -a "Docs" --apply</code>, <code>seal -cp</code>,
+<code>-h</code> for a command's flags. They become the same <code>name=value</code> arguments (they
+are not abbreviated: <code>--app</code> is not <code>--apply</code>). At a terminal the output is
+text; piped, in CI or in a script it is JSON; <code>-O json|text|github|sarif</code> (or
+<code>-F</code>, or <code>output=</code>) chooses. The daily commands have fixed short flags; the
+others take the first free letter, so use their long flags in scripts. Bare
 arguments fill the required ones in order (<code>move a.md b.md</code>); on <code>set</code>, any
 other <code>key=value</code> is frontmatter (<code>set a.md status=deprecated tags=[x,y]</code>).
 Write tools that touch many files default to <code>apply=false</code> and show a diff.</p>
@@ -444,6 +464,24 @@ into it (<code>archived_link</code>). Editing tools refuse archived concepts. Th
 only enforcement: the files are plain files, so an editor or a commit can still
 change them. It works whether the collection root is a set of bundles or a
 bundle itself.</p>
+<h3 id="mixed-formats-in-one-collection">Mixed formats in one collection<a class="headerlink" href="#mixed-formats-in-one-collection" title="Link to this section">#</a></h3>
+<p>One monorepo can hold several formats: an OKF bundle with a folder of ADRs, or a markdown collection with one. A
+<code>kbmcp.yaml</code> in a folder overrides the one above it for that folder and everything under it, key by key, the nearest one
+winning, like an inherited ACL: the whole tree is OKF, and that one part is ADR.</p>
+<pre class="highlight"><code class="language-yaml"># kbmcp.yaml, at the root
+format: okf</code></pre>
+<pre class="highlight"><code class="language-yaml"># adr/kbmcp.yaml
+format: adr
+seal: {require: ["*.md"], exempt_status: []}   # its globs start at this folder</code></pre>
+<p>A folder may override <code>format</code>, <code>seal</code>, <code>about</code>, <code>hubs</code> and <code>min_similarity</code>. The rest (<code>roles</code>, <code>passages</code>, <code>index</code>,
+<code>semantic</code>, <code>semantic_model</code>, <code>vector_index</code>, <code>build</code>) belongs to the whole collection, which has one index, one
+ledger and one embedding model; a folder that sets one is refused, with the fix. Nested files are read once, at
+startup, and found with <code>git ls-files</code>, so <code>.gitignore</code> is respected; restart the server after adding one.</p>
+<p>What each tool does with the ADR folder inside an OKF bundle: <code>passages</code>, <code>search</code>, <code>list</code>, <code>status</code>, <code>links</code>, <code>web</code>
+and <code>seal</code> include it, each file read in its own format (an ADR's status, its review in <code>.waxseals.yaml</code>). <code>lint</code>,
+<code>fix</code>, <code>index</code>, <code>provenance</code> and <code>upgrade</code> leave it out, since they judge and rewrite OKF concepts. <code>move</code> and <code>migrate</code> still
+rewrite links in it, and a moved ADR keeps its review. Links between the two work in both
+directions. A server offers the tools of every format in use.</p>
 <h2 id="register-with-an-mcp-client">Register with an MCP client<a class="headerlink" href="#register-with-an-mcp-client" title="Link to this section">#</a></h2>
 <p><code>init</code> writes a <code>.mcp.json</code> at the root of the collection: commit it, and whoever clones the repository has the
 tools with nothing to register on their own machine (Claude Code asks once to approve a project's server). For
@@ -693,7 +731,7 @@ uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text</cod
               <a class="btn btn-outline-secondary" href="../sealing/">&larr; Sealing</a>
             
             
-              <a class="btn btn-outline-secondary" href="../tools/">Tools &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../cli/">Command line &rarr;</a>
             
           </div>
         

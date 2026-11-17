@@ -103,26 +103,34 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../guide/">Docs</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link active"
-                 aria-current="page"
-                 href="./">Tools</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../troubleshooting/">Troubleshooting</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Docs
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../guide/">Guide</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../cli/">Command line</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">Tools</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -354,16 +362,17 @@
         <article><h1 id="tools">Tools<a class="headerlink" href="#tools" title="Link to this section">#</a></h1>
 <p class="seal-badge" data-state="derived">Derived from the code</p>
 
-<p>Every tool, from its own docstring. Run one as <code>uv run bowerbird_mcp.py &lt;tool&gt; name=value ...</code>, or see the same text with <code>help &lt;tool&gt;</code>.</p>
+<p>Every tool, from its own docstring. Run one as <code>bowerbird-mcp &lt;tool&gt; name=value ...</code> (or with flags: <code>--name value</code>, <code>-n value</code>), or see the same text with <code>help &lt;tool&gt;</code>. <code>-O json|text</code> chooses the output.</p>
 <h2 id="archive">archive<a class="headerlink" href="#archive" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Retire a concept, or (no file) the whole bundle= named, into the archive: <code>archive/</code>, a collection within the collection (started when absent), at archive/&lt;bundle&gt;/&lt;path&gt;, so <code>unarchive</code> can put it back. Archived bundles stay bundles; the live collection (lint, list, search, status, web) does not see them, and editing tools refuse them. Links to it are rewritten and warn afterwards (archived_link); status is left alone. apply=False shows the plan and diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py archive file=runbooks/old.md bundle=eng apply=true
-uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp archive --file runbooks/old.md --bundle eng --apply
+bowerbird-mcp archive --bundle mkt --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -371,16 +380,19 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -389,11 +401,12 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <h2 id="baseline">baseline<a class="headerlink" href="#baseline" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
 <p>Snapshot today's lint findings so CI fails only on new ones (<code>lint baseline=&lt;path&gt;</code>; same bundle and <code>all</code>, and like lint it defaults to where the user is). For adopting OKF on a large existing collection. The snapshot's path is relative to the collection. apply=False only counts.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py baseline apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp baseline --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -401,21 +414,25 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>path</code></td>
+<td><code>-p, --path PATH</code></td>
 <td><code>str</code></td>
 <td><code>'.okf-baseline.json'</code></td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>all</code></td>
-<td><code>bool or None</code></td>
-<td><code>None</code></td>
+<td><code>-A, --all, --no-all</code></td>
+<td><code>bool</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -424,11 +441,12 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <h2 id="bundles">bundles<a class="headerlink" href="#bundles" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Bundle roots under a directory: each index.md declaring okf_version (§12). A bundle without that declaration looks like any folder; pass it as bundle= directly.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py bundles output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp bundles -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -436,6 +454,7 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -444,11 +463,12 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <h2 id="cite">cite<a class="headerlink" href="#cite" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
 <p>Record where a fact came from as a §5.1 <code>sources</code> entry, with <code>retrieved_at</code> (when). When an MCP tool produced it, pass server, tool and args, the exact call (<code>via</code>, how): it is the re-check recipe for recheck_plan. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py cite db.md resource=https://www.postgresql.org/docs/release/ title="PostgreSQL releases" bundle=eng</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp cite db.md --resource https://www.postgresql.org/docs/release/ --title 'PostgreSQL releases' --bundle eng</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -456,61 +476,73 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>resource</code></td>
+<td><code>-r, --resource RESOURCE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>id</code></td>
+<td><code>-i, --id ID</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>title</code></td>
+<td><code>-t, --title TITLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>server</code></td>
+<td><code>-s, --server SERVER</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>tool</code></td>
+<td><code>-T, --tool TOOL</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>args</code></td>
-<td><code>dict or None</code></td>
-<td><code>None</code></td>
+<td><code>-a, --args ARGS</code></td>
+<td><code>json object</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>stale_days</code></td>
+<td><code>-S, --stale-days STALE_DAYS</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>author</code></td>
+<td><code>-A, --author AUTHOR</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>usage_count</code></td>
-<td><code>int or None</code></td>
-<td><code>None</code></td>
+<td><code>-u, --usage-count USAGE_COUNT</code></td>
+<td><code>int</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>last_modified</code></td>
+<td><code>-l, --last-modified LAST_MODIFIED</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -519,12 +551,13 @@ uv run bowerbird_mcp.py archive bundle=mkt apply=true</code></pre>
 <h2 id="config">config<a class="headerlink" href="#config" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>Write a kbmcp.yaml at the root of the collection from the built-in example (every setting commented out at its default; commit it, it is the collection's shared configuration, and any folder holding one is a collection) and an env.example beside it that lists every KB_* override (copy it to .env, which is not committed and which this lists in the .gitignore beside it in a git work tree). Never overwrites a file; one that exists is skipped. apply=false shows what would change.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py config
-uv run bowerbird_mcp.py config apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp config
+bowerbird-mcp config --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -532,6 +565,7 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
@@ -540,11 +574,12 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 <h2 id="create">create<a class="headerlink" href="#create" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
 <p>Create a concept with valid OKF frontmatter (§4.1): type, title, description, resource, tags, status, and <code>generated</code> {by, at} when by (your actor) is given. body is markdown; a <code># title</code> heading is added unless the body starts with one. Refuses an existing file or a reserved name (index.md, log.md).</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py create runbooks/deploy type=Playbook description="How we deploy." bundle=eng</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp create runbooks/deploy --type Playbook --description 'How we deploy.' --bundle eng</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -552,51 +587,61 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>type</code></td>
+<td><code>-t, --type TYPE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>title</code></td>
+<td><code>-T, --title TITLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>description</code></td>
+<td><code>-d, --description DESCRIPTION</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>resource</code></td>
+<td><code>-r, --resource RESOURCE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>tags</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>--tags TAGS</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>status</code></td>
+<td><code>-s, --status STATUS</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>body</code></td>
+<td><code>-b, --body BODY</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>by</code></td>
+<td><code>-B, --by BY</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>--bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -605,11 +650,12 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 <h2 id="dirs">dirs<a class="headerlink" href="#dirs" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>, <code>structure</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>The map: each directory holding concepts and how many. Small; read it before search or get.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py dirs output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp dirs -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -617,6 +663,7 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -625,12 +672,13 @@ uv run bowerbird_mcp.py config apply=true</code></pre>
 <h2 id="fix">fix<a class="headerlink" href="#fix" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
 <p>Mechanical repairs, nothing that needs judgment: strip frontmatter from index.md files (§8; the root keeps okf_version), rebuild generated index lists, give each tag its most common spelling, and put log.md sections and entries back in order after a merge (§9). apply=False shows the diff (CLI exit 1 if there is work); apply=True writes, re-lints and returns <code>remaining</code> (CLI exit 1 if errors remain). Like lint, it defaults to where the user is and every bundle there; all=false keeps to one bundle.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py fix
-uv run bowerbird_mcp.py fix apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp fix
+bowerbird-mcp fix --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -638,16 +686,19 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>all</code></td>
-<td><code>bool or None</code></td>
-<td><code>None</code></td>
+<td><code>-A, --all, --no-all</code></td>
+<td><code>bool</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -656,11 +707,12 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 <h2 id="get">get<a class="headerlink" href="#get" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>One .md file of a bundle (a concept, index.md or log.md), or several at once with files=[...]. A missing index.md is synthesized from frontmatter (§8; <code>synthesized: true</code>). offset/limit page by line; limit=0 = all.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py get db.md bundle=eng output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp get db.md --bundle eng -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -668,26 +720,31 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>--files FILES</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>offset</code></td>
+<td><code>-o, --offset OFFSET</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -696,11 +753,12 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 <h2 id="heatmap">heatmap<a class="headerlink" href="#heatmap" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR, AsciiDoc.</p>
 <p>The hottest concepts and who heats them, from git history (.mailmap names). files: commits that changed each concept in the last <code>days</code>, most first, and how many people did. bundles: the same per bundle. authors: each person's changes and concepts in the window. single_author: concepts only one person has ever changed (all history; a bus-factor flag). In an OKF bundle index.md and log.md are left out: every write touches them. Outside OKF it counts the format's own files (.md, or .adoc and .asciidoc). Like lint, it covers where the user is (at the collection root, every bundle). limit=0 lists all.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py heatmap days=30 output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp heatmap --days 30 -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -708,16 +766,19 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>days</code></td>
+<td><code>-d, --days DAYS</code></td>
 <td><code>int</code></td>
 <td><code>30</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>10</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -726,12 +787,13 @@ uv run bowerbird_mcp.py fix apply=true</code></pre>
 <h2 id="index">index<a class="headerlink" href="#index" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
 <p>Rebuild generated document lists from frontmatter (title, type, tags, <code>description</code>, §8): the bundle-root index.md (a table, added if missing) and every index.md that already has a list. At a collection root, its index.md lists the bundles (created if missing). dirs=true also gives every directory an index.md listing its concepts and subdirectories (§8 progressive disclosure). apply=False shows the diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py index apply=true
-uv run bowerbird_mcp.py index dirs=true apply=true bundle=eng</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp index --apply
+bowerbird-mcp index --dirs --apply --bundle eng</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -739,16 +801,19 @@ uv run bowerbird_mcp.py index dirs=true apply=true bundle=eng</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>dirs</code></td>
+<td><code>-d, --dirs</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -757,12 +822,13 @@ uv run bowerbird_mcp.py index dirs=true apply=true bundle=eng</code></pre>
 <h2 id="ingest">ingest<a class="headerlink" href="#ingest" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Bring markdown from a local directory or git clone into an OKF bundle, or adopt it in place (bundle = source; needs a clean git tree, so the diff is the review). Each file gets frontmatter: <code>type</code> from rules ({glob: type}, first match, else Document), <code>title</code> (its own, its H1, or the filename), <code>status</code> (default draft: imported, not reviewed), optional stale_after, and provenance where git has it: <code>sources</code> (a permalink and last_modified) and <code>generated</code> {by, at, basis: git-history}. Existing keys are kept. Never overwrites; files that already have <code>type</code> are skipped, so a re-run is a no-op. A reserved index.md/log.md carrying frontmatter is renamed &lt;dir&gt;-index.md/&lt;dir&gt;-log.md. apply=False is the plan: run it first, sample files, set rules. keep_okf=true merges another OKF bundle: files that have <code>type</code> are copied as they are (plus an origin source when git has one) and the source's index.md/log.md are left behind. It does not clone, convert other formats or check licenses. Files holding a credential-shaped string are skipped (<code>secrets</code> in the plan); run gitleaks on the source's history too.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki output=text
-uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp ingest '~/old-wiki' --bundle wiki -O text
+bowerbird-mcp ingest '~/old-wiki' --bundle wiki --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -770,51 +836,61 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>source</code></td>
+<td><code>-s, --source SOURCE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>rules</code></td>
-<td><code>dict or None</code></td>
-<td><code>None</code></td>
+<td><code>-r, --rules RULES</code></td>
+<td><code>json object</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>status</code></td>
+<td><code>-S, --status STATUS</code></td>
 <td><code>str</code></td>
 <td><code>'draft'</code></td>
 </tr>
 <tr>
 <td><code>stale_days</code></td>
+<td><code>--stale-days STALE_DAYS</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>keep_okf</code></td>
+<td><code>-k, --keep-okf</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>50</code></td>
 </tr>
 <tr>
 <td><code>offset</code></td>
+<td><code>-o, --offset OFFSET</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>max_bytes</code></td>
+<td><code>-m, --max-bytes MAX_BYTES</code></td>
 <td><code>int</code></td>
 <td><code>1000000</code></td>
 </tr>
@@ -823,11 +899,12 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <h2 id="init">init<a class="headerlink" href="#init" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>Start a collection: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; <code>holds</code> is okf, markdown, adr, skos, asciidoc or seal-only, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with <code>type:</code> frontmatter) and lint.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py init bundle=eng apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp init --bundle eng --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -835,26 +912,31 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
+<td><code>-A, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>about</code></td>
+<td><code>-a, --about ABOUT</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>holds</code></td>
+<td><code>-t, --holds HOLDS</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>user</code></td>
+<td><code>-u, --user USER</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -863,11 +945,12 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <h2 id="links">links<a class="headerlink" href="#links" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>Edges of one concept (§6): <code>out</code> = its links, and its §6.2 path fields as <code>field</code> entries (sources are lineage, §5.1); exists false = broken; target names the bundle and file. <code>in</code> = concepts in its bundle that link to it or cite it. Check <code>in</code> before moving, renaming or deprecating a concept.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py links db.md bundle=eng output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp links db.md --bundle eng -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -875,11 +958,13 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -888,14 +973,15 @@ uv run bowerbird_mcp.py ingest ~/old-wiki bundle=wiki apply=true</code></pre>
 <h2 id="lint">lint<a class="headerlink" href="#lint" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
 <p>Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: <code>fix</code> clears it). conformant: §11 holds for what was linted (frontmatter parses, <code>type</code> set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a <code>baseline</code> snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the collection root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A kbmcp.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line <code>&lt;!-- kbmcp-nolint --&gt;</code> skips itself. only / ignore: finding kinds to keep or drop, like only=stub.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py lint output=text
-uv run bowerbird_mcp.py lint eng/runbooks/ output=text
-uv run bowerbird_mcp.py lint only=stub,island output=text
-uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp lint -O text
+bowerbird-mcp lint eng/runbooks/ -O text
+bowerbird-mcp lint --only stub,island -O text
+bowerbird-mcp lint --scope okf --since origin/main -O github</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -903,56 +989,67 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <tbody>
 <tr>
 <td><code>scope</code></td>
+<td><code>-s, --scope SCOPE</code></td>
 <td><code>str</code></td>
 <td><code>'all'</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>100</code></td>
 </tr>
 <tr>
 <td><code>offset</code></td>
+<td><code>-o, --offset OFFSET</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>baseline</code></td>
+<td><code>-b, --baseline BASELINE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>since</code></td>
+<td><code>-S, --since SINCE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>all</code></td>
-<td><code>bool or None</code></td>
-<td><code>None</code></td>
+<td><code>-a, --all, --no-all</code></td>
+<td><code>bool</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>--files FILES</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>only</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>--only ONLY</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>ignore</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>-i, --ignore IGNORE</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -961,11 +1058,12 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <h2 id="list">list<a class="headerlink" href="#list" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>Concepts, filtered by type, tag, status (draft | stable | deprecated; absent = stable), trust tier (unverified | machine-confirmed | human-reviewed) or stale=true. The review worklist after an ingest: status=draft tier=unverified. status ignores case. In markdown and adr the status is stable, superseded, rejected or deprecated (a proposed or accepted record is stable; the tier, from .waxseals.yaml, says whether a person accepted it), and status also matches <code>state</code> (a decision record is accepted once a person has sealed it, else proposed) and the word the file wrote: status=proposed lists the decisions nobody has reviewed.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py list status=draft tier=unverified output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp list --status draft --tier unverified -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -973,41 +1071,49 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <tbody>
 <tr>
 <td><code>type</code></td>
+<td><code>-t, --type TYPE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>tag</code></td>
+<td><code>-g, --tag TAG</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>status</code></td>
+<td><code>-s, --status STATUS</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>tier</code></td>
+<td><code>-T, --tier TIER</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>stale</code></td>
+<td><code>-S, --stale</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>100</code></td>
 </tr>
 <tr>
 <td><code>offset</code></td>
+<td><code>-o, --offset OFFSET</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1016,11 +1122,12 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <h2 id="log">log<a class="headerlink" href="#log" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF.</p>
 <p>History, newest first. With file: the entries in every log.md over that concept that link to it (§9), and the git commits that changed it. Without: the bundle's recent entries from all its log.md files. <code>record</code> writes an entry.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py log db.md bundle=eng output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp log db.md --bundle eng -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1028,16 +1135,19 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>20</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1046,11 +1156,12 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <h2 id="migrate">migrate<a class="headerlink" href="#migrate" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Move a concept to another bundle of the collection (<code>move</code> stays inside one). to_bundle: the target bundle's path in the collection ("." for its root). to: the path inside it (default: the same path). Links to the concept in both bundles are rewritten; its own <code>/</code> links, which meant the old bundle's root, become relative paths (cross-bundle: lint warns). Links from other bundles are not touched. apply=False shows the diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py migrate db.md mkt bundle=eng apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp migrate db.md mkt --bundle eng --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1058,26 +1169,31 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>to_bundle</code></td>
+<td><code>-t, --to-bundle TO_BUNDLE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>to</code></td>
+<td><code>-T, --to TO</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1086,11 +1202,12 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <h2 id="move">move<a class="headerlink" href="#move" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF, ADR.</p>
 <p>Move or rename a concept and rewrite every link to it (relative and /-absolute, §6.1, in concepts, index.md and log.md), plus the moved concept's own relative links. Stays inside one bundle; <code>migrate</code> moves between bundles. Check <code>links</code> first. apply=False shows the diff. Outside OKF a seal in .waxseals.yaml follows the file when its text is unchanged; a file whose own links had to change loses it, as any edit does.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py move runbooks/deploy.md runbooks/ship.md bundle=eng apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp move runbooks/deploy.md runbooks/ship.md --bundle eng --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1098,21 +1215,25 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>to</code></td>
+<td><code>-t, --to TO</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1121,12 +1242,13 @@ uv run bowerbird_mcp.py lint scope=okf since=origin/main output=github</code></p
 <h2 id="passages">passages<a class="headerlink" href="#passages" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR, SKOS, AsciiDoc.</p>
 <p>The passages that best answer query, for you to read and cite. Each concept is cut into one passage per heading section (a long one is cut again, each piece repeating the last short paragraph of the one before; with format: skos each skos:Concept is a passage), ranked by BM25 (rarer words count more; any word may match, no stemming), with the heading path, title, tags, type and description counting too. Concepts many others link to rank a little higher (hubs). With semantic on, passages are also matched by meaning (embeddings) and the two rankings are fused (vector_index in kbmcp.yaml picks scan, sqlite-vec or hnsw). Each hit: {bundle, file, line, heading, match (percent of the best hit's score: the top hit is 100, so it says how the others compare, not how good the best one is), title, type, status, tier (trust, §5.3), stale, links (inbound), text}. Answer from the text, cite the file and line, and say so when tier is unverified or stale. No hit: gap is true, so tell the user the collection has nothing, rather than guess. Filters as in search. Everything is indexed in one SQLite file (index in kbmcp.yaml), updated from the files that changed, or only by <code>reindex</code> when build is manual; semantic mode also downloads its model once.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text
-uv run bowerbird_mcp.py passages rollback tag=ops limit=3</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp passages 'how do we roll back a deploy' -O text
+bowerbird-mcp passages rollback --tag ops --limit 3</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1134,36 +1256,43 @@ uv run bowerbird_mcp.py passages rollback tag=ops limit=3</code></pre>
 <tbody>
 <tr>
 <td><code>query</code></td>
+<td><code>-q, --query QUERY</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>type</code></td>
+<td><code>-t, --type TYPE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>tag</code></td>
+<td><code>-g, --tag TAG</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>dir</code></td>
+<td><code>-d, --dir DIR</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>8</code></td>
 </tr>
 <tr>
 <td><code>offset</code></td>
+<td><code>-o, --offset OFFSET</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1172,12 +1301,13 @@ uv run bowerbird_mcp.py passages rollback tag=ops limit=3</code></pre>
 <h2 id="provenance">provenance<a class="headerlink" href="#provenance" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
 <p>Fill a missing <code>generated: {by, at}</code> (§5.2). From git history: the last commit that changed the body, by its AI trailer (&lt;producer&gt;/&lt;name&gt;), bot (process:) or author (human:&lt;login | ASF id | email&gt;), marked <code>basis: git-history</code> (inferred). Concepts git knows nothing about (untracked, or no repository): with apply=true the person is asked who wrote them, once (a confirmation prompt over MCP; --attest at the terminal), and recorded as <code>generated: {by: human:&lt;id&gt;, at: &lt;file's last change&gt;, basis: stated}</code>; otherwise they are listed in <code>unknown</code>. Never sets a human from a caller. Trust tiers come only from <code>verified</code>, so this never raises one. Concepts that carry <code>generated</code> are left alone. skip: paths to leave without it. apply=False shows the diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py provenance apply=true
-uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp provenance --apply
+bowerbird-mcp provenance --apply --attest</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1185,16 +1315,19 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>skip</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>-s, --skip SKIP</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1203,11 +1336,12 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <h2 id="recheck_apply">recheck_apply<a class="headerlink" href="#recheck_apply" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
 <p>Record a re-check, after you compared each due source with the claims citing it (recheck_plan) and corrected any that changed; git keeps what they said before. Each result is {bundle?, file, id?}, or one as file= and id=; no id = every source on that concept. retrieved_at moves to now. by (at the terminal, --attest) also adds a §5.2 <code>verified</code> entry: the concept was confirmed against its sources. stale_days&gt;0 also moves stale_after forward.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py recheck_apply db.md bundle=eng --attest</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp recheck_apply db.md --bundle eng --attest</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1215,31 +1349,37 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <tbody>
 <tr>
 <td><code>results</code></td>
-<td><code>list[dict] or None</code></td>
-<td><code>None</code></td>
+<td><code>-r, --results RESULTS</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>by</code></td>
+<td><code>-b, --by BY</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>stale_days</code></td>
+<td><code>-s, --stale-days STALE_DAYS</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>id</code></td>
+<td><code>-i, --id ID</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1248,11 +1388,12 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <h2 id="recheck_plan">recheck_plan<a class="headerlink" href="#recheck_plan" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
 <p>Facts due a re-check: <code>sources</code> entries retrieved at least N days ago, or on a concept past stale_after. Each lists <code>cites</code>, the lines whose claims rest on it. <code>calls</code> replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). Sources without a recorded call are under <code>manual</code>: open the resource (one never retrieved is due once its concept is stale). Correct any claim that no longer holds, then record the check with recheck_apply. Nothing is executed here.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py recheck_plan older_than_days=90 output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp recheck_plan --older-than-days 90 -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1260,11 +1401,13 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <tbody>
 <tr>
 <td><code>older_than_days</code></td>
+<td><code>-o, --older-than-days OLDER_THAN_DAYS</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1273,11 +1416,12 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <h2 id="record">record<a class="headerlink" href="#record" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
 <p>Write a §9 entry, <code>* **&lt;kind&gt;**: &lt;note&gt;</code>, under today's date in a log.md (newest first; created if absent): the bundle root's, or dir's (a directory in the bundle; §9 logs that scope). Link the concept it is about, <code>[title](/path.md)</code>, so <code>log</code> finds it. Kinds by convention: Update, Creation, Deprecation.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py record "Reviewed the runbooks against the new pipeline." bundle=eng</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp record 'Reviewed the runbooks against the new pipeline.' --bundle eng</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1285,21 +1429,25 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <tbody>
 <tr>
 <td><code>note</code></td>
+<td><code>-n, --note NOTE</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>kind</code></td>
+<td><code>-k, --kind KIND</code></td>
 <td><code>str</code></td>
 <td><code>'Update'</code></td>
 </tr>
 <tr>
 <td><code>dir</code></td>
+<td><code>-d, --dir DIR</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1308,14 +1456,15 @@ uv run bowerbird_mcp.py provenance apply=true --attest</code></pre>
 <h2 id="reindex">reindex<a class="headerlink" href="#reindex" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF, Markdown, ADR, SKOS, AsciiDoc.</p>
 <p>Build, inspect or delete the passage index (<code>index</code> in kbmcp.yaml). Default: build or refresh it from the whole collection, and its vectors when semantic is on. Only files that changed since the last run are read, so it is cheap to run from a pre-commit, post-merge or post-checkout hook; the first semantic run embeds every passage and takes minutes (an interrupted run resumes). full=true starts over. info=true only reports: the file, its size, files, passages and vectors held, the model they came from, and <code>behind</code> (files changed since the last build). drop=true deletes the file (a cache; reindex makes it again). Never edits the bundle. Pick one of full, info and drop.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py reindex output=text
-uv run bowerbird_mcp.py reindex info=true output=text
-uv run bowerbird_mcp.py reindex full=true
-uv run bowerbird_mcp.py reindex drop=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp reindex -O text
+bowerbird-mcp reindex --info -O text
+bowerbird-mcp reindex --full
+bowerbird-mcp reindex --drop</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1323,16 +1472,19 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <tbody>
 <tr>
 <td><code>full</code></td>
+<td><code>-f, --full</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>info</code></td>
+<td><code>-i, --info</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>drop</code></td>
+<td><code>-d, --drop</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
@@ -1341,11 +1493,12 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <h2 id="rename">rename<a class="headerlink" href="#rename" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Rename or move a bundle within the collection (§3): bundle= (default: where the user is) to <code>to</code>, a path in the collection. Links into it from other bundles, its links out, and §6.2 paths are rewritten (§6.1); its own <code>/</code> links stay, since its root moves with it. The collection index follows. apply=False shows the plan and diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py rename marketing bundle=mkt apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp rename marketing --bundle mkt --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1353,16 +1506,19 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <tbody>
 <tr>
 <td><code>to</code></td>
+<td><code>-t, --to TO</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1371,11 +1527,12 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <h2 id="seal">seal<a class="headerlink" href="#seal" title="Link to this section">#</a></h2>
 <p>Role: <code>seal</code>. Offered by a server for: OKF, Markdown, ADR, SKOS, AsciiDoc, Seal-only.</p>
 <p>Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the <code>seal</code> policy in kbmcp.yaml covers has one. The one function for every format; <code>verify</code> (okf), and <code>ratify</code> or <code>accepted</code> (ADRs), are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 <code>verified</code> entry {by, at, sha256} into the concept; markdown, adr, skos and asciidoc keep the latest, one dense line per file (with <code>bowerbird</code>: the version that wrote it), in .waxseals.yaml (commit it), replacing the one before. The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; <code>seal.require</code> and <code>seal.exempt_status</code> in kbmcp.yaml say what it covers.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py seal db.md bundle=eng --attest promote=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp seal db.md --bundle eng --promote --attest</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1383,36 +1540,43 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <tbody>
 <tr>
 <td><code>file</code></td>
+<td><code>-f, --file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>by</code></td>
+<td><code>-b, --by BY</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>promote</code></td>
+<td><code>-p, --promote</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>decision</code></td>
+<td><code>-d, --decision DECISION</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>check</code></td>
+<td><code>-c, --check</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>since</code></td>
+<td><code>-s, --since SINCE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1421,12 +1585,13 @@ uv run bowerbird_mcp.py reindex drop=true</code></pre>
 <h2 id="search">search<a class="headerlink" href="#search" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>Concepts holding every word of query (case-insensitive, anywhere in the concept), best first. Each field a word matches adds its weight to the score: title 5, id 4, tags 3, type 2, description 2, body 1. Each hit: {bundle, file, title, type, score, matched (the fields), line, text (the first line holding a word, body first)}. Filters: type, tag, dir (a directory in the bundle); fields limits where words are looked for.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py search postgres output=text
-uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp search postgres -O text
+bowerbird-mcp search deploy rollback --type Playbook --dir runbooks -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1434,41 +1599,49 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <tbody>
 <tr>
 <td><code>query</code></td>
+<td><code>-q, --query QUERY</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>type</code></td>
+<td><code>-t, --type TYPE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>tag</code></td>
+<td><code>-g, --tag TAG</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>dir</code></td>
+<td><code>-d, --dir DIR</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>fields</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>-f, --fields FIELDS</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>limit</code></td>
+<td><code>-l, --limit LIMIT</code></td>
 <td><code>int</code></td>
 <td><code>30</code></td>
 </tr>
 <tr>
 <td><code>offset</code></td>
+<td><code>-o, --offset OFFSET</code></td>
 <td><code>int</code></td>
 <td><code>0</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1477,11 +1650,12 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <h2 id="set">set<a class="headerlink" href="#set" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
 <p>Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, seal, cite). apply=False shows the diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py set db.md status=deprecated tags=[db,ops] bundle=eng apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp set db.md status=deprecated 'tags=[db,ops]' --bundle eng --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1489,26 +1663,31 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <tbody>
 <tr>
 <td><code>fields</code></td>
-<td><code>dict</code></td>
+<td><code>-f, --fields FIELDS</code></td>
+<td><code>json object</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>file</code></td>
+<td><code>--file FILE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
 <td><code>files</code></td>
-<td><code>list[str] or None</code></td>
-<td><code>None</code></td>
+<td><code>--files FILES</code></td>
+<td><code>list (a,b)</code></td>
+<td>unset</td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1517,11 +1696,12 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <h2 id="split">split<a class="headerlink" href="#split" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Make a directory its own bundle (§3): its index.md declares okf_version "0.2" (created if missing, with a generated list), a log.md is started, and <code>/</code> links and §6.2 paths inside it are rewritten for the new root (§6.1). Links that now cross between the two bundles are listed, not changed; lint warns on them. shortcut: links inside code blocks are rewritten too; read the diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py split notes apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp split notes --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1529,16 +1709,19 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <tbody>
 <tr>
 <td><code>dir</code></td>
+<td><code>-d, --dir DIR</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1547,11 +1730,12 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <h2 id="status">status<a class="headerlink" href="#status" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR.</p>
 <p>Bundle summary: concepts by type, by status (absent = stable, §5.4), by trust tier (§5.3), stale count (<code>stale_after</code> passed, §5.5; outside OKF, edited since a review), unparseable files, declared okf_version, conformance and lint totals; and the upkeep queues, five oldest or largest each: review (days since last <code>verified</code>), drafts (days since <code>generated.at</code>), sources (concepts with and without), words (total, longest: split candidates), due (<code>stale_after</code> within due_days); hubs (most linked-to concepts) and wanted (missing pages links point at, most wanted first). At a collection root without bundle=, <code>bundles</code> holds the same for each bundle. In markdown and adr only the counts by type, status, state (accepted, proposed, superseded: a sealed decision record is accepted) and tier, stale, hubs and wanted.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py status output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp status -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1559,11 +1743,13 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <tbody>
 <tr>
 <td><code>due_days</code></td>
+<td><code>-d, --due-days DUE_DAYS</code></td>
 <td><code>int</code></td>
 <td><code>30</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-B, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1572,11 +1758,12 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <h2 id="unarchive">unarchive<a class="headerlink" href="#unarchive" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>Put an archived concept or bundle back where it came from: path is its place in the archive, &lt;bundle&gt;/&lt;path&gt; for a concept (its bundle must exist) or &lt;bundle&gt; for a whole bundle. apply=False shows the plan and diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py unarchive eng/runbooks/old.md apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp unarchive eng/runbooks/old.md --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1584,11 +1771,13 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <tbody>
 <tr>
 <td><code>path</code></td>
+<td><code>-p, --path PATH</code></td>
 <td><code>str</code></td>
 <td>required</td>
 </tr>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
@@ -1597,12 +1786,13 @@ uv run bowerbird_mcp.py search deploy rollback type=Playbook dir=runbooks output
 <h2 id="upgrade">upgrade<a class="headerlink" href="#upgrade" title="Link to this section">#</a></h2>
 <p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
 <p>OKF v0.1 to v0.2 (§13). A legacy <code>timestamp</code> becomes <code>generated: {by, at, basis: git-history}</code> with by from git history (<code>by</code> is required, so without history it stays and is listed in needs_by); a body <code># Citations</code> list becomes <code>sources</code> entries and the list is removed; the root index.md declares okf_version "0.2". apply=False shows the diff.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py upgrade
-uv run bowerbird_mcp.py upgrade apply=true</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp upgrade
+bowerbird-mcp upgrade --apply</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1610,11 +1800,13 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>apply</code></td>
+<td><code>-a, --apply</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1623,11 +1815,12 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 <h2 id="vocab">vocab<a class="headerlink" href="#vocab" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF.</p>
 <p>Tags and types in use, most used first: the words <code>search</code>, <code>list</code> and <code>set</code> filter on.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py vocab output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp vocab -O text</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1635,6 +1828,7 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 <tbody>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1643,12 +1837,13 @@ uv run bowerbird_mcp.py upgrade apply=true</code></pre>
 <h2 id="web">web<a class="headerlink" href="#web" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF.</p>
 <p>The link graph (§6): which concepts link to (<code>link</code>) or cite (<code>cite</code>: sources and §6.2 path fields, lineage, §5.1) which. Where the user is, like lint: at the collection root, bundles with edges counted; in a bundle (or concepts=true), concepts. Broken links are left out (lint reports them); archived and deprecated nodes are marked. Returns {level, nodes, edges}; mermaid=true returns a Mermaid diagram instead (CLI: output=mermaid), which GitHub and most markdown viewers draw.</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py web output=text
-uv run bowerbird_mcp.py web output=mermaid</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp web -O text
+bowerbird-mcp web -O mermaid</code></pre>
 <table>
 <thead>
 <tr>
 <th>Argument</th>
+<th>Flag</th>
 <th>Type</th>
 <th>Default</th>
 </tr>
@@ -1656,16 +1851,19 @@ uv run bowerbird_mcp.py web output=mermaid</code></pre>
 <tbody>
 <tr>
 <td><code>concepts</code></td>
+<td><code>-c, --concepts</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>mermaid</code></td>
+<td><code>-m, --mermaid</code></td>
 <td><code>bool</code></td>
 <td><code>False</code></td>
 </tr>
 <tr>
 <td><code>bundle</code></td>
+<td><code>-b, --bundle BUNDLE</code></td>
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
@@ -1675,7 +1873,7 @@ uv run bowerbird_mcp.py web output=mermaid</code></pre>
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
             
-              <a class="btn btn-outline-secondary" href="../guide/">&larr; Docs</a>
+              <a class="btn btn-outline-secondary" href="../cli/">&larr; Command line</a>
             
             
               <a class="btn btn-outline-secondary" href="../troubleshooting/">Troubleshooting &rarr;</a>
