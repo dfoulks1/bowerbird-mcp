@@ -51,6 +51,7 @@ def raises(fn, *a, **kw):
 
 
 def cli(*argv):
+    k.at_terminal = lambda: True  # tests stand in for a human at a terminal
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(io.StringIO()):
         code = k.cli(list(argv))
@@ -256,6 +257,9 @@ os.environ["KB_USER"] = "drew"
 assert cli("verify", "file=note.md", "--attest")[0] == 0  # a human at the terminal
 assert k.meta((kb / "note.md").read_text())[0]["verified"][-1]["by"] == "human:drew"
 assert cli("verify", "file=note.md", "by=human:drew")[0] == 2 and cli("lint", "--attest")[0] == 2
+k.at_terminal = lambda: False  # a pipe or script is refused
+assert k.cli(["verify", "file=note.md", "--attest"]) == 2 and k.meta((kb / "note.md").read_text())[0]["verified"][-1]["by"] == "human:drew"
+k.CLI, k.ATTEST = False, ""
 assert "only a human" in raises(k.recheck_apply, file="note.md", id="x", by="human:drew")
 
 # cite / recheck: a recorded MCP call is the source and the re-check recipe.

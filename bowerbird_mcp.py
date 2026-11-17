@@ -3657,6 +3657,10 @@ def render(out, fmt: str) -> str:
         indent=2)
 
 
+def at_terminal() -> bool:
+    return sys.stdin.isatty()
+
+
 def cli(argv) -> int:
     """Terminal front end, no AI. `help` lists tools; args are name=value (lists: a,b or JSON) or one JSON object.
     output=text|json|github|sarif renders lint (github/sarif for CI). Inside the collection, paths are
@@ -3669,6 +3673,9 @@ def cli(argv) -> int:
     argv = [ALIASES.get(argv[0], argv[0]), *argv[1:]] if argv else argv
     if "--attest" in argv[1:]:  # CLI only, by design: an MCP caller cannot pass it
         argv = [a for a in argv if a != "--attest"]
+        if not at_terminal():  # shortcut: a TTY stops pipes and headless runs, not an agent that allocates a pty; FIDO2 is the real gate
+            print("error: --attest needs a terminal | fix: run it yourself at a terminal; a pipe or script cannot record a human", file=sys.stderr)
+            return 2
         uid = kb_user() or git(Path.cwd(), "config", "user.email").stdout.strip()
         if argv[0] not in REG or not {"by", "ctx"} & set(inspect.signature(REG[argv[0]]).parameters):
             print(f"error: --attest records who did it; {argv[0]} takes no `by`", file=sys.stderr)

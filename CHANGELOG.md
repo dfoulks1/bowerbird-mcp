@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+### Changed
+- `--attest` now needs a terminal (stdin a TTY). A pipe or script is refused with exit 2. This stops headless runs; a
+  hardware-backed seal is planned as the stronger gate.
+
 ## 2.0.0 (2026-11-16)
 
 A major version: several things a 1.x user relied on changed.
