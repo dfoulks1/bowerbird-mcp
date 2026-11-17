@@ -240,7 +240,7 @@
           </nav>
         
         <article><h1 id="sealing">Sealing<a class="headerlink" href="#sealing" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:58:06Z</p>
+<p class="seal-badge" data-state="edited">AI Generated, edited since its last human review</p>
 
 <p>A seal is a person's review of one exact version of a file. It is how Bowerbird guarantees a human was in the loop: for stored
 knowledge (a note, a concept, a page) and for decisions (an ADR). One function, <code>seal</code>, does it in every <a href="../formats/">format</a>.</p>
@@ -347,7 +347,7 @@ repos:
     hooks:
       - id: bowerbird-seal
         name: Bowerbird seal check
-        entry: uvx bowerbird-mcp seal check=true output=text
+        entry: uvx bowerbird seal check=true output=text
         language: system
         pass_filenames: false
         always_run: true</code></pre>

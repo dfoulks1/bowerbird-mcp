@@ -211,7 +211,7 @@ sources and trust, SKOS holds vocabularies, and seal-only does no searching at a
 file you name.</p>
 <h2 id="quickstart">Quickstart<a class="headerlink" href="#quickstart" title="Link to this section">#</a></h2>
 <p>Nothing to clone. <a href="https://docs.astral.sh/uv/">uv</a> installs it from PyPI, with its dependencies, on the fly:</p>
-<pre class="highlight"><code class="language-sh">uvx bowerbird-mcp help</code></pre>
+<pre class="highlight"><code class="language-sh">uvx bowerbird help</code></pre>
 <p>No uv yet? <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code></p>
 <p>Then add it to your MCP client's servers file (<code>.mcp.json</code> for Claude Code;
 <a href="guide/#register-with-an-mcp-client">other clients</a>):</p>
@@ -219,20 +219,20 @@ file you name.</p>
   "mcpServers": {
     "bowerbird": {
       "command": "uvx",
-      "args": ["bowerbird-mcp"]
+      "args": ["bowerbird"]
     }
   }
 }</code></pre>
 <p>Or work from the terminal, no AI needed. In any folder, with the format that fits what you keep (Markdown here, as an example):</p>
 <pre class="highlight"><code class="language-sh"># make it a collection: settings files only, your files are not touched
 # holds= is markdown, adr, okf, skos or seal-only
-uvx bowerbird-mcp init holds=markdown about="Team notes." apply=true
+uvx bowerbird init holds=markdown about="Team notes." apply=true
 
 # ask a question: the best sections, each with the file and line to cite
-uvx bowerbird-mcp passages 'how do we deploy' output=text
+uvx bowerbird passages 'how do we deploy' output=text
 
 # any tool: what it does, its arguments
-uvx bowerbird-mcp help passages</code></pre>
+uvx bowerbird help passages</code></pre>
 <p>Next: <a href="getting-started/">getting started</a> for a ten-minute walkthrough, <a href="formats/">formats</a> for what each kind of
 collection looks like, the <a href="guide/">guide</a> for settings and workflows, the <a href="tools/">tools</a> for every command, and
 <a href="formats/okf/">OKF</a> for the richest format, with its <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">specification</a>.</p></article>

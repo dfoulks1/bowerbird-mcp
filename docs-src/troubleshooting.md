@@ -28,7 +28,7 @@
 ## Installing
 
 - **`rdflib is missing`** (a `skos` collection). Install the extra: `pip install rdflib`, or with `uvx`, ask for it:
-  `uvx --from "bowerbird-mcp[skos]" bowerbird-mcp`.
-- **Semantic search does not start with the bare script.** `uvx bowerbird-mcp` carries `fastembed`; the one-file script
+  `uvx --from "bowerbird[skos]" bowerbird-mcp`.
+- **Semantic search does not start with the bare script.** `uvx bowerbird` carries `fastembed`; the one-file script
   needs `uv run --with fastembed bowerbird_mcp.py`.
 - **`uvx` runs an old build while you test local changes.** Add `--no-cache`.

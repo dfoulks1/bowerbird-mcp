@@ -276,7 +276,7 @@
           </nav>
         
         <article><h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-17T16:24:54Z</p>
+<p class="seal-badge" data-state="edited">AI Generated, edited since its last human review</p>
 
 <p>In about ten minutes you will turn a folder into a collection, ask it a question and get an answer with the file and
 line to cite, have a person seal a file so a changed file is never mistaken for a reviewed one, and connect an AI
@@ -297,7 +297,7 @@ files, and it does more than seal them, because it searches them too. Use whiche
 <p>The tool runs through <a href="https://docs.astral.sh/uv/">uv</a>, a fast Python launcher. If you do not have it:</p>
 <pre class="highlight"><code class="language-sh">curl -LsSf https://astral.sh/uv/install.sh | sh</code></pre>
 <p>There is nothing else to install and nothing to clone. Make a shortcut so the rest of this page is short:</p>
-<pre class="highlight"><code class="language-sh">alias kb='uvx bowerbird-mcp'
+<pre class="highlight"><code class="language-sh">alias kb='uvx bowerbird'
 kb help          # the everyday commands for your format; `kb help all` lists every one
 kb help seal     # one command: what it does, its arguments, an example</code></pre>
 <h2 id="2-choose-what-it-holds">2. Choose what it holds<a class="headerlink" href="#2-choose-what-it-holds" title="Link to this section">#</a></h2>
@@ -465,7 +465,7 @@ must be at least <code>min_similarity</code> close in meaning (0.6 by default) t
 <li><strong>The first search takes a moment,</strong> because every passage is embedded. On a large collection that takes minutes, and an
   interrupted run resumes. <code>kb reindex</code> does it ahead of time (a good fit for a hook), and <code>kb reindex --info</code> shows
   what is held: here <code>passages: 2</code>, <code>vectors: 2</code>, <code>vectors_model: BAAI/bge-small-en-v1.5</code>.</li>
-<li><strong><code>uvx bowerbird-mcp</code> carries what it needs</strong> (the <code>fastembed</code> library). The bare one-file script needs
+<li><strong><code>uvx bowerbird</code> carries what it needs</strong> (the <code>fastembed</code> library). The bare one-file script needs
   <code>uv run --with fastembed</code>.</li>
 <li><strong>For tens of thousands of passages,</strong> <code>vector_index: sqlite-vec</code> or <code>hnsw</code> makes the meaning search faster: see
   <a href="../guide/#reading-the-collection">the guide</a>.</li>
@@ -508,7 +508,7 @@ it). The collection is the repository: its settings, its reviews and its client 
   "mcpServers": {
     "notes": {
       "command": "uvx",
-      "args": ["bowerbird-mcp",
+      "args": ["bowerbird",
                "--config", "/full/path/to/notes/kbmcp.yaml"]
     }
   }
@@ -616,13 +616,13 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
     hooks:
       - id: bowerbird-lint
         name: Bowerbird lint
-        entry: uvx bowerbird-mcp lint -O text
+        entry: uvx bowerbird lint -O text
         language: system
         pass_filenames: false
         verbose: true
       - id: bowerbird-seal
         name: Bowerbird seal check
-        entry: uvx bowerbird-mcp seal -c -O text
+        entry: uvx bowerbird seal -c -O text
         language: system
         pass_filenames: false
         always_run: true

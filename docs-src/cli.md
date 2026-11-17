@@ -2,7 +2,7 @@
 
 <!-- seal-banner: Written with Claude Sonnet 5.5, from the code's own help output. A person must review it. -->
 
-Every tool is also a command: `bowerbird-mcp <tool> ...` (or `uvx bowerbird-mcp`, or `uv run bowerbird_mcp.py` from a
+Every tool is also a command: `bowerbird-mcp <tool> ...` (or `uvx bowerbird`, or `uv run bowerbird_mcp.py` from a
 checkout). The command line has all the tools; an MCP server offers only the ones its [roles](guide.md#roles-a-smaller-tool-list-per-agent)
 allow. For CI see the [guide](guide.md#ci), and for connecting an assistant see [getting started](getting-started.md).
 

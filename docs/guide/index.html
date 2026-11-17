@@ -286,8 +286,8 @@
 
 <h2 id="run">Run<a class="headerlink" href="#run" title="Link to this section">#</a></h2>
 <p>Requires <a href="https://docs.astral.sh/uv/">uv</a>. Install on the fly from PyPI, nothing to clone; this is
-the form to use (<code>pip install bowerbird-mcp</code> works too):</p>
-<pre class="highlight"><code class="language-sh">uvx bowerbird-mcp help</code></pre>
+the form to use (<code>pip install bowerbird</code> works too):</p>
+<pre class="highlight"><code class="language-sh">uvx bowerbird help</code></pre>
 <p>In the examples below, <code>uv run bowerbird_mcp.py ...</code> means the same command run
 from a checkout of this repository (or beside a saved copy of that one file).
 To run the latest unreleased code instead of the PyPI release, give uv the repository:
@@ -331,14 +331,14 @@ gets a first bundle.</p>
 the concepts: safe to delete, never committed (a new <code>.kbmcp/</code> folder ignores
 itself). To build it apart from the server, run <code>reindex</code> (incremental: only
 changed files are read) and set <code>build: manual</code>, so <code>passages</code> only reads it:</p>
-<pre class="highlight"><code class="language-sh">uvx bowerbird-mcp reindex output=text     # first semantic run embeds everything: minutes, once</code></pre>
+<pre class="highlight"><code class="language-sh">uvx bowerbird reindex output=text     # first semantic run embeds everything: minutes, once</code></pre>
 <pre class="highlight"><code class="language-yaml"># .pre-commit-config.yaml: refresh after you commit and after pulls
 repos:
   - repo: local
     hooks:
       - id: kbmcp-reindex
         name: Bowerbird reindex
-        entry: uvx bowerbird-mcp reindex
+        entry: uvx bowerbird reindex
         language: system
         pass_filenames: false
         always_run: true
@@ -492,14 +492,14 @@ for Cursor. VS Code's <code>.vscode/mcp.json</code> takes the same entry under <
   "mcpServers": {
     "bowerbird": {
       "command": "uvx",
-      "args": ["bowerbird-mcp"]
+      "args": ["bowerbird"]
     }
   }
 }</code></pre>
 <p>The server runs in the project folder, so it finds the <code>kbmcp.yaml</code> there (your
 id is <code>user:</code> in it). To point at one elsewhere, add <code>"--config",
 "/path/to/kb/kbmcp.yaml"</code> to <code>args</code>. Or, in Claude Code:</p>
-<pre class="highlight"><code class="language-sh">claude mcp add bowerbird -- uvx bowerbird-mcp --config /path/to/kb/kbmcp.yaml</code></pre>
+<pre class="highlight"><code class="language-sh">claude mcp add bowerbird -- uvx bowerbird --config /path/to/kb/kbmcp.yaml</code></pre>
 <p>Several collections at once: one entry each, with its own <code>--config</code>. The
 client prefixes tool names with the entry name, and each file's <code>about:</code> tells
 the agent what that collection holds. Each keeps its own index.</p>
@@ -548,8 +548,8 @@ commas), and each server offers only that role's tools:</p>
 </table>
 <pre class="highlight"><code class="language-json">{
   "mcpServers": {
-    "kb-read":  { "command": "uvx", "args": ["bowerbird-mcp", "--role", "read"] },
-    "kb-write": { "command": "uvx", "args": ["bowerbird-mcp", "--role", "write"] }
+    "kb-read":  { "command": "uvx", "args": ["bowerbird", "--role", "read"] },
+    "kb-write": { "command": "uvx", "args": ["bowerbird", "--role", "write"] }
   }
 }</code></pre>
 <p>The <code>read</code> server is read-only, so a client can approve it without asking; the others
@@ -591,7 +591,7 @@ repos:
     hooks:
       - id: bowerbird-seal
         name: Bowerbird seal check
-        entry: uvx bowerbird-mcp seal check=true output=text
+        entry: uvx bowerbird seal check=true output=text
         language: system
         pass_filenames: false
         always_run: true</code></pre>
@@ -719,7 +719,7 @@ uv run bowerbird_mcp.py passages 'how do we roll back a deploy' output=text</cod
   <code>build: manual</code> it does not notice files changed since the last <code>reindex</code>.
   Semantic search downloads its model (~65 MB) once into
   <code>~/.cache/bowerbird-mcp/models</code>. <code>fastembed</code> and its dependencies (about 150 MB) come
-  with the installed package (<code>uvx bowerbird-mcp</code>) but not with the bare script, which
+  with the installed package (<code>uvx bowerbird</code>) but not with the bare script, which
   needs <code>uv run --with fastembed</code> for <code>semantic: true</code>. The index lives in the file
   <code>index</code> names and is safe to delete; nothing in the
   collection changes.</li>
