@@ -60,10 +60,10 @@ To run the latest unreleased code instead of the PyPI release, give uv the repos
 
 ### Settings: kbmcp.yaml
 
-A `kbmcp.yaml` is the collection's configuration, and **any folder that holds one is a collection**: its
-base, with its index, archive and bundles. Commit it. It sits at the root, not in a bundle. The tool finds the
-nearest one from the current directory up, or you name it with `--config`, so a server needs no env block. A
-folder inside a collection with its own `kbmcp.yaml` is another collection, and the outer one skips it.
+A `kbmcp.yaml` is the collection's configuration. Commit it. The collection's root is the outermost one at or above
+the current directory, inside the same git work tree (a repository inside another is its own collection), or you
+name one with `--config`, so a server needs no env block. A `kbmcp.yaml` in a folder below the root overrides the
+root's for that folder and everything under it ([mixed formats](#mixed-formats-in-one-collection)).
 `init` writes a mostly filled-in one (see below); `config apply=true` writes the all-commented example, and
 neither overwrites a file. The old `KB_ROOT` variable is gone and is refused: the base is wherever `kbmcp.yaml` is.
 
@@ -305,6 +305,34 @@ into it (`archived_link`). Editing tools refuse archived concepts. That is the
 only enforcement: the files are plain files, so an editor or a commit can still
 change them. It works whether the collection root is a set of bundles or a
 bundle itself.
+
+### Mixed formats in one collection
+
+One monorepo can hold several formats: an OKF bundle with a folder of ADRs, or a markdown collection with one. A
+`kbmcp.yaml` in a folder overrides the one above it for that folder and everything under it, key by key, the nearest one
+winning, like an inherited ACL: the whole tree is OKF, and that one part is ADR.
+
+```yaml
+# kbmcp.yaml, at the root
+format: okf
+```
+
+```yaml
+# adr/kbmcp.yaml
+format: adr
+seal: {require: ["*.md"], exempt_status: []}   # its globs start at this folder
+```
+
+A folder may override `format`, `seal`, `about`, `hubs` and `min_similarity`. The rest (`roles`, `passages`, `index`,
+`semantic`, `semantic_model`, `vector_index`, `build`) belongs to the whole collection, which has one index, one
+ledger and one embedding model; a folder that sets one is refused, with the fix. Nested files are read once, at
+startup, and found with `git ls-files`, so `.gitignore` is respected; restart the server after adding one.
+
+What each tool does with the ADR folder inside an OKF bundle: `passages`, `search`, `list`, `status`, `links`, `web`
+and `seal` include it, each file read in its own format (an ADR's status, its review in `.waxseals.yaml`). `lint`,
+`fix`, `index`, `provenance` and `upgrade` leave it out, since they judge and rewrite OKF concepts. `move` and `migrate` still
+rewrite links in it, and a moved ADR keeps its review. Links between the two work in both
+directions. A server offers the tools of every format in use.
 
 <!-- --8<-- [end:layout] -->
 <!-- --8<-- [start:register] -->

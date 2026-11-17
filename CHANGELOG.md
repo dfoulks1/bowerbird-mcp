@@ -3,6 +3,13 @@
 ## 2.1.0 (unreleased)
 
 ### Added
+- Mixed formats: a `kbmcp.yaml` in a folder overrides the one above it for that folder and everything under it, the
+  nearest winning (like an inherited ACL). One collection can hold OKF with a folder of ADRs, or markdown with ADRs, or
+  any mix. `format`, `seal` (globs start at that folder), `about`, `hubs` and `min_similarity` may be overridden; a
+  folder that sets a collection-wide key (`roles`, `passages`, `index`, `semantic`, `semantic_model`, `vector_index`,
+  `build`) is refused. Each file is read, indexed and sealed in its own folder's format; `lint`, `fix`, `index`, `provenance`
+  and `upgrade` skip files in other formats (a link from one still keeps a concept from being an orphan; `move` and
+  `migrate` rewrite links in them); a server offers the tools of every format in use. One index, one ledger.
 - The command line takes `--flags` and short flags (`init -t markdown -a "Docs" --apply`, `seal -cp`), with
   `-h` per command and `-O` (or `-F`) to choose the output. They are turned into the same `name=value` arguments,
   which still work everywhere, so CI and agents are unaffected. Flags are not abbreviated (`--app` is not
@@ -11,6 +18,10 @@
   long flags in scripts. `--attest` is unchanged.
 
 ### Changed
+- **A `kbmcp.yaml` below the root is an override, not another collection.** Before, a folder holding its own
+  `kbmcp.yaml` was skipped by the outer collection. Now it is part of it, and the collection's root is the outermost
+  `kbmcp.yaml` inside the git work tree (a repository inside another stays its own collection). Nested files are found
+  with `git ls-files` and read once, at startup.
 - `help` is short and grouped (knowledge, retrieval, verification) and shows only the commands the collection's format
   has; `help all` lists every command. Examples print `bowerbird-mcp`, not `uv run bowerbird_mcp.py`.
 - `<tool> -h` and `help <tool>` list each argument as its flags (`-p, --promote`, `-d, --decision DECISION`) and print

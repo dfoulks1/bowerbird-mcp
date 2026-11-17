@@ -78,10 +78,11 @@ nav:
       - SKOS: formats/skos.md
       - AsciiDoc: formats/asciidoc.md
   - Sealing: sealing.md
-  - Docs: guide.md
-  - Command line: cli.md
-  - Tools: tools.md
-  - Troubleshooting: troubleshooting.md
+  - Docs:
+      - Guide: guide.md
+      - Command line: cli.md
+      - Tools: tools.md
+      - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md
 
 plugins: []

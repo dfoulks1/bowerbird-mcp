@@ -750,9 +750,10 @@ assert {x for _, x in kinds_of(only=["stub"])} == {"stub"} and "stub" not in {x 
 raises(k.lint, only=["nope"])
 (rk / "kbmcp.yaml").write_text(k.EXAMPLE_CONFIG)  # at the collection root: right
 assert any(f.startswith("ops/") for f, _ in kinds_of())
-(rk / "ops/kbmcp.yaml").write_text("")  # any folder holding a kbmcp.yaml is its own collection: this one skips it
-assert not any(f.startswith("ops/") for f, _ in kinds_of()) and not any(x == "nested_config" for _, x in kinds_of())
+(rk / "ops/kbmcp.yaml").write_text("")  # a folder's own kbmcp.yaml overrides the one above it; it is not another collection
+assert any(f.startswith("ops/") for f, _ in kinds_of()) and not any(x == "nested_config" for _, x in kinds_of())
 (rk / "ops/kbmcp.yaml").unlink()
+k._SCOPES.clear()
 (rk / "kbmcp.yaml").unlink()
 src = Path(k.__file__).read_text()
 assert set(re.findall(r'finding\(\s*"(\w+)"', src)) | set(k.ERR) | {"island"} <= k.KINDS
@@ -1011,12 +1012,12 @@ a2 = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = a2
 assert asyncio.run(k.init(apply=True, ctx=Ask("decline")))["config"]["missing"]  # no answer: written with what it has
 assert "about" not in k.load_config(a2)[1]
-# a folder holding its own kbmcp.yaml is another collection: the parent's lint does not see inside it.
+# a folder holding its own kbmcp.yaml overrides the one above it: the parent's lint still sees inside it.
 k.KB_ROOT = gr
 (gr / "sub").mkdir()
 (gr / "sub/kbmcp.yaml").write_text("")
 (gr / "sub/n.md").write_text("---\ntype: Note\n---\nx\n")
-assert not any(f["file"].startswith("sub/") for f in k.lint(limit=0)["findings"])
+assert any(f["file"].startswith("sub/") for f in k.lint(limit=0)["findings"])
 k.KB_ROOT, k.CFG_DIR = ck, cf
 # lint always says it ran: a verdict line (with what it checked) on success and failure, text and github.
 L = k.lint()
@@ -1335,5 +1336,83 @@ subprocess.run(["git", "init", "-q", str(vend)], check=True)
 r = subprocess.run([sys.executable, str(vend / "bowerbird_mcp.py"), "--version"], capture_output=True, text=True, check=False)
 assert r.stdout.strip() == f"bowerbird-mcp {k.VERSION} (standalone script, vendored)", r  # vendored into someone else's repo
 assert k.mcp._mcp_server.create_initialization_options().server_version.startswith(f"{k.VERSION}+development.")  # what the client sees
+
+# Mixed formats: the nearest kbmcp.yaml overrides the ones above it, like an inherited ACL. A markdown collection with an ADR
+# folder, and an OKF collection with an ADR folder.
+saved_root, saved_fmt, saved_cfg = k.KB_ROOT, k.OPTS["format"], k.CFG_DIR
+ADR = "# Use Vault\n\n## Status\n\nAccepted\n\n## Context\n\nWe need one place for secrets, said plainly here.\n"
+adr_cfg = "format: adr\nseal: {require: ['*.md'], exempt_status: []}\n"  # its globs start at its own folder
+
+
+def mixed(root_format, files):
+    d = Path(tempfile.mkdtemp()).resolve()
+    for n, x in files.items():
+        (d / n).parent.mkdir(parents=True, exist_ok=True)
+        (d / n).write_text(x)
+    k.KB_ROOT, k.CFG_DIR = d, None
+    k.OPTS["format"] = root_format
+    k._SCOPES.clear()
+    k._POLICY.clear()
+    return d
+
+
+mk = mixed("markdown", {"notes/runbook.md": "# Runbook\n\nHow we roll back a deploy, step by step, with care.\n",
+                        "decisions/kbmcp.yaml": adr_cfg, "decisions/0001-use-vault.md": ADR})
+assert (k.fmt_of(mk / "notes/runbook.md"), k.fmt_of(mk / "decisions/0001-use-vault.md")) == ("markdown", "adr")
+assert {os.path.relpath(p, mk) for p in k.source_files(mk)} == {"notes/runbook.md", "decisions/0001-use-vault.md"}
+h = k.passages("vault secrets")["hits"]
+assert h and h[0]["file"] == "decisions/0001-use-vault.md" and h[0]["status"] == "Accepted"  # read as an ADR, in a markdown collection
+assert {(f["file"], f["kind"]) for f in k.signatures()["findings"]} == {("decisions/0001-use-vault.md", "unsigned"),
+                                                                       ("notes/runbook.md", "unsigned")}
+(mk / "decisions/kbmcp.yaml").write_text("index: other.db\n")  # a folder may override what it holds and who reviews it, not the server's settings
+k._SCOPES.clear()
+try:
+    k.scopes()
+    raise AssertionError("a folder's kbmcp.yaml set index")
+except SystemExit as e:
+    assert "belongs to the whole collection" in str(e) and "index" in str(e)
+
+ok = mixed("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n',
+                   "db.md": "---\ntype: Note\ndescription: The database.\n---\n# DB\n\nPostgres, decided in [ADR 1](adr/0001-use-vault.md), body long enough.\n",
+                   "adr/kbmcp.yaml": adr_cfg, "adr/0001-use-vault.md": ADR + "\nSee [the DB](../db.md).\n"})
+assert (k.fmt_of(ok / "db.md"), k.fmt_of(ok / "adr/0001-use-vault.md")) == ("okf", "adr")
+L = k.lint(limit=0)
+assert L["ok"] and not any(f["file"].startswith("adr/") for f in L["findings"]), L  # lint does not judge ADRs as OKF concepts
+assert {(f["file"], f["kind"]) for f in k.signatures()["findings"]} == {("adr/0001-use-vault.md", "unsigned"), ("db.md", "unsigned")}
+li = k.links("db.md")
+assert li["out"][0]["exists"] and li["in"] == ["adr/0001-use-vault.md"]  # links cross the boundary both ways
+h = k.passages("vault secrets")["hits"]
+assert h and h[0]["file"] == "adr/0001-use-vault.md" and h[0]["status"] == "Accepted"
+assert not any(f["kind"] == "orphan" for f in L["findings"]), L  # an ADR that links to a concept keeps it from being an orphan
+
+
+def okf_with_adr():
+    return mixed("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n',
+                         "db.md": "---\ntype: Note\ndescription: The database.\n---\n# DB\n\nPostgres, decided in [ADR 1](adr/0001-use-vault.md), body long enough.\n",
+                         "adr/kbmcp.yaml": adr_cfg, "adr/0001-use-vault.md": ADR + "\nSee [the DB](../db.md).\n"})
+
+
+ok = okf_with_adr()
+k.index(apply=True, dirs=True)  # lists OKF concepts only: the ADR folder gets no index.md and is not in the root one
+assert "adr" not in (ok / "index.md").read_text() and not (ok / "adr/index.md").exists() and "[DB](./db.md)" in (ok / "index.md").read_text()
+ok = okf_with_adr()
+k.move("db.md", "notes/db.md", apply=True)  # links in an ADR follow a moved concept
+assert "(../notes/db.md)" in (ok / "adr/0001-use-vault.md").read_text() and "(../notes/db.md)" not in (ok / "adr/0001-use-vault.md").read_text().replace("(../notes/db.md)", "", 1)
+ok = okf_with_adr()
+txt = (ok / "adr/0001-use-vault.md").read_text()
+k.ledger_put("adr/0001-use-vault.md", {"file": "adr/0001-use-vault.md", "sha256": k.content_hash(txt, False), "by": "human:me", "at": k.now(), "bowerbird": k.VERSION})
+k.move("adr/0001-use-vault.md", "adr/0002-vault.md", apply=True)  # a moved ADR keeps its review, and the concept's link follows it
+assert "adr/0002-vault.md" in (ok / "db.md").read_text() and list(k.ledger_by_file()) == ["adr/0002-vault.md"]
+assert k.reviews({}, "adr/0002-vault.md", (ok / "adr/0002-vault.md").read_text(), k.ledger_by_file())[1]
+ok = okf_with_adr()
+(ok / "other").mkdir()
+(ok / "other/index.md").write_text('---\nokf_version: "0.2"\n---\n# Other\n')
+k._SCOPES.clear()
+k.migrate("db.md", "other", apply=True)  # a concept moved to another bundle: the ADR's link follows it
+assert (ok / "other/db.md").exists() and "(../other/db.md)" in (ok / "adr/0001-use-vault.md").read_text()
+k.KB_ROOT, k.CFG_DIR = saved_root, saved_cfg
+k.OPTS["format"] = saved_fmt
+k._SCOPES.clear()
+k._POLICY.clear()
 
 print("ok")
