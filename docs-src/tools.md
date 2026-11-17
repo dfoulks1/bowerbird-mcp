@@ -2,7 +2,7 @@
 
 <!-- seal-banner: Derived from the tools' own docstrings. -->
 
-Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> name=value ...`, or see the same text with `help <tool>`.
+Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> name=value ...` (or with flags: `--name value`, `-n value`), or see the same text with `help <tool>`. `-O json|text` chooses the output.
 
 ## archive
 

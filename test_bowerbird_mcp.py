@@ -564,8 +564,12 @@ assert "seal" in short and "create" not in short and "create" in full and "bower
 k.OPTS["format"] = fmt0
 assert cli("nope")[0] == 2
 assert k.flags_to_words("seal", k.REG["seal"], ["-cp"]) == ["promote=true", "check=true"]  # combined short flags
+for n, m in k.SHORTS.items():  # pinned letters: real arguments, none repeated, none of the reserved -h -F -O
+    ps = {p for p in k.inspect.signature(k.REG[n]).parameters} - {"ctx"}
+    assert set(m) <= ps and len(set(m.values())) == len(m) and not set(m.values()) & {"h", "F", "O"}, n
 assert sorted(k.flags_to_words("init", k.REG["init"], ["-t", "markdown", "-a", "Docs", "--apply"])) == ["about=Docs", "apply=true", "holds=markdown"]
-assert cli("bundles", "-o", "text")[1] == cli("bundles", "output=text")[1] and cli("lint", "--nope")[0] == 2
+assert cli("bundles", "-O", "text")[1] == cli("bundles", "-F", "text")[1] == cli("bundles", "output=text")[1] and cli("lint", "--nope")[0] == 2
+assert cli("lint", "--sca", "all")[0] == 2  # no abbreviations
 (kb / "bare.md").write_text("---\ntype: x\n---\n")
 assert cli("set", "bare.md", "status=draft", "tags=[a, b]", "apply=true")[0] == 0  # frontmatter as key=value
 assert k.meta((kb / "bare.md").read_text())[0] | {} == {"type": "x", "status": "draft", "tags": ["a", "b"]}

@@ -32,7 +32,8 @@ There is nothing else to install and nothing to clone. Make a shortcut so the re
 
 ```sh
 alias kb='uvx bowerbird-mcp'
-kb help          # every tool, one line each (35 of them)
+kb help          # the everyday commands for your format; `kb help all` lists every one
+kb help seal     # one command: what it does, its arguments, an example
 ```
 
 ## 2. Choose what it holds

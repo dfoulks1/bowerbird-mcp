@@ -4,8 +4,11 @@
 
 ### Added
 - The command line takes `--flags` and short flags (`init -t markdown -a "Docs" --apply`, `seal -cp`), with
-  `-h` per command and `-o` for output. They are turned into the same `name=value` arguments, which still work
-  everywhere, so CI and agents are unaffected. `--attest` is unchanged.
+  `-h` per command and `-O` (or `-F`) to choose the output. They are turned into the same `name=value` arguments,
+  which still work everywhere, so CI and agents are unaffected. Flags are not abbreviated (`--app` is not
+  `--apply`). The daily commands (`init`, `seal`, `lint`, `status`, `search`, `passages`, `list`, `get`, `links`) have
+  fixed short flags, and `bundle` is `-B` in all of them; other commands take the first free letter, so use their
+  long flags in scripts. `--attest` is unchanged.
 
 ### Changed
 - `help` is short and grouped (knowledge, retrieval, verification) and shows only the commands the collection's format

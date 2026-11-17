@@ -21,7 +21,7 @@ def prose(doc: str) -> str:
 
 
 out = ["# Tools", "", "<!-- seal-banner: Derived from the tools' own docstrings. -->", "", ("Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> "
-                       "name=value ...`, or see the same text with `help <tool>`."), ""]
+                       "name=value ...` (or with flags: `--name value`, `-n value`), or see the same text with `help <tool>`. `-O json|text` chooses the output."), ""]
 for name, fn in sorted(k.REG.items()):
     roles = [r for r, ts in k.ROLES.items() if name in ts]  # the roles that switch it on, and the formats whose server offers it
     fmts = ["OKF", *(f.replace("seal-only", "Seal-only").replace("asciidoc", "AsciiDoc").replace("skos", "SKOS").replace("adr", "ADR").replace("markdown", "Markdown")

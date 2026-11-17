@@ -3681,7 +3681,16 @@ def help_text(full: bool) -> str:
     return "\n".join(ln for i, ln in enumerate(out) if ln or i == 0 or out[i - 1]).rstrip()
 
 
-SHORTS = {"init": {"holds": "t", "about": "a"}}  # chosen short flags; the rest take their first free letter (a, then A), or none
+SHORTS = {  # pinned short flags for the daily commands: these never change, so a person's habits and scripts hold. -h, -F and -O are reserved
+    "init": {"apply": "A", "about": "a", "holds": "t", "bundle": "B", "user": "u"},
+    "seal": {"file": "f", "by": "b", "promote": "p", "decision": "d", "check": "c", "since": "s", "bundle": "B"},
+    "lint": {"scope": "s", "limit": "l", "baseline": "b", "since": "S", "all": "a", "file": "f", "ignore": "i", "bundle": "B"},
+    "status": {"due_days": "d", "bundle": "B"},
+    "search": {"query": "q", "type": "t", "tag": "g", "dir": "d", "limit": "l", "bundle": "B"},
+    "passages": {"query": "q", "type": "t", "tag": "g", "dir": "d", "limit": "l", "bundle": "B"},
+    "list": {"type": "t", "tag": "g", "status": "s", "tier": "T", "stale": "S", "limit": "l", "bundle": "B"},
+    "get": {"file": "f", "limit": "l", "bundle": "B"},
+    "links": {"file": "f", "bundle": "B"}}  # every other command: the first free letter of each argument (a, then A), by its order, so do not rely on those
 
 
 def flags_to_words(name: str, fn, rest: list) -> list:
@@ -3689,21 +3698,21 @@ def flags_to_words(name: str, fn, rest: list) -> list:
     shim below already understands, so there is one code path and name=value keeps working beside it."""
     import argparse
     params = {k: p for k, p in inspect.signature(fn).parameters.items() if k != "ctx"}
-    used = {"h", "o", *SHORTS.get(name, {}).values()}
+    used = {"h", "F", "O", *SHORTS.get(name, {}).values()}
     short = dict(SHORTS.get(name, {}))
     for k in params:
         pick = next((c for c in (k[0], k[0].upper()) if c not in used), None)
         if k not in short and pick:
             short[k] = pick
             used.add(pick)
-    ap = argparse.ArgumentParser(prog=f"bowerbird-mcp {name}", description=one_line(fn, 200))
+    ap = argparse.ArgumentParser(prog=f"bowerbird-mcp {name}", description=one_line(fn, 200), allow_abbrev=False)  # a destructive tool takes no guesses
     for k, p in params.items():
         names = ([f"-{short[k]}"] if k in short else []) + [f"--{k.replace('_', '-')}"]
         if p.annotation is bool:
             ap.add_argument(*names, dest=k, action="store_true")
         else:
             ap.add_argument(*names, dest=k, metavar=k.upper())
-    ap.add_argument("-o", "--output", metavar="OUTPUT", help="text, json, github or sarif")
+    ap.add_argument("-O", "--output", "-F", "--format", dest="output", metavar="OUTPUT", help="text, json, github or sarif")
     ap.add_argument("words", nargs="*", help="name=value, or a bare argument")
     ns = ap.parse_intermixed_args(rest)
     out = list(ns.words)

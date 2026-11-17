@@ -152,13 +152,20 @@ tree, files git ignores are skipped.
 
 ```sh
 wget https://raw.githubusercontent.com/dfoulks1/bowerbird-mcp/main/bowerbird_mcp.py
-uv run bowerbird_mcp.py help                 # every tool, one line each
+uv run bowerbird_mcp.py help                 # the everyday commands for your format
+uv run bowerbird_mcp.py help all             # every tool, one line each
 uv run bowerbird_mcp.py help move            # one tool: what it does, its arguments
 uv run bowerbird_mcp.py lint output=text
 uv run bowerbird_mcp.py init apply=true       # start a new bundle
 ```
 
-Any tool runs as `<name> name=value ...` or `<name> '<json object>'`. Bare
+Any tool runs as `<name> name=value ...` or `<name> '<json object>'`. Flags work
+the same way, for people: `init -t markdown -a "Docs" --apply`, `seal -cp`,
+`-h` for a command's flags. They become the same `name=value` arguments (they
+are not abbreviated: `--app` is not `--apply`). At a terminal the output is
+text; piped, in CI or in a script it is JSON; `-O json|text|github|sarif` (or
+`-F`, or `output=`) chooses. The daily commands have fixed short flags; the
+others take the first free letter, so use their long flags in scripts. Bare
 arguments fill the required ones in order (`move a.md b.md`); on `set`, any
 other `key=value` is frontmatter (`set a.md status=deprecated tags=[x,y]`).
 Write tools that touch many files default to `apply=false` and show a diff.
