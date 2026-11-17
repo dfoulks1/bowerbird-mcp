@@ -53,7 +53,7 @@ changes nothing in the working tree and stops at the first failure.
 
 1. Set `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), run `uv lock` (the
    lockfile records the version), and add a section to `CHANGELOG.md`. For a new major version, also change the pin `init`
-   writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird[skos]>=N,<N+1` example in
+   writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1` example in
    `docs-src/formats/skos.md`. Then run `tools/QA.sh`.
 2. Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to `main`.
 3. Tag and publish a GitHub release, `git tag -a vX.Y.Z` then `gh release create vX.Y.Z`, with the

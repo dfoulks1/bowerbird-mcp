@@ -47,7 +47,7 @@ wheels = [
 ]
 
 [[package]]
-name = "bowerbird"
+name = "bowerbird-mcp"
 version = "2.1.0"
 source = { editable = "." }
 dependencies = [

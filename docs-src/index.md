@@ -47,7 +47,7 @@ file you name.
 Nothing to clone. [uv](https://docs.astral.sh/uv/) installs it from PyPI, with its dependencies, on the fly:
 
 ```sh
-uvx bowerbird help
+uvx bowerbird-mcp help
 ```
 
 No uv yet? `curl -LsSf https://astral.sh/uv/install.sh | sh`
@@ -60,7 +60,7 @@ Then add it to your MCP client's servers file (`.mcp.json` for Claude Code;
   "mcpServers": {
     "bowerbird": {
       "command": "uvx",
-      "args": ["bowerbird"]
+      "args": ["bowerbird-mcp"]
     }
   }
 }
@@ -71,13 +71,13 @@ Or work from the terminal, no AI needed. In any folder, with the format that fit
 ```sh
 # make it a collection: settings files only, your files are not touched
 # holds= is markdown, adr, okf, skos or seal-only
-uvx bowerbird init holds=markdown about="Team notes." apply=true
+uvx bowerbird-mcp init holds=markdown about="Team notes." apply=true
 
 # ask a question: the best sections, each with the file and line to cite
-uvx bowerbird passages 'how do we deploy' output=text
+uvx bowerbird-mcp passages 'how do we deploy' output=text
 
 # any tool: what it does, its arguments
-uvx bowerbird help passages
+uvx bowerbird-mcp help passages
 ```
 
 Next: [getting started](getting-started.md) for a ten-minute walkthrough, [formats](formats.md) for what each kind of

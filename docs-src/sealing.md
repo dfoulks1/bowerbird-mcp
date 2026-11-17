@@ -109,7 +109,7 @@ repos:
     hooks:
       - id: bowerbird-seal
         name: Bowerbird seal check
-        entry: uvx bowerbird seal check=true output=text
+        entry: uvx bowerbird-mcp seal check=true output=text
         language: system
         pass_filenames: false
         always_run: true

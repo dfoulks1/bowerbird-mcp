@@ -4,7 +4,7 @@ Search is bowerbird's own `passages` (BM25 ranked sections, semantic too when kb
 from bowerbird's own hash and ledger, so a page reads sealed, stale or unsealed exactly as `seal check=true` would.
 Read-only: it never writes a seal.
 
-Needs `markdown` (pip install 'bowerbird[serve]').
+Needs `markdown` (pip install 'bowerbird-mcp[serve]').
 """
 import html
 import json
@@ -101,7 +101,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
     try:
         import markdown
     except ImportError:
-        print("error: serve needs the markdown package | fix: pip install 'bowerbird[serve]' (or uvx --from 'bowerbird[serve]' bowerbird serve)")
+        print("error: serve needs the markdown package | fix: pip install 'bowerbird-mcp[serve]' (or uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve)")
         return 2
     ROOT = kb.KB_ROOT
     href = lambda rel: "/" + urllib.parse.quote(rel)

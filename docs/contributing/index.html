@@ -260,7 +260,7 @@ changes nothing in the working tree and stops at the first failure.</p>
 <ol>
 <li>Set <code>version</code> in <code>pyproject.toml</code> and <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), run <code>uv lock</code> (the
    lockfile records the version), and add a section to <code>CHANGELOG.md</code>. For a new major version, also change the pin <code>init</code>
-   writes into <code>.mcp.json</code> (<code>MCP_JSON</code> in <code>bowerbird_mcp.py</code>) and the <code>bowerbird[skos]&gt;=N,&lt;N+1</code> example in
+   writes into <code>.mcp.json</code> (<code>MCP_JSON</code> in <code>bowerbird_mcp.py</code>) and the <code>bowerbird-mcp[skos]&gt;=N,&lt;N+1</code> example in
    <code>docs-src/formats/skos.md</code>. Then run <code>tools/QA.sh</code>.</li>
 <li>Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to <code>main</code>.</li>
 <li>Tag and publish a GitHub release, <code>git tag -a vX.Y.Z</code> then <code>gh release create vX.Y.Z</code>, with the

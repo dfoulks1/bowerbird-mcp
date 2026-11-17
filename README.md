@@ -31,7 +31,7 @@ https://astral.sh/uv/install.sh | sh`, which downloads and runs a script, so rea
 if you prefer). In an empty folder:
 
 ```sh
-alias kb='uvx bowerbird'
+alias kb='uvx bowerbird-mcp'
 kb init apply=true output=text
 kb create deploy type=Playbook title="Deploy" description="How we deploy." \
    body="Run the deploy script, then check the dashboard. To roll back, redeploy the previous tag." output=text
@@ -47,10 +47,10 @@ spec), built under the [ASF generative-tooling guidelines][asf-gt]. Bugs and ide
 ## Run
 
 Requires [uv](https://docs.astral.sh/uv/). Install on the fly from PyPI, nothing to clone; this is
-the form to use (`pip install bowerbird` works too):
+the form to use (`pip install bowerbird-mcp` works too):
 
 ```sh
-uvx bowerbird help
+uvx bowerbird-mcp help
 ```
 
 In the examples below, `uv run bowerbird_mcp.py ...` means the same command run
@@ -108,7 +108,7 @@ itself). To build it apart from the server, run `reindex` (incremental: only
 changed files are read) and set `build: manual`, so `passages` only reads it:
 
 ```sh
-uvx bowerbird reindex output=text     # first semantic run embeds everything: minutes, once
+uvx bowerbird-mcp reindex output=text     # first semantic run embeds everything: minutes, once
 ```
 
 ```yaml
@@ -118,7 +118,7 @@ repos:
     hooks:
       - id: kbmcp-reindex
         name: Bowerbird reindex
-        entry: uvx bowerbird reindex
+        entry: uvx bowerbird-mcp reindex
         language: system
         pass_filenames: false
         always_run: true
@@ -349,7 +349,7 @@ for Cursor. VS Code's `.vscode/mcp.json` takes the same entry under `"servers"`.
   "mcpServers": {
     "bowerbird": {
       "command": "uvx",
-      "args": ["bowerbird"]
+      "args": ["bowerbird-mcp"]
     }
   }
 }
@@ -360,7 +360,7 @@ id is `user:` in it). To point at one elsewhere, add `"--config",
 "/path/to/kb/kbmcp.yaml"` to `args`. Or, in Claude Code:
 
 ```sh
-claude mcp add bowerbird -- uvx bowerbird --config /path/to/kb/kbmcp.yaml
+claude mcp add bowerbird -- uvx bowerbird-mcp --config /path/to/kb/kbmcp.yaml
 ```
 
 Several collections at once: one entry each, with its own `--config`. The
@@ -388,8 +388,8 @@ commas), and each server offers only that role's tools:
 ```json
 {
   "mcpServers": {
-    "kb-read":  { "command": "uvx", "args": ["bowerbird", "--role", "read"] },
-    "kb-write": { "command": "uvx", "args": ["bowerbird", "--role", "write"] }
+    "kb-read":  { "command": "uvx", "args": ["bowerbird-mcp", "--role", "read"] },
+    "kb-write": { "command": "uvx", "args": ["bowerbird-mcp", "--role", "write"] }
   }
 }
 ```
@@ -444,7 +444,7 @@ repos:
     hooks:
       - id: bowerbird-seal
         name: Bowerbird seal check
-        entry: uvx bowerbird seal check=true output=text
+        entry: uvx bowerbird-mcp seal check=true output=text
         language: system
         pass_filenames: false
         always_run: true
@@ -600,7 +600,7 @@ repos:
   `build: manual` it does not notice files changed since the last `reindex`.
   Semantic search downloads its model (~65 MB) once into
   `~/.cache/bowerbird-mcp/models`. `fastembed` and its dependencies (about 150 MB) come
-  with the installed package (`uvx bowerbird`) but not with the bare script, which
+  with the installed package (`uvx bowerbird-mcp`) but not with the bare script, which
   needs `uv run --with fastembed` for `semantic: true`. The index lives in the file
   `index` names and is safe to delete; nothing in the
   collection changes.
