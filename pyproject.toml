@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]  # 77 reads the SPDX `license = "Apache-2.0"` belo
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bowerbird-mcp"
+name = "bowerbird"
 version = "2.0.1"
 description = "Manage knowledge, retrieve it, and verify it: keyword and semantic search over Markdown, ADR and MADR, OKF, SKOS and AsciiDoc (ADOC), and a human review (seal) bound to the exact text. An MCP server and CLI."
 readme = "README.md"
@@ -30,6 +30,7 @@ dependencies = ["mcp>=1.10,<2", "pyyaml", "fastembed"]  # fastembed: semantic se
 sqlite-vec = ["sqlite-vec"]
 hnsw = ["hnswlib"]
 skos = ["rdflib"]  # format: skos
+serve = ["markdown"]  # `bowerbird serve`
 
 [project.urls]
 Homepage = "https://bowerbird.voltpop.com/"
@@ -39,10 +40,11 @@ Issues = "https://github.com/dfoulks1/bowerbird-mcp/issues"
 Changelog = "https://github.com/dfoulks1/bowerbird-mcp/blob/main/CHANGELOG.md"
 
 [project.scripts]
-bowerbird-mcp = "bowerbird_mcp:main"
+bowerbird = "bowerbird_mcp:main"
+bowerbird-mcp = "bowerbird_mcp:main"  # old name, kept for existing configs
 
 [tool.setuptools]
-py-modules = ["bowerbird_mcp"]
+py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo"]
 
 # The file still runs as a PEP 723 script (`uv run bowerbird_mcp.py`); the table above
 # makes it installable too: `uvx --from git+<repo> bowerbird-mcp`.
