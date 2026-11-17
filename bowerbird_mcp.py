@@ -3657,6 +3657,30 @@ def render(out, fmt: str) -> str:
         indent=2)
 
 
+HELP_GROUPS = (("Knowledge", ("lint", "list", "get", "status")), ("Retrieval", ("search", "passages", "links")),
+               ("Verification", (SIGN,)))  # the daily commands; `help all` lists the rest
+
+
+def one_line(f, width: int = 72) -> str:
+    s = " ".join((f.__doc__ or "").split()).split(". ")[0].rstrip(".")
+    return s if len(s) <= width else s[:width].rsplit(" ", 1)[0] + "…"
+
+
+def help_text(full: bool) -> str:
+    """The short, grouped help for this collection's format (TIERS names what each format has); `help all` lists every tool."""
+    have = set(REG) if full or OPTS["format"] == "okf" else set(REG) & TIERS[OPTS["format"]]
+    out = [f"bowerbird-mcp (format: {OPTS['format']})", ""]
+    rows = [("All commands", sorted(have))] if full else [(g, [n for n in ns if n in have]) for g, ns in HELP_GROUPS]
+    for g, ns in rows:
+        if ns:
+            out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
+    out += ["  help all       every command" if not full else "",
+            "  help <tool>    its arguments and examples", "",
+            "Arguments are name=value (lists a,b or JSON), e.g. lint scope=okf output=github.",
+            "--attest records you as a human: terminal only, the MCP server cannot."]
+    return "\n".join(ln for i, ln in enumerate(out) if ln or i == 0 or out[i - 1]).rstrip()
+
+
 def at_terminal() -> bool:
     return sys.stdin.isatty()
 
@@ -3698,18 +3722,13 @@ def cli(argv) -> int:
                 ann = getattr(p.annotation, "__name__", None) or str(p.annotation).replace("typing.", "")
                 print(f"  {k}: {ann}" + ("  (required)" if p.default is p.empty else f" = {p.default!r}"))
         if n in EXAMPLES:
-            print("\nExamples:\n" + "\n".join(f"  uv run bowerbird_mcp.py {e}" for e in EXAMPLES[n]))
+            print("\nExamples:\n" + "\n".join(f"  bowerbird-mcp {e}" for e in EXAMPLES[n]))
         print("\noutput=json|text (any tool; text prints diffs as is); lint also github|sarif. `format=` also works.")
         return 0
     if argv[0] not in REG:
-        for n, f in sorted(REG.items()):
-            print(f"{n:14} {' '.join((f.__doc__ or '').split()).split('. ')[0].rstrip('.')}.")
-        print("\nUsage: <tool> name=value ...   e.g. lint scope=okf output=github\n"
-              "       lists: a,b or JSON; dicts: JSON; or pass one JSON object.\n"
-              "       help <tool>: its arguments and what it does.\n"
-              "       --attest: record yourself (KB_USER, else git user.email) as human:<id> on create, seal,\n"
-              "       recheck_apply and provenance. Terminal only; the MCP server cannot.")
-        return 0 if argv[0] in ("help", "-h", "--help") else 2
+        asked = argv[0] in ("help", "-h", "--help")
+        print(help_text(asked and argv[1:] == ["all"]))
+        return 0 if asked else 2
     fn = REG[argv[0]]
     params = {k: p for k, p in inspect.signature(fn).parameters.items() if k != "ctx"}
     args, fmt = {}, "text" if out_terminal() else "json"  # a person gets text; a pipe, CI or script gets JSON

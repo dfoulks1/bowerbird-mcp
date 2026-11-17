@@ -558,6 +558,11 @@ assert code == 1 and json.loads(out)["runs"][0]["results"]
 assert cli("lint", "nonsense=1")[0] == 2
 assert cli("fix", "bundle=bad")[0] == 0
 assert cli("help")[0] == 0
+fmt0, k.OPTS["format"] = k.OPTS["format"], "markdown"  # help is short and follows the format; `help all` lists everything
+short, full = cli("help")[1], cli("help", "all")[1]
+assert "seal" in short and "create" not in short and "create" in full and "bowerbird-mcp (format: markdown)" in short
+k.OPTS["format"] = fmt0
+assert cli("nope")[0] == 2
 (kb / "bare.md").write_text("---\ntype: x\n---\n")
 assert cli("set", "bare.md", "status=draft", "tags=[a, b]", "apply=true")[0] == 0  # frontmatter as key=value
 assert k.meta((kb / "bare.md").read_text())[0] | {} == {"type": "x", "status": "draft", "tags": ["a", "b"]}
