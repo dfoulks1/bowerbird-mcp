@@ -70,7 +70,7 @@ ROLES = {  # who needs which tools; the MCP server offers the union of its roles
     "lifecycle": {"baseline", "config", "index", "init", "provenance", "recheck_apply", "recheck_plan", "reindex",
                   "upgrade"}}  # each role is about a quarter of the tool descriptions (tests keep every tool in one)
 CONFIG_KEYS = {"user", "ai_producers", *DEFAULTS}
-MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "bowerbird>=2,<3", "bowerbird"]}}}  # a repo pins the major
+MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "bowerbird-mcp>=2,<3", "bowerbird-mcp"]}}}  # a repo pins the major
 LEDGER = ".waxseals.yaml"  # the latest review of each file, one dense line each: markdown, adr, skos, asciidoc, seal-only (okf keeps them in frontmatter); committed
 SHARED_ONLY = {"format", "seal"}  # what the folder is, and who must review it: only kbmcp.yaml sets these, never .env or the environment
 NOT_IN_DEFAULTS = {"user": "", "ai_producers": []}  # types of the keys DEFAULTS does not hold (for KB_USER, KB_AI_PRODUCERS)
@@ -116,7 +116,7 @@ EXAMPLE_CONFIG = """\
 # Concepts many others link to rank a little higher in passages.
 # hubs: true
 
-# Also match passages by meaning. Nothing to install with `uvx bowerbird` (fastembed is a dependency of the
+# Also match passages by meaning. Nothing to install with `uvx bowerbird-mcp` (fastembed is a dependency of the
 # package); run the bare script and it needs `uv run --with fastembed`. The model (~65 MB) downloads on first use
 # into ~/.cache/bowerbird-mcp/models, and the vectors are kept in the index.
 # semantic: false
@@ -1732,7 +1732,7 @@ def embedder(model: str):
         try:
             from fastembed import TextEmbedding
         except ImportError:
-            raise ValueError("fastembed is missing | fix: run the installed tool (`uvx bowerbird`), which carries it, or add "
+            raise ValueError("fastembed is missing | fix: run the installed tool (`uvx bowerbird-mcp`), which carries it, or add "
                              "`--with fastembed` to `uv run`, or set semantic: false in kbmcp.yaml")
         cache = Path(os.environ.get("XDG_CACHE_HOME") or "~/.cache").expanduser() / "bowerbird-mcp" / "models"
         m = TextEmbedding(model, cache_dir=str(cache))

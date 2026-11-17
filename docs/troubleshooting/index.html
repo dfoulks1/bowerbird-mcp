@@ -200,7 +200,7 @@
           </nav>
         
         <article><h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="edited">AI Generated, edited since its last human review</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:08:02Z</p>
 
 <h2 id="searching">Searching<a class="headerlink" href="#searching" title="Link to this section">#</a></h2>
 <ul>
@@ -228,8 +228,8 @@
 <h2 id="installing">Installing<a class="headerlink" href="#installing" title="Link to this section">#</a></h2>
 <ul>
 <li><strong><code>rdflib is missing</code></strong> (a <code>skos</code> collection). Install the extra: <code>pip install rdflib</code>, or with <code>uvx</code>, ask for it:
-  <code>uvx --from "bowerbird[skos]" bowerbird-mcp</code>.</li>
-<li><strong>Semantic search does not start with the bare script.</strong> <code>uvx bowerbird</code> carries <code>fastembed</code>; the one-file script
+  <code>uvx --from "bowerbird-mcp[skos]" bowerbird-mcp</code>.</li>
+<li><strong>Semantic search does not start with the bare script.</strong> <code>uvx bowerbird-mcp</code> carries <code>fastembed</code>; the one-file script
   needs <code>uv run --with fastembed bowerbird_mcp.py</code>.</li>
 <li><strong><code>uvx</code> runs an old build while you test local changes.</strong> Add <code>--no-cache</code>.</li>
 </ul></article>

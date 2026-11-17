@@ -31,7 +31,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 There is nothing else to install and nothing to clone. Make a shortcut so the rest of this page is short:
 
 ```sh
-alias kb='uvx bowerbird'
+alias kb='uvx bowerbird-mcp'
 kb help          # the everyday commands for your format; `kb help all` lists every one
 kb help seal     # one command: what it does, its arguments, an example
 ```
@@ -205,7 +205,7 @@ must be at least `min_similarity` close in meaning (0.6 by default) to count.
 - **The first search takes a moment,** because every passage is embedded. On a large collection that takes minutes, and an
   interrupted run resumes. `kb reindex` does it ahead of time (a good fit for a hook), and `kb reindex --info` shows
   what is held: here `passages: 2`, `vectors: 2`, `vectors_model: BAAI/bge-small-en-v1.5`.
-- **`uvx bowerbird` carries what it needs** (the `fastembed` library). The bare one-file script needs
+- **`uvx bowerbird-mcp` carries what it needs** (the `fastembed` library). The bare one-file script needs
   `uv run --with fastembed`.
 - **For tens of thousands of passages,** `vector_index: sqlite-vec` or `hnsw` makes the meaning search faster: see
   [the guide](guide.md#reading-the-collection).
@@ -275,7 +275,7 @@ If your folder has no `.mcp.json`, or you use another assistant, add the tool to
   "mcpServers": {
     "notes": {
       "command": "uvx",
-      "args": ["bowerbird",
+      "args": ["bowerbird-mcp",
                "--config", "/full/path/to/notes/kbmcp.yaml"]
     }
   }
@@ -421,13 +421,13 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
       hooks:
         - id: bowerbird-lint
           name: Bowerbird lint
-          entry: uvx bowerbird lint -O text
+          entry: uvx bowerbird-mcp lint -O text
           language: system
           pass_filenames: false
           verbose: true
         - id: bowerbird-seal
           name: Bowerbird seal check
-          entry: uvx bowerbird seal -c -O text
+          entry: uvx bowerbird-mcp seal -c -O text
           language: system
           pass_filenames: false
           always_run: true
