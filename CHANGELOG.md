@@ -13,6 +13,10 @@
 ### Changed
 - `help` is short and grouped (knowledge, retrieval, verification) and shows only the commands the collection's format
   has; `help all` lists every command. Examples print `bowerbird-mcp`, not `uv run bowerbird_mcp.py`.
+- `<tool> -h` and `help <tool>` list each argument as its flags (`-p, --promote`, `-d, --decision DECISION`) and print
+  the examples as flags; `tools.md` gains a Flag column. `lint -a` is a switch (`--no-all` is the other way), not
+  `-a VALUE`. `seal check` hints end in `--attest`, the command a person runs. A new Command line page covers flags,
+  output and exit codes.
 - At a terminal the command line prints text by default; piped, in CI or in a script it still prints JSON.
   `output=json` or `output=text` overrides either.
 - `--attest` now needs a terminal (stdin a TTY). A pipe or script is refused with exit 2. This stops headless runs; a

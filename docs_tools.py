@@ -20,7 +20,7 @@ def prose(doc: str) -> str:
     return "`".join(html.escape(p, quote=False) if i % 2 == 0 else p for i, p in enumerate(parts))
 
 
-out = ["# Tools", "", "<!-- seal-banner: Derived from the tools' own docstrings. -->", "", ("Every tool, from its own docstring. Run one as `uv run bowerbird_mcp.py <tool> "
+out = ["# Tools", "", "<!-- seal-banner: Derived from the tools' own docstrings. -->", "", ("Every tool, from its own docstring. Run one as `bowerbird-mcp <tool> "
                        "name=value ...` (or with flags: `--name value`, `-n value`), or see the same text with `help <tool>`. `-O json|text` chooses the output."), ""]
 for name, fn in sorted(k.REG.items()):
     roles = [r for r, ts in k.ROLES.items() if name in ts]  # the roles that switch it on, and the formats whose server offers it
@@ -28,12 +28,12 @@ for name, fn in sorted(k.REG.items()):
                      for f in ("markdown", "adr", "skos", "asciidoc", "seal-only") if name in k.TIERS[f])]
     out += [f"## {name}", "", f"Role: {', '.join(f'`{r}`' for r in roles)}. Offered by a server for: {', '.join(fmts)}.", "", prose(fn.__doc__), ""]
     if name in k.EXAMPLES:
-        out += ["```sh", *(f"uv run bowerbird_mcp.py {e}" for e in k.EXAMPLES[name]), "```", ""]
+        out += ["```sh", *(f"bowerbird-mcp {k.flag_example(name, e)}" for e in k.EXAMPLES[name]), "```", ""]
     args = [(n, p) for n, p in inspect.signature(fn).parameters.items() if n != "ctx"]
     if args:
-        out += ["| Argument | Type | Default |", "|---|---|---|"]
+        sh = k.short_flags(name, fn)
+        out += ["| Argument | Flag | Type | Default |", "|---|---|---|---|"]
         for n, p in args:
-            ann = (getattr(p.annotation, "__name__", None) or str(p.annotation)).replace("typing.", "").replace(" | ", " or ")
-            out.append(f"| `{n}` | `{ann}` | " + ("required" if p.default is p.empty else f"`{p.default!r}`") + " |")
+            out.append(f"| `{n}` | `{k.flag_text(n, p, sh)}` | `{k.type_text(p).split(', default')[0].removesuffix(', required')}` | " + ("required" if p.default is p.empty else "unset" if p.default is None else f"`{p.default!r}`") + " |")
         out.append("")
 (HERE / "docs-src/tools.md").write_text("\n".join(out))

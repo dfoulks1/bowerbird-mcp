@@ -442,6 +442,7 @@ bowerbird-mcp lint: FAILED: 3 concept(s) in 1 bundle(s) checked, 1 finding(s), c
 
 - [Formats](formats.md): what each kind of collection looks like.
 - [The guide](guide.md): layout, settings, sealing, CI and every setting in `kbmcp.yaml`.
+- [Command line](cli.md): flags, short flags, output and exit codes. Everything above works with no AI at all.
 - [Tools](tools.md): every command, with its arguments and examples.
 - [Troubleshooting](troubleshooting.md): when something does not behave.
 - [OKF](formats/okf.md): what the richest format is and why it is built this way.

@@ -2597,9 +2597,9 @@ def signatures(since: str = "") -> dict:
         if human:
             continue
         if es and len(valid) < len(es):
-            findings.append(flag("stale_signature", key, "edited since it was reviewed", f"review it again: {SIGN} {key}"))
+            findings.append(flag("stale_signature", key, "edited since it was reviewed", f"review it again: {SIGN} {key} --attest"))
         elif any(rx.fullmatch(key) for rx in req) and status not in exempt:
-            findings.append(flag("unsigned", key, "no review by a human", f"a human reviews it: {SIGN} {key}"))
+            findings.append(flag("unsigned", key, "no review by a human", f"a human reviews it: {SIGN} {key} --attest"))
         elif status.startswith("accepted"):
             findings.append(flag("claims_accepted", key, "its status says accepted, but no human reviewed it", f"{SIGN} {key}"))
     if fmt != "okf" and keep is None:  # a file reviewed by path, outside the format's own files: still checked for edits, or a gone file
@@ -2609,7 +2609,7 @@ def signatures(since: str = "") -> dict:
             if text is None:
                 findings.append(flag("orphan_signature", key, f"{LEDGER} has a review of a file that is gone", f"delete its line in {LEDGER}, or keep it with the file by using move", "warning"))
             elif not reviews({}, key, text, ledger)[1]:
-                findings.append(flag("stale_signature", key, "edited since it was reviewed", f"review it again: {SIGN} {key}"))
+                findings.append(flag("stale_signature", key, "edited since it was reviewed", f"review it again: {SIGN} {key} --attest"))
     return {"tool": "seal", "ok": not any(f["severity"] == "error" for f in findings), "files_checked": n,
             "total": len(findings), "findings": findings}
 
@@ -3676,7 +3676,7 @@ def help_text(full: bool) -> str:
             out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
     out += ["  help all       every command" if not full else "",
             "  help <tool>    its arguments and examples", "",
-            "Arguments are name=value (lists a,b or JSON), e.g. lint scope=okf output=github.",
+            "Arguments are name=value (lists a,b or JSON) or flags: lint scope=okf output=github is lint -s okf -O github.",
             "--attest records you as a human: terminal only, the MCP server cannot."]
     return "\n".join(ln for i, ln in enumerate(out) if ln or i == 0 or out[i - 1]).rstrip()
 
@@ -3693,23 +3693,82 @@ SHORTS = {  # pinned short flags for the daily commands: these never change, so 
     "links": {"file": "f", "bundle": "B"}}  # every other command: the first free letter of each argument (a, then A), by its order, so do not rely on those
 
 
+def short_flags(name: str, fn) -> dict:
+    """argument -> its one-letter flag: the pinned ones, then the first free letter of each other argument, in order."""
+    used = {"h", "F", "O", *SHORTS.get(name, {}).values()}
+    short = dict(SHORTS.get(name, {}))
+    for k in inspect.signature(fn).parameters:
+        pick = next((c for c in (k[0], k[0].upper()) if c not in used), None)
+        if k != "ctx" and k not in short and pick:
+            short[k] = pick
+            used.add(pick)
+    return short
+
+
+def unopt(ann):
+    """`X | None` as X."""
+    if typing.get_origin(ann) in (typing.Union, types.UnionType):
+        rest = [a for a in typing.get_args(ann) if a is not type(None)]
+        return rest[0] if len(rest) == 1 else ann
+    return ann
+
+
+def type_text(p) -> str:
+    """A parameter's type and default as a person reads them: `bool`, `list (a,b)`, `int, default 100`, `str, required`."""
+    a = unopt(p.annotation)
+    base = typing.get_origin(a) or a
+    t = "list (a,b)" if base is list else "json object" if base is dict else getattr(base, "__name__", str(base))
+    return t + (", required" if p.default is p.empty else "" if p.default is None else f", default {p.default!r}")
+
+
+def flag_text(k: str, p, short: dict) -> str:
+    """How a person types one argument: `-f, --file FILE`, `-p, --promote` for a bool, `-a, --all, --no-all` for a bool that
+    can also be unset (all=false means something)."""
+    long = k.replace("_", "-")
+    if unopt(p.annotation) is bool:
+        names = [f"--{long}"] + ([f"--no-{long}"] if p.annotation is not bool else [])
+    else:
+        names = [f"--{long} {k.upper()}"]
+    return ", ".join(([f"-{short[k]}"] if k in short else []) + names)
+
+
+def flag_example(name: str, example: str) -> str:
+    """An EXAMPLES line (name=value) as a person types it, in long flags: `--apply`, `--bundle eng`, `-O text`. Words that
+    are not arguments of the tool (frontmatter on `set`) and `--attest` are kept as they are."""
+    import shlex
+    params = {k: p for k, p in inspect.signature(REG[name]).parameters.items() if k != "ctx"}
+    words, flags, attest = [], [], False
+    for w in shlex.split(example)[1:]:
+        k, eq, v = w.partition("=")
+        if w == "--attest":
+            attest = True
+        elif eq and k == "output":
+            flags += ["-O", v]
+        elif eq and k in params:
+            flags += [f"--{k.replace('_', '-')}"] + ([] if params[k].annotation is bool and v == "true" else [v])
+        else:
+            words.append(w)
+    return " ".join(shlex.quote(t) if t != "-O" and not t.startswith("--") else t for t in [name, *words, *flags]) + (" --attest" if attest else "")
+
+
+def p_opt(p) -> bool:
+    return unopt(p.annotation) is bool and p.annotation is not bool
+
+
 def flags_to_words(name: str, fn, rest: list) -> list:
     """Argparse for humans: turns --flags and short flags (-cp, -t markdown, --about "x") into the name=value words the
     shim below already understands, so there is one code path and name=value keeps working beside it."""
     import argparse
     params = {k: p for k, p in inspect.signature(fn).parameters.items() if k != "ctx"}
-    used = {"h", "F", "O", *SHORTS.get(name, {}).values()}
-    short = dict(SHORTS.get(name, {}))
-    for k in params:
-        pick = next((c for c in (k[0], k[0].upper()) if c not in used), None)
-        if k not in short and pick:
-            short[k] = pick
-            used.add(pick)
+    short = short_flags(name, fn)
     ap = argparse.ArgumentParser(prog=f"bowerbird-mcp {name}", description=one_line(fn, 200), allow_abbrev=False)  # a destructive tool takes no guesses
     for k, p in params.items():
         names = ([f"-{short[k]}"] if k in short else []) + [f"--{k.replace('_', '-')}"]
-        if p.annotation is bool:
-            ap.add_argument(*names, dest=k, action="store_true")
+        if unopt(p.annotation) is bool:
+            if p.annotation is bool:
+                ap.add_argument(*names, dest=k, action="store_true")
+            else:  # bool | None: --all is true, --no-all is false, neither leaves it unset
+                ap.add_argument(*names, dest=k, action=argparse.BooleanOptionalAction, default=None)
         else:
             ap.add_argument(*names, dest=k, metavar=k.upper())
     ap.add_argument("-O", "--output", "-F", "--format", dest="output", metavar="OUTPUT", help="text, json, github or sarif")
@@ -3720,6 +3779,8 @@ def flags_to_words(name: str, fn, rest: list) -> list:
         v = getattr(ns, k)
         if v is True:
             out.append(f"{k}=true")
+        elif v is False and k in params and p_opt(params[k]):
+            out.append(f"{k}=false")
         elif v not in (None, False):
             out.append(f"{k}={v}")
     return out
@@ -3760,14 +3821,14 @@ def cli(argv) -> int:
             ["help"], ["-h"], ["--help"]):
         n = argv[1] if argv[0] in ("help", "-h", "--help") else argv[0]
         f = REG[n]
-        print(f"{n}: {inspect.cleandoc(f.__doc__ or '')}\n\nArguments:")
+        print(f"{n}: {inspect.cleandoc(f.__doc__ or '')}\n\nArguments (the flag, or the same as name=value):")
+        sh = short_flags(n, f)
         for k, p in inspect.signature(f).parameters.items():
             if k != "ctx":
-                ann = getattr(p.annotation, "__name__", None) or str(p.annotation).replace("typing.", "")
-                print(f"  {k}: {ann}" + ("  (required)" if p.default is p.empty else f" = {p.default!r}"))
+                print(f"  {flag_text(k, p, sh):<26} {type_text(p)}")
         if n in EXAMPLES:
-            print("\nExamples:\n" + "\n".join(f"  bowerbird-mcp {e}" for e in EXAMPLES[n]))
-        print("\noutput=json|text (any tool; text prints diffs as is); lint also github|sarif. `format=` also works.")
+            print("\nExamples:\n" + "\n".join(f"  bowerbird-mcp {flag_example(n, e)}" for e in EXAMPLES[n]))
+        print("\n-O, --output text|json (lint also github|sarif). name=value works too.")
         return 0
     if argv[0] not in REG:
         asked = argv[0] in ("help", "-h", "--help")

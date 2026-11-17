@@ -578,7 +578,13 @@ assert cli("move", "bare.md", "bare2.md", "apply=true")[0] == 0 and (kb / "bare2
 (kb / "bare2.md").unlink()
 assert set(k.EXAMPLES) == set(k.REG)  # every tool has an example
 code, out = cli("help", "move")
-assert code == 0 and "to: str  (required)" in out and cli("move", "--help")[1] == out
+assert code == 0 and "-t, --to TO" in out and "str, required" in out and cli("move", "--help")[1] == out
+import shlex  # every example, typed as flags, means what its name=value form means; `-a` is a bare switch, not `-a VALUE`
+for n, exs in k.EXAMPLES.items():
+    for e in exs:
+        fl = [w for w in shlex.split(k.flag_example(n, e))[1:] if w != "--attest"]
+        assert set(k.flags_to_words(n, k.REG[n], fl)) == {w for w in shlex.split(e)[1:] if w != "--attest"}, (n, e)
+assert k.flags_to_words("lint", k.REG["lint"], ["-a"]) == ["all=true"] and k.flags_to_words("lint", k.REG["lint"], ["--no-all"]) == ["all=false"]
 c1, o1 = cli("bundles", "output=text")
 c2, o2 = cli("bundles", "format=text")  # the older name for output still works
 assert c1 == c2 == 0 and o1 == o2 and not o1.lstrip().startswith("{"), (o1, o2)
