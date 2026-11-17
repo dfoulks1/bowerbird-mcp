@@ -1,6 +1,9 @@
 # Changelog
 
-## 2.1.0 (unreleased)
+## 2.0.1 (2026-11-17)
+
+The command-line ergonomics and mixed-format collections. **One behaviour changes for anyone who nests collections:** a
+`kbmcp.yaml` in a subfolder is now an override of the one above it, not a separate collection (see Changed).
 
 ### Added
 - Mixed formats: a `kbmcp.yaml` in a folder overrides the one above it for that folder and everything under it, the

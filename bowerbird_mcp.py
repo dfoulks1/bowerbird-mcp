@@ -363,7 +363,7 @@ def kb_user() -> str:
     return os.environ.get("KB_USER") or str(CFG.get("user") or "")
 
 
-VERSION = "2.0.0"  # keep equal to `version` in pyproject.toml (a test checks)
+VERSION = "2.0.1"  # keep equal to `version` in pyproject.toml (a test checks)
 OKF_VERSION = "0.2"
 RESERVED = ("index.md", "log.md")  # §3.1
 ARCHIVE = "archive"  # archive/: a collection within the collection, read-only, set apart from the live one
