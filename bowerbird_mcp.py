@@ -3772,7 +3772,7 @@ def help_text(full: bool) -> str:
     for g, ns in rows:
         if ns:
             out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
-    out += ["  serve [port]   browse the collection in a browser, in the background (26937; `serve stop` ends it; needs bowerbird[serve])",
+    out += ["  serve [port]   browse the collection in a browser, in the background (26937; `serve stop` ends it; needs bowerbird-mcp[serve])",
             "  help all       every command" if not full else "",
             "  help <tool>    its arguments and examples", "",
             "Arguments are name=value (lists a,b or JSON) or flags: lint scope=okf output=github is lint -s okf -O github.",

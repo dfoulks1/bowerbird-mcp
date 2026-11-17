@@ -59,7 +59,7 @@ bowerbird serve 8080     # another port
 bowerbird serve stop     # end the background server (add the port if it is not 26937)
 ```
 
-It needs the `serve` extra: `pip install 'bowerbird[serve]'`, or `uvx --from 'bowerbird[serve]' bowerbird serve`.
+It needs the `serve` extra: `pip install 'bowerbird-mcp[serve]'`, or `uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve`.
 Keys: `/` search, `n`/`p` next/previous unsealed page, `j`/`k` next/previous page, `t` theme (system, light, dark).
 
 ## Output

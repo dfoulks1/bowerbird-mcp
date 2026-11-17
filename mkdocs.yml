@@ -60,9 +60,10 @@ markdown_extensions:
         - ..
       check_paths: true
 
-# AI source material lives in docs-src/prompts/ for the repository, not for the website.
+# AI source material and the release steps live in docs-src/ for the repository, not for the website.
 exclude_docs: |
   prompts/
+  releasing.md
   kbmcp.yaml
   .waxseals.yaml
   .env

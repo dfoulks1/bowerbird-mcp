@@ -8,11 +8,11 @@
   port). A folder tree, ranked search (`/`, the same passages the tools return, semantic when `kbmcp.yaml` turns it on),
   an outline and backlinks per page, and a badge on each page: sealed, unsealed, or seal broken by edit, checked by
   the same hash and ledger as `seal check=true`. Light, dark or system theme (`t`). It rereads the files on every
-  request and never writes a seal. Needs the optional extra: `pip install 'bowerbird[serve]'`.
+  request and never writes a seal. Needs the optional extra: `pip install 'bowerbird-mcp[serve]'`.
 
 ### Changed
-- The package is now `bowerbird` on PyPI, so `uvx bowerbird` works. `bowerbird-mcp` stays as a command, so existing
-  MCP configs keep working. Installs of the old `bowerbird-mcp` name are still recognised by `--version`.
+- `bowerbird` is a second command for the same tool (`bowerbird serve`); `bowerbird-mcp` is unchanged. The package
+  is still `bowerbird-mcp` on PyPI.
 
 ## 2.0.1 (2026-11-17)
 
