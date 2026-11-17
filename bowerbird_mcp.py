@@ -3681,6 +3681,41 @@ def help_text(full: bool) -> str:
     return "\n".join(ln for i, ln in enumerate(out) if ln or i == 0 or out[i - 1]).rstrip()
 
 
+SHORTS = {"init": {"holds": "t", "about": "a"}}  # chosen short flags; the rest take their first free letter (a, then A), or none
+
+
+def flags_to_words(name: str, fn, rest: list) -> list:
+    """Argparse for humans: turns --flags and short flags (-cp, -t markdown, --about "x") into the name=value words the
+    shim below already understands, so there is one code path and name=value keeps working beside it."""
+    import argparse
+    params = {k: p for k, p in inspect.signature(fn).parameters.items() if k != "ctx"}
+    used = {"h", "o", *SHORTS.get(name, {}).values()}
+    short = dict(SHORTS.get(name, {}))
+    for k in params:
+        pick = next((c for c in (k[0], k[0].upper()) if c not in used), None)
+        if k not in short and pick:
+            short[k] = pick
+            used.add(pick)
+    ap = argparse.ArgumentParser(prog=f"bowerbird-mcp {name}", description=one_line(fn, 200))
+    for k, p in params.items():
+        names = ([f"-{short[k]}"] if k in short else []) + [f"--{k.replace('_', '-')}"]
+        if p.annotation is bool:
+            ap.add_argument(*names, dest=k, action="store_true")
+        else:
+            ap.add_argument(*names, dest=k, metavar=k.upper())
+    ap.add_argument("-o", "--output", metavar="OUTPUT", help="text, json, github or sarif")
+    ap.add_argument("words", nargs="*", help="name=value, or a bare argument")
+    ns = ap.parse_intermixed_args(rest)
+    out = list(ns.words)
+    for k in (*params, "output"):
+        v = getattr(ns, k)
+        if v is True:
+            out.append(f"{k}=true")
+        elif v not in (None, False):
+            out.append(f"{k}={v}")
+    return out
+
+
 def at_terminal() -> bool:
     return sys.stdin.isatty()
 
@@ -3730,6 +3765,11 @@ def cli(argv) -> int:
         print(help_text(asked and argv[1:] == ["all"]))
         return 0 if asked else 2
     fn = REG[argv[0]]
+    if any(a.startswith("-") for a in argv[1:]):  # --flags and short flags: a human's way in; name=value is the same thing
+        try:
+            argv = [argv[0], *flags_to_words(argv[0], fn, argv[1:])]
+        except SystemExit as e:  # argparse already printed its message
+            return e.code or 0
     params = {k: p for k, p in inspect.signature(fn).parameters.items() if k != "ctx"}
     args, fmt = {}, "text" if out_terminal() else "json"  # a person gets text; a pipe, CI or script gets JSON
     try:

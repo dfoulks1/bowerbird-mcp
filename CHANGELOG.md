@@ -2,6 +2,11 @@
 
 ## 2.1.0 (unreleased)
 
+### Added
+- The command line takes `--flags` and short flags (`init -t markdown -a "Docs" --apply`, `seal -cp`), with
+  `-h` per command and `-o` for output. They are turned into the same `name=value` arguments, which still work
+  everywhere, so CI and agents are unaffected. `--attest` is unchanged.
+
 ### Changed
 - `help` is short and grouped (knowledge, retrieval, verification) and shows only the commands the collection's format
   has; `help all` lists every command. Examples print `bowerbird-mcp`, not `uv run bowerbird_mcp.py`.

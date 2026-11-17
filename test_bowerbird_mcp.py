@@ -563,9 +563,13 @@ short, full = cli("help")[1], cli("help", "all")[1]
 assert "seal" in short and "create" not in short and "create" in full and "bowerbird-mcp (format: markdown)" in short
 k.OPTS["format"] = fmt0
 assert cli("nope")[0] == 2
+assert k.flags_to_words("seal", k.REG["seal"], ["-cp"]) == ["promote=true", "check=true"]  # combined short flags
+assert sorted(k.flags_to_words("init", k.REG["init"], ["-t", "markdown", "-a", "Docs", "--apply"])) == ["about=Docs", "apply=true", "holds=markdown"]
+assert cli("bundles", "-o", "text")[1] == cli("bundles", "output=text")[1] and cli("lint", "--nope")[0] == 2
 (kb / "bare.md").write_text("---\ntype: x\n---\n")
 assert cli("set", "bare.md", "status=draft", "tags=[a, b]", "apply=true")[0] == 0  # frontmatter as key=value
 assert k.meta((kb / "bare.md").read_text())[0] | {} == {"type": "x", "status": "draft", "tags": ["a", "b"]}
+assert cli("set", "bare.md", "status=stable", "--apply")[0] == 0 and k.meta((kb / "bare.md").read_text())[0]["status"] == "stable"  # a flag beside name=value
 assert cli("move", "bare.md", "bare2.md", "apply=true")[0] == 0 and (kb / "bare2.md").exists()  # bare arguments
 (kb / "bare2.md").unlink()
 assert set(k.EXAMPLES) == set(k.REG)  # every tool has an example
