@@ -7,6 +7,9 @@
   and the Seal modal. A binary or over-512 KB file is not listed or shown (the command line still seals it).
 - New extra `syntax` (`bowerbird-mcp[serve,syntax]`): pygments colours code by file name, with a light and a dark set.
   Without it a file shows as plain numbered text.
+- A fourth seal state, `derived`: a file a `!` glob in `seal.require` leaves out (a page or a non-markdown file built from
+  the code) is badged "derived from the code" in `serve`, with no Seal button, no stop for `n`/`p`, and a refusal if a seal
+  is posted for it. New `derived(path)` and `derived_files()` in `bowerbird_mcp.py`; `seal check` is unchanged.
 - `/` shows the shell (tree, search, empty panes) when the root has no `index.md`, not a directory listing.
 
 ### Fixed

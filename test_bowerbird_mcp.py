@@ -1573,9 +1573,10 @@ else:
 
     # serve over a seal-only collection: hidden files and links are 404 (GET and HEAD), and `/` is a shell without an index.md
     prev_ = (k.KB_ROOT, k.OPTS["format"], dict(k.OPTS["seal"]))
-    so_ = mixed("seal-only", {"kbmcp.yaml": 'format: seal-only\nseal: {require: ["src/**/*.py"]}\n', ".env": "SECRET=1\n",
+    so_ = mixed("seal-only", {"kbmcp.yaml": 'format: seal-only\nseal: {require: ["src/**/*.py", "docs/*.md", "!docs/gen.md", "!src/gen_*.py"]}\n', ".env": "SECRET=1\n",
+                              "docs/gen.md": "# Generated\n\nBuilt from the code.\n", "docs/hand.md": "# Hand\n\nWritten by a person.\n",
                               ".waxseals.yaml": "[]\n", "sub/.hidden": "x\n", "sub/ok.txt": "fine\n", "src/app.py": "def add(a, b):\n    return a + b\n"})
-    k.OPTS["seal"] = {"require": ["src/**/*.py"], "exempt_status": []}
+    k.OPTS["seal"] = {"require": ["src/**/*.py", "docs/*.md", "!docs/gen.md", "!src/gen_*.py"], "exempt_status": []}
     (so_ / "src/blob.py").write_bytes(b"\xff\xfe\x00")
     (so_ / "src/big.py").write_text("x = 1\n" * 100_000)  # over the 512 KB cap
     (so_ / "link.py").symlink_to(so_ / "src/app.py")
@@ -1601,6 +1602,19 @@ else:
     st_, pg_, _ = hit("GET", "/src/app.py")
     assert st_ == 200 and "<dialog id=seal>" in pg_ and "Seal src/app.py" in pg_ and "unsealed" in pg_ and "✎" not in pg_  # no editor for code
     assert hit("GET", "/src/blob.py")[0] == 404 and hit("GET", "/src/big.py")[0] == 404  # not shown; the CLI still covers them
+    # derived from the code (a `!` glob in seal.require): a fourth state, with nothing to seal
+    assert k.derived(so_ / "docs/gen.md") and not k.derived(so_ / "docs/hand.md") and not k.derived(so_ / "src/app.py")
+    assert 'data-seal="derived"' in home_ and 'data-seal="unsealed"' in home_
+    gen_ = hit("GET", "/docs/gen.md")[1]
+    assert "derived from the code" in gen_ and "<dialog id=seal>" not in gen_ and "Seal…" not in gen_
+    assert "<dialog id=seal>" in hit("GET", "/docs/hand.md")[1]  # a page the policy requires still has its modal
+    (so_ / "src/gen_tbl.py").write_text("T = {}\n")  # a non-markdown file built from the code: shown, marked, never sealed
+    st_, gp_, _ = hit("GET", "/src/gen_tbl.py")
+    assert k.derived(so_ / "src/gen_tbl.py") and st_ == 200 and "derived from the code" in gp_ and "<dialog id=seal>" not in gp_ and "Seal…" not in gp_
+    assert "gen_tbl.py" not in [p.name for p in k.sealonly_files()] and "gen_tbl.py" in [p.name for p in k.derived_files()]
+    tok_ = re.search(r'name=_t value="([^"]+)"', home_).group(1)
+    st_, body_, _ = hit("POST", "/_seal", {"_t": tok_, "file": "docs/gen.md", "confirm": "on", "reviewer": "you", "sha": "x"})
+    assert st_ == 400 and "derived from the code" in body_  # refused: no seal is recorded for it
     try:
         import pygments  # noqa: F401
     except ImportError:

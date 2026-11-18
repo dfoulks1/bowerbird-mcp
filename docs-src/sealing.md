@@ -99,6 +99,10 @@ seal: {require: ["**"], exempt_status: [proposed, draft]}
 `require` is a list of globs, and a leading `/` anchors one at the collection root. `exempt_status` lets a proposal be committed
 before it is reviewed.
 
+A glob that starts with `!` takes files back out of `require`: `require: ["src/**/*.py", "!src/gen_*.py"]`. Such a file is
+**derived from the code** (a tool list, a generated table, markdown or not). Nothing a person could review is in it, so
+`seal check` skips it and `serve` badges it "derived from the code" and offers no Seal button.
+
 ## Enforcing it
 
 A pre-commit hook:

@@ -44,7 +44,7 @@ server, so you never have to hunt for the process.
 ## What you see
 
 - **Left:** the folder tree of the whole collection, with a dot on each page for its seal state (green sealed, amber
-  unsealed, red broken by an edit). Every folder ends in **+ New file**. Under the root are **Lint all** and **Tags**.
+  unsealed, red broken by an edit, grey derived from the code and so never sealed). Every folder ends in **+ New file**. Under the root are **Lint all** and **Tags**.
 - **Middle:** the page, with a badge saying who sealed it and when, or that it is unsealed or edited since review.
 - **Right:** a pencil (edit) and a gear (Move, Delete, Seal), then the page's outline, the pages that link to it and the
   pages it links to.

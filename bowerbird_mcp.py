@@ -2635,27 +2635,50 @@ def policy_rx(globs: list) -> list:
 _POLICY = {}
 
 
-def seal_policy(p) -> tuple:
-    """(folder, regexes, exempt statuses) of the seal policy in force for p: the nearest kbmcp.yaml that sets `seal`, else the
-    root's. Its globs start at that folder."""
+def policy_for(p) -> tuple:
+    """(folder, seal settings) in force for p: the nearest kbmcp.yaml that sets `seal`, else the root's."""
     d, pol, q = KB_ROOT, OPTS["seal"], Path(os.path.abspath(p))
     for sd, c in scopes():
         if "seal" in c and (sd == q or sd in q.parents):
             d, pol = sd, c["seal"]
-    pol = {**DEFAULTS["seal"], **pol}
+    return d, {**DEFAULTS["seal"], **pol}
+
+
+def derived(p) -> bool:
+    """Is p taken back out of the review policy by a `!` glob in `seal.require`, as a page built from the code is? It needs no
+    review, so seal has nothing to record for it."""
+    d, pol = policy_for(p)
+    out = [g[1:] for g in pol["require"] if g.startswith("!")]
+    return bool(out) and any(rx.fullmatch(os.path.relpath(p, d)) for rx in policy_rx(out))
+
+
+def seal_policy(p) -> tuple:
+    """(folder, regexes, exempt statuses) of the seal policy in force for p: the nearest kbmcp.yaml that sets `seal`, else the
+    root's. Its globs start at that folder."""
+    d, pol = policy_for(p)
     key = (d, json.dumps(pol, sort_keys=True))
     if key not in _POLICY:
         _POLICY[key] = (policy_rx(pol["require"]), {x.lower() for x in pol["exempt_status"]})
     return (d, *_POLICY[key])
 
 
-def sealonly_files() -> list:
-    """The files in seal-only folders that those folders' `seal.require` globs match (the ledger, kbmcp.yaml and .env are never
-    reviewed this way; git-ignored files are skipped)."""
+def seal_only(want) -> list:
+    """Files in seal-only folders that want(p) accepts (the ledger, kbmcp.yaml and .env are never reviewed this way;
+    git-ignored files are skipped)."""
     if "seal-only" not in formats_in_use():
         return []
     return [p for p in walk(KB_ROOT, "*") if os.path.relpath(p, KB_ROOT) not in (LEDGER, CONFIG, ".env") and p.name != CONFIG
-            and fmt_of(p) == "seal-only" and any(rx.fullmatch(os.path.relpath(p, seal_policy(p)[0])) for rx in seal_policy(p)[1])]
+            and fmt_of(p) == "seal-only" and want(p)]
+
+
+def sealonly_files() -> list:
+    """The files in seal-only folders that those folders' `seal.require` globs match."""
+    return seal_only(lambda p: any(rx.fullmatch(os.path.relpath(p, seal_policy(p)[0])) for rx in seal_policy(p)[1]))
+
+
+def derived_files() -> list:
+    """The files in seal-only folders that a `!` glob in `seal.require` marks as built from the code (see `derived`)."""
+    return seal_only(derived)
 
 
 def signatures(since: str = "") -> dict:

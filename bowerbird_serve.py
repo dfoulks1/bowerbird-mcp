@@ -47,7 +47,7 @@ main{padding:1rem 0;min-width:0}h1{margin-top:.2rem}table{border-collapse:collap
 td,th{border:1px solid var(--line);padding:.25rem .5rem;vertical-align:top}code,pre{background:var(--line);border-radius:3px}code{padding:0 .2rem}pre{padding:.6rem;overflow:auto}pre code{background:none}
 .meta{color:var(--mut);font-size:13px;border:1px solid var(--line);border-radius:6px;padding:.4rem .7rem;margin-bottom:1rem}
 .b{display:inline-block;padding:0 .4rem;border-radius:9px;border:1px solid currentColor;font-size:12px;margin-right:.3rem}
-.sealed{color:var(--ok)}.broken-seal{color:var(--bad)}.unsealed{color:var(--warn)}a.broken{color:var(--bad);text-decoration:line-through}
+.sealed{color:var(--ok)}.derived{color:var(--mut)}.broken-seal{color:var(--bad)}.unsealed{color:var(--warn)}a.broken{color:var(--bad);text-decoration:line-through}
 aside h4{margin:.8rem 0 .2rem;color:var(--mut);text-transform:uppercase;font-size:11px}aside ul{margin:0;padding-left:1rem}
 input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}
 #top{position:sticky;top:0;z-index:5;display:flex;gap:.5rem;align-items:center;height:3rem;padding:0 1rem;background:var(--bg);border-bottom:1px solid var(--line)}
@@ -56,7 +56,7 @@ input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px s
 #crumbs{color:var(--mut);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}#crumbs a{color:var(--mut)}
 #sw{position:relative;width:24rem;display:flex;gap:.3rem}#sw select{width:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}#res{display:none;position:absolute;top:2.2rem;left:0;right:0;z-index:7;background:var(--bg);border:1px solid var(--line);border-radius:6px;max-height:70vh;overflow:auto;box-shadow:0 6px 20px #0004}
 #res a{display:block;padding:.3rem .6rem;text-decoration:none;color:var(--fg)}#res a.sel,#res a:hover{background:var(--acc);color:#fff}#res small{color:inherit;opacity:.7}
-.dot{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.35rem;background:var(--warn)}.dot.sealed{background:var(--ok)}.dot.broken-seal{background:var(--bad)}
+.dot{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.35rem;background:var(--warn)}.dot.sealed{background:var(--ok)}.dot.derived{background:var(--line)}.dot.broken-seal{background:var(--bad)}
 aside li.act>a{font-weight:700}kbd{border:1px solid var(--line);border-radius:3px;padding:0 .3rem;font-size:12px}.dot.none{background:var(--line)}
 .diff .a{color:var(--ok)}.diff .d{color:var(--bad)}nav a.new{color:var(--mut);font-size:12px}.menu{position:relative}.menu summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:.15rem .6rem}.menu summary::-webkit-details-marker{display:none}
 .menu div{position:absolute;right:0;z-index:6;min-width:9rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px #0004;padding:.2rem}.menu div a,.menu div button{display:block;width:100%;text-align:left;border:0;padding:.3rem .6rem;background:none;color:var(--fg);font:inherit;cursor:pointer;text-decoration:none}.menu div a:hover,.menu div button:hover{background:var(--acc);color:#fff}
@@ -85,7 +85,7 @@ q.onkeydown=e=>{const a=$$('a[href]',res);if(e.key==='ArrowDown'||e.key==='Arrow
  else if(e.key==='Enter'){e.preventDefault();location=sel>=0?a[sel].href:'/_search?mode='+md.value+'&q='+encodeURIComponent(q.value)}else if(e.key==='Escape'){res.style.display='none';q.blur()}};
 document.addEventListener('click',e=>{if(!e.target.closest('#sw'))res.style.display='none';$$('details.menu[open]').forEach(m=>{if(!m.contains(e.target))m.open=false})});
 const links=$$('nav a[data-seal]'), cur=links.findIndex(a=>a.classList.contains('cur'));
-const jump=(d,unsealed)=>{for(let i=1;i<=links.length;i++){const a=links[(cur+d*i+links.length*2)%links.length];if(!unsealed||a.dataset.seal!=='sealed'){location=a.href;return}}};
+const jump=(d,unsealed)=>{for(let i=1;i<=links.length;i++){const a=links[(cur+d*i+links.length*2)%links.length];if(!unsealed||!['sealed','derived'].includes(a.dataset.seal)){location=a.href;return}}};
 document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;
  if(e.key==='/'){e.preventDefault();q.focus()}else if(e.key==='t')$('#theme').click();else if(e.key==='n')jump(1,true);else if(e.key==='p')jump(-1,true);else if(e.key==='j')jump(1,false);else if(e.key==='k')jump(-1,false);else if(e.key==='['){history.back()}else if(e.key===']'){history.forward()}});
 const heads=$$('main h2[id],main h3[id]'), tl=new Map($$('aside a[href^="#"]').map(a=>[a.getAttribute('href').slice(1),a]));
@@ -171,11 +171,13 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             es, valid = kb.reviews(d, key, text, ledger)
             last = (valid or es or [{}])[-1]
             docs[key] = {"title": kb.title_of(d, text, p), "meta": d, "fm": kb.meta(text)[0] is not None, "body": kb.split(text)[1],
-                         "state": "unsealed" if not es else "sealed" if valid else "broken-seal",
+                         "state": "derived" if kb.derived(p) else "unsealed" if not es else "sealed" if valid else "broken-seal",
                          "by": last.get("by", ""), "at": last.get("at", "")}
-        for p in kb.sealonly_files():  # seal-only files: a page each, read-only, state from the ledger
+        for p, made in [(q, False) for q in kb.sealonly_files()] + [(q, True) for q in kb.derived_files()]:  # seal-only files: a page each, read-only; derived ones are marked, not sealed
             rel = p.relative_to(ROOT)
             key = rel.as_posix()
+            if made and key in docs:
+                continue
             if p.is_symlink() or any(part.startswith(".") for part in rel.parts):  # sealable from the CLI, not shown here
                 continue
             text = kb.read(p) if p.stat().st_size <= MAXSIZE else None
@@ -185,7 +187,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             es, valid = kb.reviews({}, key, text, ledger)
             last = (valid or es or [{}])[-1]
             docs[key] = {"title": key, "meta": {}, "fm": False, "body": "", "code": True, "text": text,
-                         "state": "unsealed" if not es else "sealed" if valid else "broken-seal",
+                         "state": "derived" if made else "unsealed" if not es else "sealed" if valid else "broken-seal",
                          "by": last.get("by", ""), "at": last.get("at", "")}
         SKIP[0] = skip  # one assignment, so a request in another thread never sees it half built
         return docs
@@ -222,7 +224,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             return None
 
     def badge(d):
-        word = {"sealed": "sealed", "broken-seal": "seal broken by edit", "unsealed": "unsealed"}[d["state"]]
+        word = {"sealed": "sealed", "broken-seal": "seal broken by edit", "unsealed": "unsealed", "derived": "derived from the code"}[d["state"]]
         who = f" {esc(str(d['by']))} {esc(str(d['at']))}" if d["by"] else ""
         return f'<span class="b {d["state"]}">{word}</span>{who}'
 
@@ -509,6 +511,8 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             return "not confirmed; nothing written"
         if not rid or re.search(r"\s", rid):
             raise ValueError("reviewer id is empty or has spaces | fix: confirm again with your id")
+        if kb.derived(ROOT / key):
+            raise ValueError(f"{key} is derived from the code | fix: nothing to review; a `!` glob in seal.require leaves it out")
         f, b = tfile(key)
         decision = form.get("decision", [""])[0]
         with LOCK:
@@ -746,9 +750,10 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             if rel in docs and docs[rel].get("code"):
                 d = docs[rel]
                 head = f'<div class=meta>{badge(d)}<br><small>{esc(rel)}</small></div>'
-                bar = ('<div class=bar><details class=menu><summary title="seal" aria-label="more">⚙</summary><div>'
-                       '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button></div></details></div>')
-                return self.send_bytes(page(rel, nav(docs, rel), head + code_html(rel, d["text"]) + seal_dialog(rel), bar, rel))
+                made = d["state"] == "derived"  # built from the code: nothing for a person to seal
+                bar = "" if made else ('<div class=bar><details class=menu><summary title="seal" aria-label="more">⚙</summary><div>'
+                                       '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button></div></details></div>')
+                return self.send_bytes(page(rel, nav(docs, rel), head + code_html(rel, d["text"]) + ("" if made else seal_dialog(rel)), bar, rel))
             if rel in docs:
                 d = docs[rel]
                 md = markdown.Markdown(extensions=["tables", "fenced_code", "toc"], extension_configs={"toc": {"toc_depth": "2-3"}})
@@ -773,13 +778,14 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     f'<li><a href="{href(x)}" class="{"" if x in docs or (ROOT / x).exists() else "broken"}">{esc(docs[x]["title"][:40] if x in docs else x)}</a></li>' for x in xs) + "</ul>") if xs else "<small>none</small>"
                 right = f'<h4>On this page</h4>{md.toc}<h4>Linked from ({len(back)})</h4>{lst(back)}<h4>Links to ({len(out)})</h4>{lst(out)}'
                 tf, tb = tfile(rel)
+                made = d["state"] == "derived"  # built from the code: nothing for a person to seal
                 bar = (f'<div class=bar><a href="/_edit?f={uq(rel)}" title="edit" aria-label="edit">✎</a>'
                        f'<details class=menu><summary title="move, delete, seal" aria-label="more">⚙</summary><div>'
                        f'<a href="/_tool/move?file={uq(tf)}&bundle={uq(tb)}">Move</a><a href="/_delete?f={uq(rel)}">Delete</a>'
-                       f'<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button></div></details></div>')
+                       + ("" if made else '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button>') + '</div></details></div>')
                 tags = (post("/_settags", hidden({"file": rel}) + f'<label>tags <small>(comma separated)</small><input name=tags value="{esc(", ".join(map(str, meta.get("tags") or [])) if isinstance(meta.get("tags"), list) else "")}"></label>', "Set tags")
                         if d["fm"] else "")  # any page with frontmatter can carry tags, whatever its format
-                return self.send_bytes(page(d["title"], nav(docs, rel), head + htm + seal_dialog(rel) + tags, bar + right, rel))
+                return self.send_bytes(page(d["title"], nav(docs, rel), head + htm + ("" if made else seal_dialog(rel)) + tags, bar + right, rel))
             if not rel:  # no root index.md: the shell, with nothing in the reading or details panes
                 return self.send_bytes(page(ROOT.name, nav(docs, ""), "<p><small>Pick a file from the tree, or search.</small></p>"))
             super().do_GET()
