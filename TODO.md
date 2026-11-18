@@ -12,6 +12,23 @@ Ideas for later:
       extra `syntax = ["pygments"]` (`bowerbird-mcp[serve,syntax]`); per-language extras only if a pack adds a tool (ruff, golangci-lint).
       Open: stop `SimpleHTTPRequestHandler` serving dotfiles such as `.env` (the listing links them); skip binary and huge files.
 
+## 2.2.0
+
+Full notes, and the questions still open: `docs-src/prompts/02-release-2.2.0.md`.
+
+- [ ] Remove the old `kb` / KnowledgeBaseMCP naming everywhere: docs (`kb` alias and `kb <tool>` examples), internal names,
+      `kbmcp.yaml` to `bowerbird.yaml`, `KB_*` env vars to `BOWERBIRD_*`. Keep the old names working (with a warning) for a
+      version or two, and keep reading the `kb-index` marker.
+- [ ] Make semantic search an extra (`bowerbird-mcp[semantic]`), so the base install drops `fastembed` (about 150 MB).
+- [ ] Record "derived from the code" in the seal ledger (`.waxseals.yaml`, by a generator, not a person), instead of
+      guessing from `!` globs in `seal.require`. `serve`, `seal check` and the docs banner then all read the ledger.
+- [ ] `hooks/seal_banner.py` reads only the ledger, with no copy of the glob logic and no `mcp` import.
+- [ ] Settle `ruff` (29 findings; `tools/QA.sh` does not run it) and run mypy once.
+- [ ] A subprocess test for `serve restart`.
+- [ ] Housekeeping: delete the local `serve-verbs` branch; decide on `.kiro/` and `.mcp.json` (ignore or commit).
+- [ ] Release: bump to 2.2.0 (`pyproject.toml`, `VERSION`, `uv lock`), CHANGELOG, rebuild docs after sealing; the owner
+      builds and uploads to PyPI. No `gh release`.
+
 ## Next
 
 - [x] Attested provenance badge, built for 2.0.0: `hooks/seal_banner.py` draws each docs page's badge from `.waxseals.yaml` (when a
