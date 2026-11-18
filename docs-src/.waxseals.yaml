@@ -1,5 +1,5 @@
 # .waxseals.yaml: the latest review of each file (`seal`); an edit breaks it, git has the earlier ones. Commit it.
-- {file: cli.md, sha256: a4d09eb35c25d537cd6581020cbef648adf15e84f16e508eb5eb3e6dabcbfef7, by: 'human:dfoulks', at: '2026-11-18T14:41:26Z', bowerbird: 2.1.1}
+- {file: cli.md, sha256: 7ad0176ac17d48f1252498c072bba031bd890d0c6ddeef3d9765766d7928cf55, by: 'human:dfoulks', at: '2026-11-18T15:58:59Z', bowerbird: 2.1.3}
 - {file: contributing.md, sha256: 92089f0ecb0fa6079f14bb2e8bafb12beaf15c08878c8b69740f6aa00a3d9958, by: 'human:dfoulks', at: '2026-11-16T20:14:31Z', bowerbird: 2.0.0}
 - {file: formats.md, sha256: aca62333cc2d1a816bb284376c10aa3ef0364f4868cc08be218a2b9a96d1481e, by: 'human:dfoulks', at: '2026-11-16T19:43:09Z'}
 - {file: formats/adr.md, sha256: 9c5bbbc9dc91f8af102414765598f4ae8560be06d5eeb69e0744aaaeb6300b2c, by: 'human:dfoulks', at: '2026-11-16T19:43:41Z'}
@@ -11,7 +11,8 @@
 - {file: guide.md, sha256: 99c37a01e241a358d2f046e0b51497335cb6ef89eab111d3baac1b797d82fed0, by: 'human:dfoulks', at: '2026-11-17T16:28:25Z', bowerbird: 2.0.0}
 - {file: index.md, sha256: 91c3ef83994dbfdaeacaba364d1daf03dda94106df92db63f61d24e7c90975bb, by: 'human:dfoulks', at: '2026-11-18T14:45:18Z', bowerbird: 2.1.1}
 - {file: prompts/00-context.md, sha256: a70ec1500a4ff8185d8f46997984286891b8a2bf07672d84e088c9f71ee0e568, by: 'human:dfoulks', at: '2026-11-18T14:39:27Z', bowerbird: 2.1.1}
-- {file: releasing.md, sha256: 9daee791dd3cce360a4750f9d8a091f0c818e0947e7859a575ef3ba633042053, by: 'human:dfoulks', at: '2026-11-18T14:43:44Z', bowerbird: 2.1.1}
-- {file: sealing.md, sha256: e4dba1fe255228c0d3e13c4b32796f8efd3da60db0d790137c43dfdca6b2f4f5, by: 'human:dfoulks', at: '2026-11-18T14:43:13Z', bowerbird: 2.1.1}
-- {file: serve.md, sha256: a3652de9d157c04e7008ef7adc161a4ee649874ea5b10a151a4960078e2f67c4, by: 'human:dfoulks', at: '2026-11-18T14:42:56Z', bowerbird: 2.1.1}
-- {file: troubleshooting.md, sha256: c7bf2900d405c45dc7d97510c83195dbd899c0f0ab67d48676cf83043006890e, by: 'human:dfoulks', at: '2026-11-18T14:44:44Z', bowerbird: 2.1.1}
+- {file: prompts/01-ui-security.md, sha256: 26e2aa8e82889c0ae77f9ae3a3f9ea96686e150420598f14fd479135e02c2ed4, by: 'human:dfoulks', at: '2026-11-18T15:07:52Z', bowerbird: 2.1.1}
+- {file: releasing.md, sha256: 08095619854ee3f60d3ceef8bc9d5d101dace5f71cbd74318242f1bb3fbf088d, by: 'human:dfoulks', at: '2026-11-18T15:57:17Z', bowerbird: 2.1.3}
+- {file: sealing.md, sha256: a62cad1c2428312d1c1b12be32d92262eba7845bc117bd88940b5900f7e81042, by: 'human:dfoulks', at: '2026-11-18T15:28:46Z', bowerbird: 2.1.3}
+- {file: serve.md, sha256: 403ca39244eabc81e80d780832097b553dee56c73964e0df0d082cce2aad7dd0, by: 'human:dfoulks', at: '2026-11-18T15:57:43Z', bowerbird: 2.1.3}
+- {file: troubleshooting.md, sha256: f58bb8039bdd46e2e20092aaaf077f870a6558a2d1e9ce78f66f077165439b67, by: 'human:dfoulks', at: '2026-11-18T15:58:02Z', bowerbird: 2.1.3}
