@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bowerbird-mcp"
-version = "2.1.1"
+version = "2.1.3"
 description = "Manage knowledge, retrieve it, and verify it: keyword and semantic search over Markdown, ADR and MADR, OKF, SKOS and AsciiDoc (ADOC), and a human review (seal) bound to the exact text. An MCP server and CLI."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -31,6 +31,7 @@ sqlite-vec = ["sqlite-vec"]
 hnsw = ["hnswlib"]
 skos = ["rdflib"]  # format: skos
 serve = ["markdown"]  # `bowerbird-mcp serve`
+syntax = ["pygments"]  # `bowerbird-mcp[serve,syntax]`: serve highlights code files
 
 [project.urls]
 Homepage = "https://bowerbird.voltpop.com/"

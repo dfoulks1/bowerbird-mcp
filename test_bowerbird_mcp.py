@@ -1576,6 +1576,8 @@ else:
     so_ = mixed("seal-only", {"kbmcp.yaml": 'format: seal-only\nseal: {require: ["src/**/*.py"]}\n', ".env": "SECRET=1\n",
                               ".waxseals.yaml": "[]\n", "sub/.hidden": "x\n", "sub/ok.txt": "fine\n", "src/app.py": "def add(a, b):\n    return a + b\n"})
     k.OPTS["seal"] = {"require": ["src/**/*.py"], "exempt_status": []}
+    (so_ / "src/blob.py").write_bytes(b"\xff\xfe\x00")
+    (so_ / "src/big.py").write_text("x = 1\n" * 100_000)  # over the 512 KB cap
     (so_ / "link.py").symlink_to(so_ / "src/app.py")
     (so_ / "linkdir").symlink_to(so_ / "src", target_is_directory=True)
     with socket.socket() as so2:
@@ -1593,6 +1595,24 @@ else:
     assert hit("GET", "/sub/ok.txt")[0] == 200 and "ok.txt" in hit("GET", "/sub/")[1] and ".hidden" not in hit("GET", "/sub/")[1]  # a listing drops dotfiles
     assert hit("GET", "/")[0] == 200 and "<nav>" in hit("GET", "/")[1]  # no index.md: the shell, not a bare listing
     assert "link.py" not in hit("GET", "/")[1] and "linkdir" not in hit("GET", "/")[1]  # a link is not listed
+    # a seal-only .py is listed, and renders read-only with line numbers and the Seal modal
+    home_ = hit("GET", "/")[1]
+    assert "app.py" in home_ and 'data-seal="unsealed"' in home_ and "blob.py" not in home_ and "big.py" not in home_
+    st_, pg_, _ = hit("GET", "/src/app.py")
+    assert st_ == 200 and "<dialog id=seal>" in pg_ and "Seal src/app.py" in pg_ and "unsealed" in pg_ and "✎" not in pg_  # no editor for code
+    assert hit("GET", "/src/blob.py")[0] == 404 and hit("GET", "/src/big.py")[0] == 404  # not shown; the CLI still covers them
+    try:
+        import pygments  # noqa: F401
+    except ImportError:
+        pass
+    else:
+        assert 'class="highlight"' in pg_ and pg_.count('class="linenos"') == 2 and "prefers-color-scheme:dark" in pg_
+    sys.modules["pygments"] = None  # pygments absent: plain numbered <pre>
+    try:
+        plain_ = hit("GET", "/src/app.py")[1]
+    finally:
+        del sys.modules["pygments"]
+    assert "highlight" not in plain_ and plain_.count("<span class=l>") == 2 and "return a + b" in plain_
     assert hit("POST", "/_stop", {"_t": re.search(r'name=_t value="([^"]+)"', hit("GET", "/")[1]).group(1)})[0] == 200
     os.chdir(here_)
     k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = prev_

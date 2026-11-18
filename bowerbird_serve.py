@@ -147,6 +147,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         print("error: serve needs the markdown package | fix: pip install 'bowerbird-mcp[serve]' (or uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve)")
         return 2
     ROOT = kb.KB_ROOT
+    SKIP, MAXSIZE = [set()], 512 * 1024  # seal-only files not shown (binary or oversized); the size cap in bytes
     os.chdir(ROOT)  # tools default to the bundle around the working directory: serve means the whole collection, wherever it was started
     href = lambda rel: "/" + urllib.parse.quote(rel)
     esc = html.escape
@@ -158,6 +159,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         except ValueError:
             ledger = {}
         docs = {}
+        skip = set()
         for p in sorted(ROOT.rglob("*.md")):
             rel = p.relative_to(ROOT)
             if p.is_symlink() or any(part.startswith(".") for part in rel.parts):  # never follow a link, never show a dotfile
@@ -171,7 +173,44 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             docs[key] = {"title": kb.title_of(d, text, p), "meta": d, "fm": kb.meta(text)[0] is not None, "body": kb.split(text)[1],
                          "state": "unsealed" if not es else "sealed" if valid else "broken-seal",
                          "by": last.get("by", ""), "at": last.get("at", "")}
+        for p in kb.sealonly_files():  # seal-only files: a page each, read-only, state from the ledger
+            rel = p.relative_to(ROOT)
+            key = rel.as_posix()
+            if p.is_symlink() or any(part.startswith(".") for part in rel.parts):  # sealable from the CLI, not shown here
+                continue
+            text = kb.read(p) if p.stat().st_size <= MAXSIZE else None
+            if text is None:  # binary or over the cap: not listed, not shown
+                skip.add(key)
+                continue
+            es, valid = kb.reviews({}, key, text, ledger)
+            last = (valid or es or [{}])[-1]
+            docs[key] = {"title": key, "meta": {}, "fm": False, "body": "", "code": True, "text": text,
+                         "state": "unsealed" if not es else "sealed" if valid else "broken-seal",
+                         "by": last.get("by", ""), "at": last.get("at", "")}
+        SKIP[0] = skip  # one assignment, so a request in another thread never sees it half built
         return docs
+
+    def code_html(name, text):
+        """A file read-only, numbered: pygments picks the lexer by file name when it is installed, else plain."""
+        try:
+            import pygments
+            from pygments.formatters import HtmlFormatter
+            from pygments.lexers import get_lexer_for_filename
+            from pygments.util import ClassNotFound
+            try:
+                lexer = get_lexer_for_filename(name)
+            except ClassNotFound:
+                lexer = None
+        except ImportError:
+            lexer = None
+        if lexer is None:
+            return "<pre class=code>" + "".join(f"<span class=l>{esc(ln)}</span>\n" for ln in text.splitlines()) + "</pre>"
+        css = HtmlFormatter(style="default").get_style_defs(".highlight")
+        dark = HtmlFormatter(style="monokai")  # light set above, dark set under the page's own colour-scheme rules
+        css += (f"@media(prefers-color-scheme:dark){{{dark.get_style_defs(':root:not([data-theme=light]) .highlight')}}}"
+                + dark.get_style_defs(":root[data-theme=dark] .highlight"))
+        return f"<style>{css}.highlight pre{{background:none}}.linenos{{color:var(--mut);margin-right:1em;user-select:none}}</style>" + pygments.highlight(
+            text, lexer, HtmlFormatter(linenos="inline"))
 
     def resolve(src, url):
         if re.match(r"[a-z]+:", url):
@@ -212,6 +251,8 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 v = node[k]
                 if isinstance(v, dict):
                     out.append(f"<details{' open' if cur.startswith(pre + k) else ''}><summary>{esc(k)}</summary>{walk(v, pre + k)}{newlink(pre + k)}</details>")  # folded unless it holds the current page
+                elif v in SKIP[0]:
+                    continue
                 elif v in docs:
                     st = docs[v]["state"]
                     out.append(f'<a href="{href(v)}" data-seal="{st}" title="{esc(docs[v]["title"])}" class="{"cur" if v == cur else ""}"><span class="dot {st}"></span>{esc(k)}</a>')
@@ -700,6 +741,14 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 rel = (p / "index.md").relative_to(ROOT).as_posix()
             elif not rel and "index.md" in docs:
                 rel = "index.md"
+            if rel in SKIP[0]:
+                return self.send_error(404)
+            if rel in docs and docs[rel].get("code"):
+                d = docs[rel]
+                head = f'<div class=meta>{badge(d)}<br><small>{esc(rel)}</small></div>'
+                bar = ('<div class=bar><details class=menu><summary title="seal" aria-label="more">⚙</summary><div>'
+                       '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button></div></details></div>')
+                return self.send_bytes(page(rel, nav(docs, rel), head + code_html(rel, d["text"]) + seal_dialog(rel), bar, rel))
             if rel in docs:
                 d = docs[rel]
                 md = markdown.Markdown(extensions=["tables", "fenced_code", "toc"], extension_configs={"toc": {"toc_depth": "2-3"}})
