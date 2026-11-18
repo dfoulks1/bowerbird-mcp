@@ -1571,4 +1571,30 @@ else:
     assert os.getcwd() == str(sv)  # started from the repo, searched the throwaway collection: not the cwd's bundle
     os.chdir(here_)
 
+    # serve over a seal-only collection: hidden files and links are 404 (GET and HEAD), and `/` is a shell without an index.md
+    prev_ = (k.KB_ROOT, k.OPTS["format"], dict(k.OPTS["seal"]))
+    so_ = mixed("seal-only", {"kbmcp.yaml": 'format: seal-only\nseal: {require: ["src/**/*.py"]}\n', ".env": "SECRET=1\n",
+                              ".waxseals.yaml": "[]\n", "sub/.hidden": "x\n", "sub/ok.txt": "fine\n", "src/app.py": "def add(a, b):\n    return a + b\n"})
+    k.OPTS["seal"] = {"require": ["src/**/*.py"], "exempt_status": []}
+    (so_ / "link.py").symlink_to(so_ / "src/app.py")
+    (so_ / "linkdir").symlink_to(so_ / "src", target_is_directory=True)
+    with socket.socket() as so2:
+        so2.bind(("127.0.0.1", 0))
+        port = so2.getsockname()[1]
+    threading.Thread(target=bowerbird_serve.run, args=(k, port, True), daemon=True).start()
+    for _ in range(50):
+        try:
+            socket.create_connection(("127.0.0.1", port), 0.2).close()
+            break
+        except OSError:
+            time.sleep(0.1)
+    for path in ("/.env", "/sub/.hidden", "//.env", "/.%65nv", "/%2e%2e/etc/passwd", "/.waxseals.yaml", "/.git/config", "/link.py", "/linkdir/app.py", "/linkdir/"):
+        assert hit("GET", path)[0] == 404 and hit("HEAD", path)[0] == 404, path
+    assert hit("GET", "/sub/ok.txt")[0] == 200 and "ok.txt" in hit("GET", "/sub/")[1] and ".hidden" not in hit("GET", "/sub/")[1]  # a listing drops dotfiles
+    assert hit("GET", "/")[0] == 200 and "<nav>" in hit("GET", "/")[1]  # no index.md: the shell, not a bare listing
+    assert "link.py" not in hit("GET", "/")[1] and "linkdir" not in hit("GET", "/")[1]  # a link is not listed
+    assert hit("POST", "/_stop", {"_t": re.search(r'name=_t value="([^"]+)"', hit("GET", "/")[1]).group(1)})[0] == 200
+    os.chdir(here_)
+    k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = prev_
+
 print("ok")

@@ -11,6 +11,7 @@ import asyncio
 import hashlib
 import html
 import inspect
+import io
 import json
 import os
 import re
@@ -139,6 +140,7 @@ def stop(port: int = PORT) -> int:
 
 def run(kb, port: int = PORT, foreground: bool = False) -> int:
     """Serve the collection kb (the bowerbird_mcp module) on localhost:port, in the background unless foreground."""
+    # kb is the bowerbird_mcp module, passed in by its `serve` command.
     try:
         import markdown
     except ImportError:
@@ -158,7 +160,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         docs = {}
         for p in sorted(ROOT.rglob("*.md")):
             rel = p.relative_to(ROOT)
-            if any(part.startswith(".") for part in rel.parts):
+            if p.is_symlink() or any(part.startswith(".") for part in rel.parts):  # never follow a link, never show a dotfile
                 continue
             key, text = rel.as_posix(), kb.read(p)
             if text is None:
@@ -190,7 +192,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         tree = {}
         for p in sorted(ROOT.rglob("*")):
             rel = p.relative_to(ROOT)
-            if any(x.startswith(".") for x in rel.parts) or rel.parts[-1] == ".DS_Store":
+            if p.is_symlink() or any(x.startswith(".") for x in rel.parts) or rel.parts[-1] == ".DS_Store":
                 continue
             if p.is_dir():
                 node = tree
@@ -498,6 +500,38 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             self.end_headers()
             self.wfile.write(data)
 
+        def blocked(self, path):
+            """A request path that must 404: a dot-prefixed part (decoded once, so `.%65nv`, `//.env` and `%2e%2e` are caught)
+            or any symlinked component below the collection root."""
+            parts = [x for x in urllib.parse.unquote(path.split("?", 1)[0].split("#", 1)[0]).split("/") if x]
+            cur = ROOT
+            try:
+                for x in parts:
+                    cur = cur / x
+                    if x.startswith(".") or cur.is_symlink():
+                        return True
+                return not kb.inside(cur, ROOT)
+            except (ValueError, OSError):  # a NUL byte, a name too long: no such file
+                return True
+
+        def send_head(self):
+            if self.blocked(self.path):
+                return self.send_error(404)
+            return super().send_head()
+
+        def list_directory(self, path):
+            """A listing without dotfiles or links (the stock one shows both)."""
+            if self.blocked(self.path):
+                return self.send_error(404)
+            names = sorted((n for n in os.listdir(path) if not n.startswith(".") and not (Path(path) / n).is_symlink()), key=str.lower)
+            li = "".join(f'<li><a href="{esc(uq(n))}{"/" if (Path(path) / n).is_dir() else ""}">{esc(n)}{"/" if (Path(path) / n).is_dir() else ""}</a>' for n in names)
+            data = f"<!doctype html><meta charset=utf-8><title>{esc(self.path)}</title><h1>{esc(urllib.parse.unquote(self.path))}</h1><ul>{li}</ul>".encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            return io.BytesIO(data)
+
         def guard(self, form=None):
             ok = self.headers.get("Host") in HOSTS
             o = self.headers.get("Origin")
@@ -658,6 +692,8 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     return self.admin(urllib.parse.unquote(u.path), urllib.parse.parse_qs(u.query), docs)
                 except (ValueError, TypeError, KeyError, OSError) as e:
                     return self.fail(e, docs)
+            if self.blocked(u.path):
+                return self.send_error(404)
             rel = urllib.parse.unquote(u.path).strip("/")
             p = (ROOT / rel).resolve()
             if p.is_dir() and (p / "index.md").exists():
@@ -695,6 +731,8 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 tags = (post("/_settags", hidden({"file": rel}) + f'<label>tags <small>(comma separated)</small><input name=tags value="{esc(", ".join(map(str, meta.get("tags") or [])) if isinstance(meta.get("tags"), list) else "")}"></label>', "Set tags")
                         if d["fm"] else "")  # any page with frontmatter can carry tags, whatever its format
                 return self.send_bytes(page(d["title"], nav(docs, rel), head + htm + seal_dialog(rel) + tags, bar + right, rel))
+            if not rel:  # no root index.md: the shell, with nothing in the reading or details panes
+                return self.send_bytes(page(ROOT.name, nav(docs, ""), "<p><small>Pick a file from the tree, or search.</small></p>"))
             super().do_GET()
 
         def log_message(self, *a):
