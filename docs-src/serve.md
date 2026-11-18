@@ -26,6 +26,9 @@ bowerbird-mcp serve status     # is it running? (exit 0 if so, 1 if not)
 bowerbird-mcp serve stop       # end it
 ```
 
+Code highlighting is optional: add the `syntax` extra (`pip install 'bowerbird-mcp[serve,syntax]'`) and `serve` colours
+code files by their file name, in a light and a dark set that follow the theme. Without it they show as plain numbered text.
+
 `status` and `stop` take the port if it is not 26937. The port (26937) spells BOWER on a phone keypad.
 
 **A different repository.** Run it from there, or name its config from anywhere:
@@ -46,6 +49,11 @@ server, so you never have to hunt for the process.
 - **Right:** a pencil (edit) and a gear (Move, Delete, Seal), then the page's outline, the pages that link to it and the
   pages it links to.
 - **Top:** back and forward, a path, the search box with its type menu, a theme button (system, light, dark) and **⏻**.
+
+**Seal-only collections.** A file that `seal.require` names (code, YAML, config) is a page here: read-only, as numbered
+text, with a badge and the same Seal button. It has no editor, no tags and no outline. A file that is not UTF-8 text, or is
+over 512 KB, is not listed or shown; the command line still seals it. With no root `index.md`, `/` shows the empty shell
+(tree and search) rather than a directory listing.
 
 Keys: `/` search, `n` and `p` next and previous unsealed page, `j` and `k` next and previous page, `t` theme, `[` and `]`
 history.
@@ -96,7 +104,9 @@ review it again. See [Sealing](sealing.md) for what a seal means.
 
 `serve` listens on `127.0.0.1` only, and refuses requests whose `Host` is not that address (a web page on another site
 cannot reach it through your browser). Every change needs a token that is made fresh each time the server starts and
-carries only in pages `serve` sends you. Paths are held inside the collection.
+carries only in pages `serve` sends you. Paths are held inside the collection. Any path with a part that starts with a dot (`.env`, `.git/`,
+`.waxseals.yaml`, `sub/.hidden`) is a 404, and so is any path through a symbolic link; listings leave both out.
+Hidden files stay sealable from the command line.
 
 It trusts the person at the machine, as the command line's `--attest` does: a program running as you could submit the
 seal form too. A hardware key (FIDO2) is the planned way to close that. Do not put `serve` behind a public proxy: it has

@@ -152,6 +152,11 @@ kb init holds=seal-only about="Reviewed code." apply=true
 kb seal check=true output=text
 ```
 
+[`serve`](serve.md#what-you-see) shows these files too: each named file is a read-only page, numbered and (with the `syntax`
+extra) highlighted, with a Seal button. The dialog's wording is the one every file gets ("I reviewed this concept"), so it
+reads loosely for code. Files in hidden folders (`.github/`), binary files and files over 512 KB are sealed from the command
+line only.
+
 ## Showing a review on a website
 
 A badge naming the reviewer cannot be written into the sealed file. The build can fill it in from the ledger instead; see

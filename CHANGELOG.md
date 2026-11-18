@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.3 (2026-11-18)
+
+### Added
+- `serve` shows seal-only collections: each file `seal.require` names is a read-only page, numbered, with its seal state
+  and the Seal modal. A binary or over-512 KB file is not listed or shown (the command line still seals it).
+- New extra `syntax` (`bowerbird-mcp[serve,syntax]`): pygments colours code by file name, with a light and a dark set.
+  Without it a file shows as plain numbered text.
+- `/` shows the shell (tree, search, empty panes) when the root has no `index.md`, not a directory listing.
+
+### Fixed
+- `serve` served any file under the collection, `.env`, `.git/` and `.waxseals.yaml` among them, and followed symbolic
+  links. Now a path with a dot-prefixed part, or through a symlink, is a 404 for GET, HEAD and listings, and listings leave
+  both out.
+
 ## 2.1.1 (2026-11-18)
 
 ### Added
