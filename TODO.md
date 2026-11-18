@@ -31,6 +31,33 @@ Full notes, and the questions still open: `docs-src/prompts/02-release-2.2.0.md`
 
 ## Next
 
+- [ ] Vote tally (2.2.0 or later): a seal as a vote. A tally reads the ledger (`.waxseals.yaml`) and counts distinct human
+      sealers per file or ADR, each only while the sha256 still matches (an edit voids the votes, like a stale seal).
+      Weight of the edit: a file with N seals costs N to change. Before an edit (or a `seal` write) the tool warns
+      "this breaks N seals" and makes you break each one on purpose (a named, ledgered act), not by a silent hash drift.
+      Optional, not core: off by default, switched on in config (`seal.tally`: threshold, gate or inform), or shipped as an
+      add-on extra (`bowerbird-mcp[tally]`). Plain seals work unchanged without it.
+      Strict-seal mode (consider for sure): editing a file with N seals opens a modal in `serve`, one step per seal (who,
+      when, "break this seal"); the edit unlocks after the last. Each break is a ledger entry. The real gate is a pre-commit
+      or Claude Code hook that refuses writes to a file with live seals (agents included; they never break one). Likely
+      rule: a person breaks only their own seal; a ledgered owner override covers a departed sealer. Useful for ratified
+      ADRs, charters, policy, security docs and release notes; pointless at N=1.
+      Break as review-then-change: the person sees the proposed change and the seal it would break (same `review_ui`
+      dialog as RTC), approves, and only then does the edit apply and the seal drop. A denial writes nothing. Builds on
+      the `rtc` branch, which stays off `main` until you say.
+      The prompt says it plainly: "This was reviewed (N seals). Are you sure you want to change it? Once you do, it must be
+      resealed before you can commit." A pre-commit hook enforces the second half: no commit of a file whose seals are
+      broken or stale until it is sealed again.
+      Seal count as a metric of importance: show N wherever a file shows (docs badge, `serve` list, `seal check`, search
+      results), and let `heatmap` and search rank by it. Count only live seals (sha256 matches).
+      A seal is a costly signal: each one is a person who judged the file worth their review, so the count is earned
+      importance, not a guess.
+      Importance reads two ways, both only when multi-seal mode is on: a heavily sealed file marks its subject as important,
+      and a recurring multi-seal workflow marks the process as common. With the mode off, a count carries no such meaning.
+      Why: five seals on a document is a shared agreement that cannot drift unseen, because every sealer's seal breaks
+      when it changes. Needs a way for each sealer to find out (`seal check` in CI, or a notice on their next pull).
+      Open: does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote (by what identity); threshold or quorum (e.g. ratify at N); approve only, or also
+      object/abstain; where it shows (`seal check`, `serve`, docs badge).
 - [x] Attested provenance badge, built for 2.0.0: `hooks/seal_banner.py` draws each docs page's badge from `.waxseals.yaml` (when a
       person sealed it, shown only while the sha256 still matches), plus a `Derived from the code` badge for pages left out of
       `seal.require`. Still to offer for any site generator, not only MkDocs.
