@@ -48,19 +48,19 @@ required arguments in order (`move a.md b.md`); on `set`, any other `key=value` 
 
 ## Serve
 
-`bowerbird serve` opens the collection in a browser at `http://127.0.0.1:26937/`: a folder tree, search, each page's
-outline and backlinks, and its seal state (sealed, unsealed, or broken by an edit). It is read-only and rereads the
-files on every request, so an edit shows on reload. It listens on localhost only.
+`bowerbird serve` opens the collection in a browser at `http://127.0.0.1:26937/`, as a front end to the same tools, for a
+person: browse, search four ways, edit, create, move, delete, tag, lint and seal, with no AI in it. The full guide is on the
+[Serve](serve.md) page.
 
 ```
 bowerbird serve          # in the background
 bowerbird serve -f       # in the foreground (ctrl-c stops)
 bowerbird serve 8080     # another port
-bowerbird serve stop     # end the background server (add the port if it is not 26937)
+bowerbird serve status   # is it running? exit 0 if so, 1 if not (add the port if it is not 26937)
+bowerbird serve stop     # end it (add the port if it is not 26937)
 ```
 
 It needs the `serve` extra: `pip install 'bowerbird-mcp[serve]'`, or `uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve`.
-Keys: `/` search, `n`/`p` next/previous unsealed page, `j`/`k` next/previous page, `t` theme (system, light, dark).
 
 ## Output
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["mcp>=1.10,<2", "pyyaml"]
+# dependencies = ["mcp>=1.10,<2", "pyyaml", "markdown"]
 # ///
 """Self-check: throwaway bundles, every tool. Run: uv run test_bowerbird_mcp.py"""
 import asyncio
@@ -1414,5 +1414,161 @@ k.KB_ROOT, k.CFG_DIR = saved_root, saved_cfg
 k.OPTS["format"] = saved_fmt
 k._SCOPES.clear()
 k._POLICY.clear()
+
+# serve: a human's front end. Real HTTP against a throwaway okf collection.
+try:
+    import markdown  # noqa: F401
+    import http.client
+    import socket
+    import threading
+    import urllib.parse
+    import bowerbird_serve
+except ImportError:
+    print("skipped serve: markdown not installed")
+else:
+    sv = mixed("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n',
+                       "a.md": "---\ntype: Note\ndescription: A.\ntags: [old, keep]\n---\n# A\n\nSee [B](b.md), body long enough.\n",
+                       "b.md": "---\ntype: Note\ndescription: B.\ntags: [old]\n---\n# B\n\nBody.\n",
+                       "c.md": "---\ntype: Note\ndescription: C.\n---\n# C\n\nAlone.\n"})
+    with socket.socket() as so:
+        so.bind(("127.0.0.1", 0))
+        port = so.getsockname()[1]
+    here_ = os.getcwd()  # serve moves to the collection root, and the tests go on from where they were
+    os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp()  # the pid file, kept out of the real cache
+    threading.Thread(target=bowerbird_serve.run, args=(k, port, True), daemon=True).start()
+    import time
+    for _ in range(50):
+        try:
+            socket.create_connection(("127.0.0.1", port), 0.2).close()
+            break
+        except OSError:
+            time.sleep(0.1)
+
+    def hit(method, path, form=None, host=None, origin=None):
+        c = http.client.HTTPConnection("127.0.0.1", port)
+        h = {"Host": host or f"127.0.0.1:{port}", **({"Origin": origin} if origin else {})}
+        body = None
+        if form is not None:
+            body = urllib.parse.urlencode(form)
+            h["Content-Type"] = "application/x-www-form-urlencoded"
+        c.request(method, path, body, h)
+        r = c.getresponse()
+        return r.status, r.read().decode(), r.getheader("Location")
+
+    def token():
+        return re.search(r'name=_t value="([^"]+)"', hit("GET", "/a.md")[1]).group(1)
+
+    def put_(path, **form):
+        return hit("POST", path, {"_t": token(), **form})
+
+    assert hit("GET", "/a.md")[0] == 200 and "✎" in hit("GET", "/a.md")[1]
+    assert hit("GET", "/a.md", host="evil.example:80")[0] == 403  # DNS rebinding
+    mk_ = lambda dir, name: put_("/_new", dir=dir, name=name + "/")  # a trailing / makes a folder
+    assert hit("POST", "/_new", {"dir": "", "name": "x/"})[0] == 403 and not (sv / "x").exists()  # no token
+    assert hit("POST", "/_new", {"_t": token(), "dir": "", "name": "x/"}, origin="http://evil.example")[0] == 403
+    assert mk_("", "../out")[0] == 400 and mk_("", ".git")[0] == 400 and put_("/_new", dir="", name="")[0] == 400
+    assert mk_("notes", "sub")[0] == 303 and (sv / "notes/sub").is_dir()
+    home = hit("GET", "/")[1]
+    assert "notes/" in home and "/_new?dir=notes/sub" in home.replace("%2F", "/") and "/_new?dir=\"" in home  # an empty folder shows, each folder ends in + New file
+    npg = hit("GET", "/_new?dir=notes")[1]
+    assert "notes/" in npg and "form=newf" in npg and "<textarea" in npg and ">Save</button>" in npg and ">Cancel</a>" in npg
+    assert put_("/_new", dir="notes", name="fresh", text="---\ntype: Note\n---\n# Fresh\n")[0] == 303 and (sv / "notes/fresh.md").exists()  # Save writes dir/name.md
+    assert put_("/_new", dir="notes", name="folder2/")[0] == 303 and (sv / "notes/folder2").is_dir()  # a trailing / is a folder
+    assert put_("/_new", dir="", name="a", text="x")[0] == 409 and "x" not in (sv / "a.md").read_text()[:5]  # a.md exists
+    assert put_("/_new", dir="", name="", text="x")[0] == 400
+    pg = hit("GET", "/a.md")[1]
+    aside = pg[pg.index("<aside>"):]
+    assert "✎" in aside and "⚙" in aside and "✎" not in pg[:pg.index("<aside>")].split("<main>")[1]  # the pencil and gear live in the right pane
+
+    # edit: saves, and refuses to overwrite a page that changed under the editor
+    base = re.search(r'name=base value="([^"]+)"', hit("GET", "/_edit?f=c.md")[1]).group(1)
+    assert put_("/_save", file="c.md", base=base, text=(sv / "c.md").read_text().replace("Alone", "Edited"))[0] == 303
+    assert "Edited" in (sv / "c.md").read_text() and "generated" not in (sv / "c.md").read_text()
+    assert put_("/_save", file="c.md", base=base, text="lost")[0] == 409 and "lost" not in (sv / "c.md").read_text()
+    assert put_("/_save", file="../escape.md", base="", text="x")[0] == 400 and put_("/_save", file="x.txt", base="", text="x")[0] == 400
+    assert put_("/_save", file="notes/new.md", base=k.hashlib.sha256(b"").hexdigest(), text="---\ntype: Note\n---\n# New\n")[0] == 303 and (sv / "notes/new.md").exists()
+
+    # the editor: Save, Lint (the unsaved text, nothing written) and Cancel
+    ed = hit("GET", "/_edit?f=a.md")[1]
+    assert ">Save</button>" in ed and ">Lint</button>" in ed and ">Cancel</a>" in ed
+    before = (sv / "a.md").read_text()
+    bad = before.replace("type: Note", "type: ")  # no type: the unsaved text is wrong, the file on disk is not
+    lt = put_("/_editlint", file="a.md", text=bad)
+    assert lt[0] == 200 and "not saved" in lt[1] and "type" in lt[1] and (sv / "a.md").read_text() == before and k.read is not None
+    assert "ok True" in put_("/_editlint", file="a.md", text=before)[1]  # its own warnings (orphan, stub), no errors
+    assert "save it once" in put_("/_editlint", file="notes/brandnew.md", text="# x")[1]
+
+    # a form built from a tool: preview writes nothing, Confirm writes; only the few tools a button leads to are offered
+    (sv / "made.md").write_text("---\ntype: Note\ndescription: By hand.\n---\n# Made\n")
+    st, page_, _ = put_("/_tool/move", file="made.md", to="moved.md")
+    assert st == 200 and "Confirm" in page_ and (sv / "made.md").exists() and not (sv / "moved.md").exists()
+    put_("/_tool/move", file="made.md", to="moved.md", _apply="1")
+    assert (sv / "moved.md").exists() and not (sv / "made.md").exists()
+    put_("/_tool/move", file="moved.md", to="made.md", _apply="1")
+    assert all(x not in "".join(p.read_text() for p in sv.rglob("*.md")) for x in ("generated:",))  # nothing here stamps `generated`
+    assert hit("GET", "/_tool/move")[0] == 200 and hit("GET", "/_tool/archive")[0] == 200
+    assert all(put_(f"/_tool/{n}", file="made.md")[0] == 400 for n in ("seal", "by", "create", "set", "provenance"))  # the CLI's, not offered
+    assert hit("GET", "/_tools")[0] == 400  # the page is gone
+    assert "Lint all" in hit("GET", "/a.md")[1] and "/_tags" in hit("GET", "/a.md")[1]
+
+    # delete: refused while linked, ledger entry goes with the file
+    assert put_("/_delete", f="b.md")[0] == 400 and (sv / "b.md").exists()
+    assert put_("/_delete", f="c.md")[0] == 303 and not (sv / "c.md").exists()
+
+    # tags: rename previews, then applies across pages
+    assert "old" in hit("GET", "/_tags")[1]
+    assert "+tags" in put_("/_retag", old="old", new="new")[1].replace(" ", "") or "new" in put_("/_retag", old="old", new="new")[1]
+    assert "tags: [old, keep]" in (sv / "a.md").read_text()
+    put_("/_retag", old="old", new="new", _apply="1")
+    assert "old" not in (sv / "a.md").read_text() and "new" in (sv / "b.md").read_text()
+    assert put_("/_settags", file="b.md", tags="x, y")[0] == 303 and "x" in (sv / "b.md").read_text()
+
+    # lint
+    assert hit("GET", "/_lint")[0] == 200 and hit("GET", "/_lint?f=a.md")[0] == 200
+
+    # seal: the modal, with the MCP prompt's own words; nothing is recorded unless the box is ticked, and the text has not moved
+    dlg = hit("GET", "/a.md")[1]
+    assert "I reviewed this concept and confirm it is accurate" in dlg and "Seal a.md" in dlg
+    shaw = re.search(r'name=sha value="([^"]+)"', dlg).group(1)
+    assert put_("/_seal", file="a.md", sha=shaw, reviewer="me")[0] == 303 and "verified" not in (sv / "a.md").read_text()  # not confirmed
+    assert put_("/_seal", file="a.md", sha="0" * 64, reviewer="me", confirm="on")[0] == 400  # changed while open
+    assert put_("/_seal", file="a.md", sha=shaw, reviewer="has space", confirm="on")[0] == 400
+    assert put_("/_seal", file="a.md", sha=shaw, reviewer="me", confirm="on")[0] == 303
+    assert "human:me" in (sv / "a.md").read_text() and k.ATTEST == ""
+    assert "sealed" in hit("GET", "/a.md")[1]
+    put_("/_save", file="a.md", base=re.search(r'name=base value="([^"]+)"', hit("GET", "/_edit?f=a.md")[1]).group(1), text=(sv / "a.md").read_text() + "\nMore.\n")
+    assert "seal broken by edit" in hit("GET", "/a.md")[1]  # an edit stales the seal, as anywhere
+
+    # search: passages, concepts, meaning and tags, each its own mode
+    sj = lambda mode, q: json.loads(hit("GET", f"/_search.json?mode={mode}&q={urllib.parse.quote(q)}")[1])
+    assert any(r.get("href") == "/a.md" for r in sj("passages", "enough")) and any(r.get("href") == "/made.md" for r in sj("concepts", "Made"))  # a page with no body has no passage
+    assert "matched" in sj("concepts", "Made")[0]["sub"] and "title" in sj("concepts", "Made")[0]["sub"]
+    assert [r["href"] for r in sj("tags", "x")] == ["/b.md"] and "tags: x" in sj("tags", "x")[0]["sub"]  # a substring of a tag
+    assert sj("tags", "zzz") == []
+    assert "meaning search is off" in sj("semantic", "Made")[0]["error"]  # semantic: false here
+    assert k.OPTS["semantic"] is False  # the keyword mode's switch is put back
+    assert "value=semantic" not in hit("GET", "/a.md")[1] and "mode=semantic" not in hit("GET", "/_search?q=x")[1]  # off: not offered
+    k.OPTS["semantic"] = True
+    assert "value=semantic" in hit("GET", "/a.md")[1] and "mode=semantic" in hit("GET", "/_search?q=x")[1]  # on: offered
+    k.OPTS["semantic"] = False
+    assert hit("GET", "/_search?mode=concepts&q=Made")[0] == 200 and "mode=tags" in hit("GET", "/_search?mode=concepts&q=Made")[1]
+    assert 'id=mode' in hit("GET", "/a.md")[1] and sj("nonsense", "enough")  # an unknown mode is passages
+
+    # status and the Stop button: no token, no stop; with one the server goes and the pid file with it
+    with contextlib.redirect_stdout(io.StringIO()) as out_:
+        assert bowerbird_serve.status(port) == 0
+    assert "running" in out_.getvalue() and f":{port}/" in out_.getvalue()
+    assert hit("POST", "/_stop", {})[0] == 403 and bowerbird_serve.listening(port)
+    assert put_("/_stop")[0] == 200
+    for _ in range(50):
+        if not bowerbird_serve.listening(port):
+            break
+        time.sleep(0.1)
+    assert not bowerbird_serve.listening(port) and not bowerbird_serve.pidfile(port).exists()
+    with contextlib.redirect_stdout(io.StringIO()) as out_:
+        assert bowerbird_serve.status(port) == 1
+    assert "not running" in out_.getvalue()
+    assert os.getcwd() == str(sv)  # started from the repo, searched the throwaway collection: not the cwd's bundle
+    os.chdir(here_)
 
 print("ok")

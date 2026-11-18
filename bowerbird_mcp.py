@@ -363,7 +363,7 @@ def kb_user() -> str:
     return os.environ.get("KB_USER") or str(CFG.get("user") or "")
 
 
-VERSION = "2.1.0"  # keep equal to `version` in pyproject.toml (a test checks)
+VERSION = "2.1.1"  # keep equal to `version` in pyproject.toml (a test checks)
 OKF_VERSION = "0.2"
 RESERVED = ("index.md", "log.md")  # §3.1
 ARCHIVE = "archive"  # archive/: a collection within the collection, read-only, set apart from the live one
@@ -2706,6 +2706,39 @@ def signatures(since: str = "") -> dict:
             "total": len(findings), "findings": findings}
 
 
+def review_target(file: str, bundle: str, decision: str) -> tuple:
+    """(okf, path, bundle root or None, text, meta, label) of the file a human is about to review: the one place seal
+    and `serve` read it, so both ask the same question."""
+    if not file:
+        raise ValueError("which file? | fix: name it, or pass check=true")
+    if decision not in ("", "accepted", "rejected"):
+        raise ValueError(f"decision {decision!r} | fix: accepted or rejected")
+    okf = fmt_of(next((q for q in (KB_ROOT / file, root(bundle) / file, root(bundle) / f"{file}.md") if q.is_file()), KB_ROOT / file)) == "okf"
+    if decision and okf:
+        raise ValueError("decision is for the markdown, adr, skos and asciidoc formats | fix: drop it; an okf concept has `status`")
+    if okf:
+        p, r = locate(file, bundle)
+        t, d = loaded(p, r)
+        label = f"{rel(p, r)} in {kbpath(r)} ({title_of(d, t, p)}"
+    else:
+        p = confined(KB_ROOT, file)
+        if not p.is_file() or (t := read(p)) is None:
+            raise ValueError(f"{file} is not a readable file here | fix: pass its path from the collection root")
+        fmt = fmt_of(p)
+        d = adr_meta(meta(t)[0] or {}, t, p, fmt == "adr") if fmt in ("markdown", "adr") else {}
+        label = f"{os.path.relpath(p, KB_ROOT)} ({title_of(d, t, p) if fmt in ('markdown', 'adr') else p.stem}"
+    return okf, p, r if okf else None, t, d, label
+
+
+def review_message(label: str, okf: bool, t: str, d: dict, decision: str, promote: bool) -> str:
+    """The confirmation a human reads before a review is recorded (seal's prompt over MCP, and `serve`'s modal)."""
+    words = (split(t)[1] if okf else t).split()
+    return (f"Confirm you reviewed {label}, {len(words)} words). It opens: {' '.join(words)[:300]}. This records you as "
+            f"reviewer of exactly this version (sha256 {content_hash(t, okf)[:12]}…)"
+            + (f" with the decision: {decision}." if decision else ".")
+            + (" It moves from draft to stable (§5.4)." if promote and d.get("status") == "draft" else ""))
+
+
 class Review(BaseModel):
     confirm: bool = Field(description="I reviewed this concept and confirm it is accurate")
     reviewer: str = Field(default=kb_user(), description="Your id, recorded as human:<id>")
@@ -2728,24 +2761,7 @@ async def seal(file: str = "", by: str = "", promote: bool = False, decision: st
     hook and in CI; `seal.require` and `seal.exempt_status` in kbmcp.yaml say what it covers."""
     if check:
         return signatures(since)
-    if not file:
-        raise ValueError("which file? | fix: name it, or pass check=true")
-    if decision not in ("", "accepted", "rejected"):
-        raise ValueError(f"decision {decision!r} | fix: accepted or rejected")
-    okf = fmt_of(next((q for q in (KB_ROOT / file, root(bundle) / file, root(bundle) / f"{file}.md") if q.is_file()), KB_ROOT / file)) == "okf"
-    if decision and okf:
-        raise ValueError("decision is for the markdown, adr, skos and asciidoc formats | fix: drop it; an okf concept has `status`")
-    if okf:
-        p, r = locate(file, bundle)
-        t, d = loaded(p, r)
-        label = f"{rel(p, r)} in {kbpath(r)} ({title_of(d, t, p)}"
-    else:
-        p = confined(KB_ROOT, file)
-        if not p.is_file() or (t := read(p)) is None:
-            raise ValueError(f"{file} is not a readable file here | fix: pass its path from the collection root")
-        fmt = fmt_of(p)
-        d = adr_meta(meta(t)[0] or {}, t, p, fmt == "adr") if fmt in ("markdown", "adr") else {}
-        label = f"{os.path.relpath(p, KB_ROOT)} ({title_of(d, t, p) if fmt in ('markdown', 'adr') else p.stem}"
+    okf, p, r, t, d, label = review_target(file, bundle, decision)
     if by := attested(by):
         if promote and not by.startswith("human:"):
             raise ValueError("only a human review promotes draft to stable | fix: drop promote, or let the human seal it")
@@ -2753,11 +2769,7 @@ async def seal(file: str = "", by: str = "", promote: bool = False, decision: st
         raise ValueError("who checked it? | fix: run with --attest (you), or pass by=process:<id> or <tool>/<version>")
     else:
         body = split(t)[1] if okf else t
-        words = body.split()
-        msg = (f"Confirm you reviewed {label}, {len(words)} words). It opens: {' '.join(words)[:300]}. This records you as "
-               f"reviewer of exactly this version (sha256 {content_hash(t, okf)[:12]}…)"
-               + (f" with the decision: {decision}." if decision else ".")
-               + (" It moves from draft to stable (§5.4)." if promote and d.get("status") == "draft" else ""))
+        msg = review_message(label, okf, t, d, decision, promote)
         try:
             res = await ctx.elicit(message=msg, schema=Review)
         except Exception as e:
@@ -3772,7 +3784,7 @@ def help_text(full: bool) -> str:
     for g, ns in rows:
         if ns:
             out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
-    out += ["  serve [port]   browse the collection in a browser, in the background (26937; `serve stop` ends it; needs bowerbird-mcp[serve])",
+    out += ["  serve [port]   browse the collection in a browser, in the background (26937; `serve status` and `serve stop`; needs bowerbird-mcp[serve])",
             "  help all       every command" if not full else "",
             "  help <tool>    its arguments and examples", "",
             "Arguments are name=value (lists a,b or JSON) or flags: lint scope=okf output=github is lint -s okf -O github.",
@@ -3902,12 +3914,14 @@ def cli(argv) -> int:
     if argv and argv[0] in ("--version", "-V"):
         print(version_line())
         return 0
-    if argv and argv[0] == "serve":  # a browser view of the collection, not an MCP tool; read-only
+    if argv and argv[0] == "serve":  # a human's browser front end to the tools, not an MCP tool
         import bowerbird_serve
         rest = [a for a in argv[1:] if a not in ("-f", "--foreground")]
         port = int(rest[-1]) if rest and rest[-1].isdigit() else bowerbird_serve.PORT
         if rest[:1] == ["stop"]:
             return bowerbird_serve.stop(port)
+        if rest[:1] == ["status"]:
+            return bowerbird_serve.status(port)
         return bowerbird_serve.run(sys.modules[__name__], port, len(rest) < len(argv) - 1)
     argv = [ALIASES.get(argv[0], argv[0]), *argv[1:]] if argv else argv
     if "--attest" in argv[1:]:  # CLI only, by design: an MCP caller cannot pass it

@@ -79,6 +79,7 @@ nav:
       - SKOS: formats/skos.md
       - AsciiDoc: formats/asciidoc.md
   - Sealing: sealing.md
+  - Serve: serve.md
   - Docs:
       - Guide: guide.md
       - Command line: cli.md

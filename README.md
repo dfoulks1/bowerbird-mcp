@@ -39,6 +39,9 @@ kb passages 'how do we roll back' output=text     # the best passages, with file
 kb lint output=text                               # ends: bowerbird-mcp lint: ok: ...
 ```
 
+Prefer a browser to a terminal? `uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve` opens the collection at
+`http://127.0.0.1:26937/` to browse, search, edit and seal, with no AI involved (see [Serve](https://bowerbird.voltpop.com/serve/)).
+
 Personal project. Apache-2.0 (see [LICENSE](https://github.com/dfoulks1/bowerbird-mcp/blob/main/LICENSE); [NOTICE](https://github.com/dfoulks1/bowerbird-mcp/blob/main/NOTICE) credits the
 spec), built under the [ASF generative-tooling guidelines][asf-gt]. Bugs and ideas:
 [GitHub Issues](https://github.com/dfoulks1/bowerbird-mcp/issues); security reports: [SECURITY.md](https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md).

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.1.1 (2026-11-18)
+
+### Added
+- `bowerbird serve` is now a front end to the tools for a person, with no AI in it. A pencil and a gear (Move, Delete,
+  Seal) in the right-hand pane; **+ New file** at the foot of every folder (a trailing `/` makes a folder); an editor with
+  Save, Lint (the text as typed) and Cancel; a tags field on any page with frontmatter; Lint all and a Tags page that
+  renames or merges a tag everywhere. A change shows its diff and applies on Confirm. Delete is refused while another
+  page links to the file. Seal opens a modal that asks what the MCP prompt asks (confirm, and your id) and records
+  `human:<id>` for exactly that text. Nothing it writes carries a `generated` stamp.
+- `serve status` (exit 0 running, 1 not), and a Stop button in the top bar. A foreground `serve -f` now writes the pid
+  file too, so `status` and `stop` see it.
+
+- Search in `serve` has four modes, chosen beside the search box (and kept): **Passages** (ranked sections, by keyword),
+  **Concepts** (whole pages, as `search`), **Meaning** (passages fused with meaning; on when `kbmcp.yaml` sets `semantic: true`,
+  and says so when it is off), and **Tags** (pages with a tag containing your text). The tag list links into Tags search.
+
+### Fixed
+- `serve` searched only the bundle around the directory it was started from. It now works from the collection root, so
+  search, lint and the tools see the whole collection wherever `serve` was run.
+
+### Changed
+- Writes need a per-run token and a `localhost` Host header (DNS rebinding); reads check the Host too.
+- `serve stop` no longer signals a pid when nothing answers on the port (a stale pid file could name another process).
+- `seal` and `serve` build the review prompt from one function (`review_target`, `review_message`).
+
 ## 2.1.0 (2026-11-17)
 
 ### Added

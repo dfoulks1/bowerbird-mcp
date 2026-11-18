@@ -81,7 +81,8 @@ uvx bowerbird-mcp help passages
 ```
 
 Next: [getting started](getting-started.md) for a ten-minute walkthrough, [formats](formats.md) for what each kind of
-collection looks like, the [guide](guide.md) for settings and workflows, the [tools](tools.md) for every command, and
+collection looks like, the [guide](guide.md) for settings and workflows, the [tools](tools.md) for every command,
+[serve](serve.md) to browse, edit and seal a collection in your browser, and
 [OKF](formats/okf.md) for the richest format, with its [specification][okf].
 
 [okf]: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md

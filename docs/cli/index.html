@@ -103,6 +103,14 @@
           
         
           
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../serve/">Serve</a>
+            </li>
+          
+        
+          
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle active"
                  href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -298,15 +306,15 @@ required arguments in order (<code>move a.md b.md</code>); on <code>set</code>, 
 <li><code>-h</code> and <code>-O</code>/<code>-F</code> are reserved: <code>-h</code> is help, <code>-O</code> (or <code>-F</code>, or <code>output=</code>) chooses the output.</li>
 </ul>
 <h2 id="serve">Serve<a class="headerlink" href="#serve" title="Link to this section">#</a></h2>
-<p><code>bowerbird serve</code> opens the collection in a browser at <code>http://127.0.0.1:26937/</code>: a folder tree, search, each page's
-outline and backlinks, and its seal state (sealed, unsealed, or broken by an edit). It is read-only and rereads the
-files on every request, so an edit shows on reload. It listens on localhost only.</p>
+<p><code>bowerbird serve</code> opens the collection in a browser at <code>http://127.0.0.1:26937/</code>, as a front end to the same tools, for a
+person: browse, search four ways, edit, create, move, delete, tag, lint and seal, with no AI in it. The full guide is on the
+<a href="../serve/">Serve</a> page.</p>
 <pre class="highlight"><code>bowerbird serve          # in the background
 bowerbird serve -f       # in the foreground (ctrl-c stops)
 bowerbird serve 8080     # another port
-bowerbird serve stop     # end the background server (add the port if it is not 26937)</code></pre>
-<p>It needs the <code>serve</code> extra: <code>pip install 'bowerbird-mcp[serve]'</code>, or <code>uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve</code>.
-Keys: <code>/</code> search, <code>n</code>/<code>p</code> next/previous unsealed page, <code>j</code>/<code>k</code> next/previous page, <code>t</code> theme (system, light, dark).</p>
+bowerbird serve status   # is it running? exit 0 if so, 1 if not (add the port if it is not 26937)
+bowerbird serve stop     # end it (add the port if it is not 26937)</code></pre>
+<p>It needs the <code>serve</code> extra: <code>pip install 'bowerbird-mcp[serve]'</code>, or <code>uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve</code>.</p>
 <h2 id="output">Output<a class="headerlink" href="#output" title="Link to this section">#</a></h2>
 <p>At a terminal the output is text. Piped, in CI or in a script it is JSON. <code>-O json|text|github|sarif</code> overrides either
 (<code>github</code> and <code>sarif</code> are for <code>lint</code>). Text prints diffs as they are.</p>

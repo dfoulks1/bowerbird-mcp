@@ -1,5 +1,5 @@
 # .waxseals.yaml: the latest review of each file (`seal`); an edit breaks it, git has the earlier ones. Commit it.
-- {file: cli.md, sha256: c9f90b9816aca7d1992ba5ce6dad28e86e5a921d9f86b34a1e6232c803cba256, by: 'human:dfoulks@apache.org', at: '2026-11-17T16:23:53Z', bowerbird: 2.0.0}
+- {file: cli.md, sha256: 1f56a77e00726cbcddd1a268d3a6a7317dd503830fcd88d83beccfd542279487, by: 'human:dfoulks', at: '2026-11-18T13:06:26Z', bowerbird: 2.1.0}
 - {file: contributing.md, sha256: 92089f0ecb0fa6079f14bb2e8bafb12beaf15c08878c8b69740f6aa00a3d9958, by: 'human:dfoulks', at: '2026-11-16T20:14:31Z', bowerbird: 2.0.0}
 - {file: formats.md, sha256: aca62333cc2d1a816bb284376c10aa3ef0364f4868cc08be218a2b9a96d1481e, by: 'human:dfoulks', at: '2026-11-16T19:43:09Z'}
 - {file: formats/adr.md, sha256: 9c5bbbc9dc91f8af102414765598f4ae8560be06d5eeb69e0744aaaeb6300b2c, by: 'human:dfoulks', at: '2026-11-16T19:43:41Z'}
