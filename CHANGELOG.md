@@ -1,13 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Changed
-- `serve` takes a verb: `start`, `stop`, `restart` and `status`, each with an optional port (26937 when left out). A bare
-  `serve` now only reports status, where it used to start a server, so scripts that ran `bowerbird serve` to start must run
-  `bowerbird serve start`. `start` does nothing when ours is already on the port, and refuses a port something else holds.
-  `stop` with nothing running exits 0. `restart` stops what it finds, waits for the port to clear, then starts.
-
 ## 2.1.3 (2026-11-18)
 
 ### Added
@@ -19,6 +11,12 @@
   the code) is badged "derived from the code" in `serve`, with no Seal button, no stop for `n`/`p`, and a refusal if a seal
   is posted for it. New `derived(path)` and `derived_files()` in `bowerbird_mcp.py`; `seal check` is unchanged.
 - `/` shows the shell (tree, search, empty panes) when the root has no `index.md`, not a directory listing.
+
+### Changed
+- `serve` takes a verb: `start`, `stop`, `restart` and `status`, each with an optional port (26937 when left out). A bare
+  `serve` now only reports status, where it used to start a server, so scripts that ran `bowerbird serve` to start must run
+  `bowerbird serve start`. `start` does nothing when ours is already on the port, and refuses a port something else holds.
+  `stop` with nothing running exits 0. `restart` stops what it finds, waits for the port to clear, then starts.
 
 ### Fixed
 - `serve` served any file under the collection, `.env`, `.git/` and `.waxseals.yaml` among them, and followed symbolic
