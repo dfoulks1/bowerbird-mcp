@@ -248,7 +248,7 @@
           </nav>
         
         <article><h1 id="sealing">Sealing<a class="headerlink" href="#sealing" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:58:06Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-18T15:28:46Z</p>
 
 <p>A seal is a person's review of one exact version of a file. It is how Bowerbird guarantees a human was in the loop: for stored
 knowledge (a note, a concept, a page) and for decisions (an ADR). One function, <code>seal</code>, does it in every <a href="../formats/">format</a>.</p>
@@ -260,8 +260,9 @@ writes). Edit the file afterwards and the hash no longer matches: the seal is br
 <p>Like a wax seal, it proves the document was not changed after it was closed. It does not prove the reviewer read it all.</p>
 <h2 id="who-can-seal">Who can seal<a class="headerlink" href="#who-can-seal" title="Link to this section">#</a></h2>
 <ul>
-<li><strong>A person:</strong> over MCP they type their own id in the prompt. At a terminal, <code>--attest</code> records them. The result is a
-  <code>human-reviewed</code> hit.</li>
+<li><strong>A person:</strong> over MCP they type their own id in the prompt. At a terminal, <code>--attest</code> records them. In the browser,
+  <a href="../serve/#seal-from-the-browser"><code>serve</code></a> opens a dialog that asks the same two things (tick that you reviewed it, and
+  type your id). The result is a <code>human-reviewed</code> hit.</li>
 <li><strong>An agent or process:</strong> it can only seal as itself, with <code>by=&lt;tool&gt;/&lt;version&gt;</code> or <code>by=process:&lt;id&gt;</code>. That is
   <code>machine-confirmed</code>, not <code>human-reviewed</code>. An agent never passes <code>human:&lt;id&gt;</code>, and should show the person the file first.</li>
 </ul>
@@ -347,6 +348,9 @@ except those whose status is <code>proposed</code> or <code>draft</code>:</p>
 <pre class="highlight"><code class="language-yaml">seal: {require: ["**"], exempt_status: [proposed, draft]}</code></pre>
 <p><code>require</code> is a list of globs, and a leading <code>/</code> anchors one at the collection root. <code>exempt_status</code> lets a proposal be committed
 before it is reviewed.</p>
+<p>A glob that starts with <code>!</code> takes files back out of <code>require</code>: <code>require: ["src/**/*.py", "!src/gen_*.py"]</code>. Such a file is
+<strong>derived from the code</strong> (a tool list, a generated table, markdown or not). Nothing a person could review is in it, so
+<code>seal check</code> skips it and <code>serve</code> badges it "derived from the code" and offers no Seal button.</p>
 <h2 id="enforcing-it">Enforcing it<a class="headerlink" href="#enforcing-it" title="Link to this section">#</a></h2>
 <p>A pre-commit hook:</p>
 <pre class="highlight"><code class="language-yaml"># .pre-commit-config.yaml
@@ -380,6 +384,10 @@ seal: {require: ["src/**/*.py", "config/*.yaml"]}</code></pre>
 in. Any text file can be named.</p>
 <pre class="highlight"><code class="language-sh">kb init holds=seal-only about="Reviewed code." apply=true
 kb seal check=true output=text</code></pre>
+<p><a href="../serve/#what-you-see"><code>serve</code></a> shows these files too: each named file is a read-only page, numbered and (with the <code>syntax</code>
+extra) highlighted, with a Seal button. The dialog's wording is the one every file gets ("I reviewed this concept"), so it
+reads loosely for code. Files in hidden folders (<code>.github/</code>), binary files and files over 512 KB are sealed from the command
+line only.</p>
 <h2 id="showing-a-review-on-a-website">Showing a review on a website<a class="headerlink" href="#showing-a-review-on-a-website" title="Link to this section">#</a></h2>
 <p>A badge naming the reviewer cannot be written into the sealed file. The build can fill it in from the ledger instead; see
 <a href="../formats/markdown/#use-case-content-for-a-generated-website">the website use case</a>.</p>

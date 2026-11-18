@@ -568,7 +568,7 @@ that format uses (see Formats). The CLI always has every tool.</p>
 <h2 id="sealing-who-reviewed-what">Sealing: who reviewed what<a class="headerlink" href="#sealing-who-reviewed-what" title="Link to this section">#</a></h2>
 <p><code>seal</code> is the one function for a human's review, in every format. It shows the human the exact file in a
 prompt, asks for their id, and records who reviewed that version and when. Over MCP the human types their own id;
-at a terminal <code>--attest</code> records you; an assistant can only seal as itself (<code>by=process:&lt;id&gt;</code>), never as a human.
+at a terminal <code>--attest</code> records you; in <code>serve</code> (the browser) a dialog asks the same two things; an assistant can only seal as itself (<code>by=process:&lt;id&gt;</code>), never as a human.
 <code>verify</code> (the OKF word), and <code>ratify</code> or <code>accepted</code> (the ADR words), are its command-line names too.</p>
 <ul>
 <li><strong><code>okf</code>:</strong> a <code>verified: {by, at, sha256}</code> entry in the concept's own frontmatter.</li>

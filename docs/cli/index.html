@@ -240,7 +240,7 @@
           </nav>
         
         <article><h1 id="command-line">Command line<a class="headerlink" href="#command-line" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="edited">AI Generated, edited since its last human review</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-18T15:58:59Z</p>
 
 <p>Every tool is also a command: <code>bowerbird-mcp &lt;tool&gt; ...</code> (or <code>uvx bowerbird-mcp</code>, or <code>uv run bowerbird_mcp.py</code> from a
 checkout). The command line has all the tools; an MCP server offers only the ones its <a href="../guide/#roles-a-smaller-tool-list-per-agent">roles</a>
@@ -309,11 +309,12 @@ required arguments in order (<code>move a.md b.md</code>); on <code>set</code>, 
 <p><code>bowerbird serve</code> opens the collection in a browser at <code>http://127.0.0.1:26937/</code>, as a front end to the same tools, for a
 person: browse, search four ways, edit, create, move, delete, tag, lint and seal, with no AI in it. The full guide is on the
 <a href="../serve/">Serve</a> page.</p>
-<pre class="highlight"><code>bowerbird serve          # in the background
-bowerbird serve -f       # in the foreground (ctrl-c stops)
-bowerbird serve 8080     # another port
-bowerbird serve status   # is it running? exit 0 if so, 1 if not (add the port if it is not 26937)
-bowerbird serve stop     # end it (add the port if it is not 26937)</code></pre>
+<pre class="highlight"><code>bowerbird serve status      # information only: is it running? exit 0 if so, 1 if not. A bare `serve` does this
+bowerbird serve start       # in the background; a no-op if ours is already on the port
+bowerbird serve start -f    # in the foreground (ctrl-c stops)
+bowerbird serve stop        # end it; nothing running is not an error
+bowerbird serve restart     # stop what is found, then start: always ends with a running server
+bowerbird serve start 8080  # another port (any verb takes one; 26937 when left out)</code></pre>
 <p>It needs the <code>serve</code> extra: <code>pip install 'bowerbird-mcp[serve]'</code>, or <code>uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve</code>.</p>
 <h2 id="output">Output<a class="headerlink" href="#output" title="Link to this section">#</a></h2>
 <p>At a terminal the output is text. Piped, in CI or in a script it is JSON. <code>-O json|text|github|sarif</code> overrides either

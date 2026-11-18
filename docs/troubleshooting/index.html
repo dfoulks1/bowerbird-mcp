@@ -190,6 +190,11 @@
     </li>
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#serve">Serve</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#installing">Installing</a>
       
     </li>
@@ -208,7 +213,7 @@
           </nav>
         
         <article><h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:08:02Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-18T15:58:02Z</p>
 
 <h2 id="searching">Searching<a class="headerlink" href="#searching" title="Link to this section">#</a></h2>
 <ul>
@@ -233,6 +238,16 @@
 <li><strong><code>KB_ROOT is no longer read</code>.</strong> The old environment variable is gone. Put the folder's <code>kbmcp.yaml</code> where the tool runs,
   or name it with <code>--config</code>.</li>
 </ul>
+<h2 id="serve">Serve<a class="headerlink" href="#serve" title="Link to this section">#</a></h2>
+<ul>
+<li><strong><code>serve needs the markdown package</code>.</strong> Install the extra: <code>pip install 'bowerbird-mcp[serve]'</code>.</li>
+<li><strong><code>port 26937: Address already in use</code>.</strong> It is already running (<code>serve status</code>), or something else has the port. Use
+  <code>serve stop</code>, or pick a port: <code>serve start 8080</code>.</li>
+<li><strong>The page does not show my change.</strong> A file change shows on refresh; a change to <code>kbmcp.yaml</code>, or an update to
+  Bowerbird, needs <code>serve restart</code>.</li>
+<li><strong>I lost the shell it started in.</strong> Press ⏻ in the top bar of the page, or run <code>serve stop</code> from anywhere.</li>
+</ul>
+<p>More in <a href="../serve/">Serve</a>.</p>
 <h2 id="installing">Installing<a class="headerlink" href="#installing" title="Link to this section">#</a></h2>
 <ul>
 <li><strong><code>rdflib is missing</code></strong> (a <code>skos</code> collection). Install the extra: <code>pip install rdflib</code>, or with <code>uvx</code>, ask for it:
