@@ -23,8 +23,8 @@ tools) and a command line. It
 checks, maintains and imports concepts, and finds the passages that answer a
 question. It cares how a concept is written, never what it says. Local files only,
 no network (but see semantic search, which downloads a model once). Never writes
-to git. One contract, three users: an agent over MCP, CI, and a person at a
-terminal with no AI.
+to git. One contract, three users: an agent over MCP, CI, and a person, at a
+terminal or in a browser, with no AI.
 
 Try it (needs [uv](https://docs.astral.sh/uv/); its installer is `curl -LsSf
 https://astral.sh/uv/install.sh | sh`, which downloads and runs a script, so read it first
@@ -409,7 +409,7 @@ that format uses (see Formats). The CLI always has every tool.
 
 `seal` is the one function for a human's review, in every format. It shows the human the exact file in a
 prompt, asks for their id, and records who reviewed that version and when. Over MCP the human types their own id;
-at a terminal `--attest` records you; an assistant can only seal as itself (`by=process:<id>`), never as a human.
+at a terminal `--attest` records you; in `serve` (the browser) a dialog asks the same two things; an assistant can only seal as itself (`by=process:<id>`), never as a human.
 `verify` (the OKF word), and `ratify` or `accepted` (the ADR words), are its command-line names too.
 
 - **`okf`:** a `verified: {by, at, sha256}` entry in the concept's own frontmatter.

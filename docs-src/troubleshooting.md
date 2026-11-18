@@ -25,6 +25,17 @@
 - **`KB_ROOT is no longer read`.** The old environment variable is gone. Put the folder's `kbmcp.yaml` where the tool runs,
   or name it with `--config`.
 
+## Serve
+
+- **`serve needs the markdown package`.** Install the extra: `pip install 'bowerbird-mcp[serve]'`.
+- **`port 26937: Address already in use`.** It is already running (`serve status`), or something else has the port. Use
+  `serve stop`, or pick a port: `serve 8080`.
+- **The page does not show my change.** A file change shows on refresh; a change to `kbmcp.yaml`, or an update to
+  Bowerbird, needs `serve stop` and `serve` again.
+- **I lost the shell it started in.** Press ⏻ in the top bar of the page, or run `serve stop` from anywhere.
+
+More in [Serve](serve.md).
+
 ## Installing
 
 - **`rdflib is missing`** (a `skos` collection). Install the extra: `pip install rdflib`, or with `uvx`, ask for it:

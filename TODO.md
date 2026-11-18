@@ -11,6 +11,13 @@ Ideas for later:
       `tier`, stale) as JSON, and the theme loads it with a client-side library (MiniSearch or lunr), badging each result by
       tier. Keyword only (no semantic search in a static site); the generator maps file and heading to a URL. The stock MkDocs
       `search` plugin is the zero-code alternative, without tiers.
+- [ ] Viewer for seal-only collections (`bowerbird_serve.py`): today `/` falls through to a plain directory listing when there is no
+      root `index.md`, and `scan()` indexes `*.md` only, so no code, YAML or config file has a page or a Seal button.
+      Plan: (1) `/` renders the shell with the reading and details panes empty; (2) `scan()` also lists `sealonly_files()` (the
+      `seal.require` matches, never `.env`, ledger or gitignored files) with state from `reviews()`; (3) the reading pane shows
+      them read-only as `<pre>` with line numbers, highlighted by pygments when installed, with the existing Seal modal; (4) new
+      extra `syntax = ["pygments"]` (`bowerbird-mcp[serve,syntax]`); per-language extras only if a pack adds a tool (ruff, golangci-lint).
+      Open: stop `SimpleHTTPRequestHandler` serving dotfiles such as `.env` (the listing links them); skip binary and huge files.
 - [ ] Addressable resources: concepts and passages as `kb://{bundle}/{file}` MCP resources.
 - [ ] MCP prompts (answer from the collection and cite; review a decision record).
 - [ ] Progress notifications from `reindex` over MCP (the CLI prints progress to stderr; the tool is not async).

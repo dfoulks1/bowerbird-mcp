@@ -16,8 +16,9 @@ Like a wax seal, it proves the document was not changed after it was closed. It 
 
 ## Who can seal
 
-- **A person:** over MCP they type their own id in the prompt. At a terminal, `--attest` records them. The result is a
-  `human-reviewed` hit.
+- **A person:** over MCP they type their own id in the prompt. At a terminal, `--attest` records them. In the browser,
+  [`serve`](serve.md#seal-from-the-browser) opens a dialog that asks the same two things (tick that you reviewed it, and
+  type your id). The result is a `human-reviewed` hit.
 - **An agent or process:** it can only seal as itself, with `by=<tool>/<version>` or `by=process:<id>`. That is
   `machine-confirmed`, not `human-reviewed`. An agent never passes `human:<id>`, and should show the person the file first.
 
