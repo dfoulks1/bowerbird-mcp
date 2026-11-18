@@ -578,11 +578,13 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     cur = cur / x
                     if x.startswith(".") or cur.is_symlink():
                         return True
-                return not kb.inside(cur, ROOT)
+                return not kb.inside(cur, ROOT) or "/".join(parts) in SKIP[0]  # a seal-only file not shown (binary, oversized)
             except (ValueError, OSError):  # a NUL byte, a name too long: no such file
                 return True
 
         def send_head(self):
+            if self.command == "HEAD":
+                scan()  # SKIP is rebuilt by a scan: a HEAD that comes first must not see it empty
             if self.blocked(self.path):
                 return self.send_error(404)
             return super().send_head()

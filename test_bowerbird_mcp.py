@@ -1606,6 +1606,7 @@ else:
             break
         except OSError:
             time.sleep(0.1)
+    assert hit("HEAD", "/src/blob.py")[0] == 404 and hit("HEAD", "/src/big.py")[0] == 404  # a HEAD first, before any scan: no leak of a skipped file
     for path in ("/.env", "/sub/.hidden", "//.env", "/.%65nv", "/%2e%2e/etc/passwd", "/.waxseals.yaml", "/.git/config", "/link.py", "/linkdir/app.py", "/linkdir/"):
         assert hit("GET", path)[0] == 404 and hit("HEAD", path)[0] == 404, path
     assert hit("GET", "/sub/ok.txt")[0] == 200 and "ok.txt" in hit("GET", "/sub/")[1] and ".hidden" not in hit("GET", "/sub/")[1]  # a listing drops dotfiles
