@@ -1568,6 +1568,21 @@ else:
     with contextlib.redirect_stdout(io.StringIO()) as out_:
         assert bowerbird_serve.status(port) == 1
     assert "not running" in out_.getvalue()
+    # the verbs: stop with nothing there is not an error; start refuses a port something else holds, and leaves it alone
+    with contextlib.redirect_stdout(io.StringIO()) as out_:
+        assert bowerbird_serve.stop(port) == 0 and k.cli(["serve", "stop", str(port)]) == 0
+        assert k.cli(["serve", str(port)]) == 1 and k.cli(["serve", "status", str(port)]) == 1  # a bare port (or none) only reports
+    assert "nothing running" in out_.getvalue() and "not running" in out_.getvalue()
+    with socket.socket() as other_:
+        other_.bind(("127.0.0.1", 0))
+        other_.listen(1)
+        op_ = other_.getsockname()[1]
+        with contextlib.redirect_stdout(io.StringIO()) as out_:
+            assert bowerbird_serve.start(k, op_) == 1 and bowerbird_serve.stop(op_) == 0
+        assert "in use by something else" in out_.getvalue() and bowerbird_serve.listening(op_)
+    with contextlib.redirect_stderr(io.StringIO()) as err_:
+        assert k.cli(["serve", "bogus"]) == 2
+    assert "start|stop|restart|status" in err_.getvalue()
     assert os.getcwd() == str(sv)  # started from the repo, searched the throwaway collection: not the cwd's bundle
     os.chdir(here_)
 
@@ -1627,6 +1642,9 @@ else:
     finally:
         del sys.modules["pygments"]
     assert "highlight" not in plain_ and plain_.count("<span class=l>") == 2 and "return a + b" in plain_
+    with contextlib.redirect_stdout(io.StringIO()) as out_:
+        assert bowerbird_serve.start(k, port) == 0  # ours is already there: a no-op that says so
+    assert "running" in out_.getvalue()
     assert hit("POST", "/_stop", {"_t": re.search(r'name=_t value="([^"]+)"', hit("GET", "/")[1]).group(1)})[0] == 200
     os.chdir(here_)
     k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = prev_

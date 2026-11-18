@@ -29,7 +29,7 @@ The short form is in [CONTRIBUTING.md](../CONTRIBUTING.md#releasing). This page 
    `--repository testpypi` first when in doubt.
 8. **GitHub release.** `gh release create vX.Y.Z dist/bowerbird_mcp-X.Y.Z* --notes-file` (the CHANGELOG section).
 9. **Check what shipped.** In a clean directory: `uvx bowerbird-mcp@X.Y.Z --version`, and `uvx --from 'bowerbird-mcp[serve]'
-   bowerbird-mcp serve` if the release touches serve.
+   bowerbird-mcp serve start` if the release touches serve.
 10. `git checkout main`.
 
 ## Public acts

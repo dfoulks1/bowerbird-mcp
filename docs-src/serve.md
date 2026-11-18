@@ -13,17 +13,18 @@ It needs one extra package (`markdown`):
 ```sh
 pip install 'bowerbird-mcp[serve]'
 # or, with no install:
-uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve
+uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve start
 ```
 
 Run it from inside a collection (the folder holding `kbmcp.yaml`, or below it):
 
 ```sh
-bowerbird-mcp serve            # in the background, at http://127.0.0.1:26937/
-bowerbird-mcp serve -f         # in the foreground; ctrl-c stops it
-bowerbird-mcp serve 8080       # another port
-bowerbird-mcp serve status     # is it running? (exit 0 if so, 1 if not)
-bowerbird-mcp serve stop       # end it
+bowerbird-mcp serve start       # in the background, at http://127.0.0.1:26937/
+bowerbird-mcp serve start -f    # in the foreground; ctrl-c stops it
+bowerbird-mcp serve start 8080  # another port
+bowerbird-mcp serve status      # information only (exit 0 if running, 1 if not); a bare `serve` does this
+bowerbird-mcp serve stop        # end it; nothing running is not an error
+bowerbird-mcp serve restart     # stop what is found, then start
 ```
 
 Code highlighting is optional: add the `syntax` extra (`pip install 'bowerbird-mcp[serve,syntax]'`) and `serve` colours
@@ -38,7 +39,7 @@ port with `status` and `stop`.
 **Stopping.** `serve stop`, or the **⏻** button at the right of the top bar. If you lose your shell, the button ends the
 server, so you never have to hunt for the process.
 
-**Restarting.** Refresh the page to see changed files. Restart (`serve stop`, then `serve`) after you change
+**Restarting.** Refresh the page to see changed files. Run `serve restart` after you change
 `kbmcp.yaml` or update Bowerbird, because both are read once at start.
 
 ## What you see
@@ -116,7 +117,7 @@ no logins.
 
 - **`serve needs the markdown package`.** Install the extra: `pip install 'bowerbird-mcp[serve]'`.
 - **`port 26937: Address already in use`.** It is already running (`serve status`), or something else has the port. Use
-  `serve stop`, or pick a port: `serve 8080`.
+  `serve stop`, or pick a port: `serve start 8080`.
 - **Meaning is not in the search menu.** `semantic` is off in `kbmcp.yaml`. Turn it on, then restart `serve`.
 - **A page you edited is not what you expected.** Check `git diff`. Edits are plain file writes, and Git has the history.
 - **Not in the tools here.** `provenance`, `init` and the rest of the tools are the command line's:

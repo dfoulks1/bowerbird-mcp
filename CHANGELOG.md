@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- `serve` takes a verb: `start`, `stop`, `restart` and `status`, each with an optional port (26937 when left out). A bare
+  `serve` now only reports status, where it used to start a server, so scripts that ran `bowerbird serve` to start must run
+  `bowerbird serve start`. `start` does nothing when ours is already on the port, and refuses a port something else holds.
+  `stop` with nothing running exits 0. `restart` stops what it finds, waits for the port to clear, then starts.
+
 ## 2.1.3 (2026-11-18)
 
 ### Added

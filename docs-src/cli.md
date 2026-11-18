@@ -53,11 +53,12 @@ person: browse, search four ways, edit, create, move, delete, tag, lint and seal
 [Serve](serve.md) page.
 
 ```
-bowerbird serve          # in the background
-bowerbird serve -f       # in the foreground (ctrl-c stops)
-bowerbird serve 8080     # another port
-bowerbird serve status   # is it running? exit 0 if so, 1 if not (add the port if it is not 26937)
-bowerbird serve stop     # end it (add the port if it is not 26937)
+bowerbird serve status      # information only: is it running? exit 0 if so, 1 if not. A bare `serve` does this
+bowerbird serve start       # in the background; a no-op if ours is already on the port
+bowerbird serve start -f    # in the foreground (ctrl-c stops)
+bowerbird serve stop        # end it; nothing running is not an error
+bowerbird serve restart     # stop what is found, then start: always ends with a running server
+bowerbird serve start 8080  # another port (any verb takes one; 26937 when left out)
 ```
 
 It needs the `serve` extra: `pip install 'bowerbird-mcp[serve]'`, or `uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve`.

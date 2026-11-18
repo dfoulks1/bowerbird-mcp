@@ -3807,7 +3807,7 @@ def help_text(full: bool) -> str:
     for g, ns in rows:
         if ns:
             out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
-    out += ["  serve [port]   browse the collection in a browser, in the background (26937; `serve status` and `serve stop`; needs bowerbird-mcp[serve])",
+    out += ["  serve <verb>   browse the collection in a browser: start|stop|restart|status [port] (26937; bare `serve` is status; needs bowerbird-mcp[serve])",
             "  help all       every command" if not full else "",
             "  help <tool>    its arguments and examples", "",
             "Arguments are name=value (lists a,b or JSON) or flags: lint scope=okf output=github is lint -s okf -O github.",
@@ -3941,11 +3941,14 @@ def cli(argv) -> int:
         import bowerbird_serve
         rest = [a for a in argv[1:] if a not in ("-f", "--foreground")]
         port = int(rest[-1]) if rest and rest[-1].isdigit() else bowerbird_serve.PORT
-        if rest[:1] == ["stop"]:
-            return bowerbird_serve.stop(port)
-        if rest[:1] == ["status"]:
-            return bowerbird_serve.status(port)
-        return bowerbird_serve.run(sys.modules[__name__], port, len(rest) < len(argv) - 1)
+        verb, fg = (rest[0] if rest and not rest[0].isdigit() else "status"), len(rest) < len(argv) - 1  # a bare `serve` only reports
+        acts = {"status": lambda: bowerbird_serve.status(port), "stop": lambda: bowerbird_serve.stop(port),
+                "start": lambda: bowerbird_serve.start(sys.modules[__name__], port, fg),
+                "restart": lambda: bowerbird_serve.restart(sys.modules[__name__], port, fg)}
+        if verb not in acts:
+            print(f"error: serve {verb!r} | fix: serve start|stop|restart|status [port] (-f keeps start and restart in the foreground)", file=sys.stderr)
+            return 2
+        return acts[verb]()
     argv = [ALIASES.get(argv[0], argv[0]), *argv[1:]] if argv else argv
     if "--attest" in argv[1:]:  # CLI only, by design: an MCP caller cannot pass it
         argv = [a for a in argv if a != "--attest"]

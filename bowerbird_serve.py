@@ -20,6 +20,7 @@ import signal
 import socket
 import sys
 import threading
+import time
 import urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -107,35 +108,57 @@ def listening(port: int) -> bool:
         return False
 
 
-def status(port: int = PORT) -> int:
-    """Say whether a server is running on port (exit 0), or not (exit 1). The pid file names it; the port must answer."""
-    f = pidfile(port)
+def found(port: int):
+    """The pid of our server on port (the pid file names it and the port answers), else None."""
     try:
-        pid = int(f.read_text())
+        pid = int(pidfile(port).read_text())
         os.kill(pid, 0)
     except (OSError, ValueError):
-        pid = None
-    if pid and listening(port):
+        return None
+    return pid if listening(port) else None
+
+
+def status(port: int = PORT) -> int:
+    """Information only: say whether our server is on port (exit 0), or not (exit 1). Changes nothing."""
+    pid, f = found(port), pidfile(port)
+    if pid:
         print(f"running: http://127.0.0.1:{port}/ (pid {pid}; `bowerbird-mcp serve stop{'' if port == PORT else f' {port}'}` ends it)")
         return 0
-    print(f"not running on port {port}" + (" (a stale pid file was left)" if pid or f.exists() else ""))
+    print(f"not running on port {port}" + (" (a stale pid file was left)" if f.exists() else ""))
     return 1
 
 
 def stop(port: int = PORT) -> int:
-    """Stop the background server on port."""
+    """Stop our server if there is one on port. Nothing there is not an error (exit 0): the port is as free as asked."""
     f = pidfile(port)
-    try:
-        if not listening(port):  # a stale pid file: its number may belong to another process now
-            raise ValueError
-        os.kill(int(f.read_text()), signal.SIGTERM)
-    except (OSError, ValueError):
+    pid = found(port)  # a stale pid file's number may belong to another process now: only a live answer is killed
+    if pid:
+        os.kill(pid, signal.SIGTERM)
+        print(f"stopped the server on port {port}")
+    else:
         print(f"nothing running on port {port}")
-        f.unlink(missing_ok=True)
-        return 1
     f.unlink(missing_ok=True)
-    print(f"stopped the server on port {port}")
     return 0
+
+
+def start(kb, port: int = PORT, foreground: bool = False) -> int:
+    """Start only when nothing is on the port: ours already there is a no-op (exit 0), something else is an error (exit 1)."""
+    if found(port):
+        return status(port)
+    if listening(port):
+        print(f"error: port {port} is in use by something else | fix: pick another port (`serve start 8080`)")
+        return 1
+    return run(kb, port, foreground)
+
+
+def restart(kb, port: int = PORT, foreground: bool = False) -> int:
+    """Stop what is found on port (if anything), wait for the port to clear, then start."""
+    stop(port)
+    for _ in range(50):  # up to 5 s for the old server to let go of the port
+        if not listening(port):
+            break
+        time.sleep(0.1)
+    return start(kb, port, foreground)
 
 
 def run(kb, port: int = PORT, foreground: bool = False) -> int:
