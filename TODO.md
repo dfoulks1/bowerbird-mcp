@@ -2,6 +2,11 @@
 
 Ideas for later:
 
+- [ ] Distributed waxseals: a ledger per folder, not one `.waxseals.yaml` at the collection root. A wiki started for a code
+      project often grows into sealing the code assets too, and the seals should live beside what they cover (the way a
+      folder's own `kbmcp.yaml` already scopes its format). Open: where a ledger sits when a file's folder has none, how
+      `move` carries a seal across ledgers, and how `seal check` and `serve` merge them.
+
 ## 2.1.3
 
 - [x] Bug: viewer for seal-only collections (`bowerbird_serve.py`): today `/` falls through to a plain directory listing when there is no
@@ -12,10 +17,18 @@ Ideas for later:
       extra `syntax = ["pygments"]` (`bowerbird-mcp[serve,syntax]`); per-language extras only if a pack adds a tool (ruff, golangci-lint).
       Open: stop `SimpleHTTPRequestHandler` serving dotfiles such as `.env` (the listing links them); skip binary and huge files.
 
+## 2.1.4
+
+- [x] New file starts from a template by format (okf, markdown, adr), with a Template picker and a Use template button.
+- [x] Web UI: New knowledgebase (`init`), and a setup modal when there is no `kbmcp.yaml`.
+- [x] Archive management in the settings cog. Archive sends a page to the archive, unarchive sends it back (a page in the
+      archive shows only Unarchive and Seal), plus an Unarchive link in the tree.
+
 ## 2.2.0
 
 Full notes, and the questions still open: `docs-src/prompts/02-release-2.2.0.md`.
-
+- [ ] Add an optional comment to a wax seal, I'd like to be able to denote something is sealed as historical record.
+- [ ] Add a link to the repository if a git repository is detected on the right next to the theme and stop buttons.
 - [ ] Remove the old `kb` / KnowledgeBaseMCP naming everywhere: docs (`kb` alias and `kb <tool>` examples), internal names,
       `kbmcp.yaml` to `bowerbird.yaml`, `KB_*` env vars to `BOWERBIRD_*`. Keep the old names working (with a warning) for a
       version or two, and keep reading the `kb-index` marker.

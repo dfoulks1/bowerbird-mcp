@@ -12,6 +12,7 @@ import hashlib
 import html
 import inspect
 import io
+import datetime as dt
 import json
 import os
 import re
@@ -59,7 +60,7 @@ input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px s
 #res a{display:block;padding:.3rem .6rem;text-decoration:none;color:var(--fg)}#res a.sel,#res a:hover{background:var(--acc);color:#fff}#res small{color:inherit;opacity:.7}
 .dot{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.35rem;background:var(--warn)}.dot.sealed{background:var(--ok)}.dot.derived{background:var(--line)}.dot.broken-seal{background:var(--bad)}
 aside li.act>a{font-weight:700}kbd{border:1px solid var(--line);border-radius:3px;padding:0 .3rem;font-size:12px}.dot.none{background:var(--line)}
-.diff .a{color:var(--ok)}.diff .d{color:var(--bad)}nav a.new{color:var(--mut);font-size:12px}.menu{position:relative}.menu summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:.15rem .6rem}.menu summary::-webkit-details-marker{display:none}
+.diff .a{color:var(--ok)}.diff .d{color:var(--bad)}nav a.new{color:var(--mut);font-size:12px}.menu{position:relative}.menu summary{width:fit-content;list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:.15rem .6rem}.menu summary::-webkit-details-marker{display:none}
 .menu div{position:absolute;right:0;z-index:6;min-width:9rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px #0004;padding:.2rem}.menu div a,.menu div button{display:block;width:100%;text-align:left;border:0;padding:.3rem .6rem;background:none;color:var(--fg);font:inherit;cursor:pointer;text-decoration:none}.menu div a:hover,.menu div button:hover{background:var(--acc);color:#fff}
 aside .bar{margin-top:0}aside .menu div{position:static;box-shadow:none;margin-top:.2rem;min-width:0}  /* the pane scrolls: a floating menu would be clipped */
 .bar{display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
@@ -284,19 +285,32 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 else:
                     out.append(f'<a href="{href(v)}"><span class="dot none"></span>{esc(k)}</a>')
             return "".join(out)
-        return f"<details open><summary>{esc(ROOT.name)}/</summary>{walk(tree)}{newlink('')}<a class=new href=/_lint>Lint all</a><a class=new href=/_tags>Tags</a></details>"
+        return f"<details open><summary>{esc(ROOT.name)}/</summary>{walk(tree)}{newlink('')}<a class=new href=/_lint>Lint all</a><a class=new href=/_tags>Tags</a><a class=new href=/_tool/unarchive>Unarchive</a><a class=new href=/_tool/init>New knowledgebase</a></details>"
+
+    def setup_dialog():
+        """No kbmcp.yaml here: ask the three things init cannot know (about, holds, user), as init's own prompt does."""
+        if kb.CFG_DIR or (kb.KB_ROOT / kb.CONFIG).exists():
+            return ""
+        opts = "".join(f"<option{' selected' if f == kb.detect_holds(kb.KB_ROOT) else ''}>{f}" for f in kb.FORMATS)
+        return (f'<dialog id=setup><form method=post action="/_init"><input type=hidden name=_t value="{TOKEN}"><h3>Set up this collection</h3>'
+                f'<p>No {kb.CONFIG} in {esc(kb.KB_ROOT.name)}/. Three answers write it (never overwriting a file).</p>'
+                f'<label>About <small>(one sentence: what this holds)</small><input name=about></label>'
+                f'<label>Holds<select name=holds>{opts}</select></label>'
+                f'<label>Your id <small>(kept in .env, not committed)</small><input name=user value="{esc(kb.kb_user())}"></label>'
+                f'<div class=bar><button class="go hot">Create</button><button type=button class=go onclick="this.closest(\'dialog\').close()">Not now</button></div></form></dialog>'
+                "<script>document.getElementById('setup').showModal()</script>")
 
     def page(title, left, body, right="", rel=""):
         parts = rel.split("/") if rel else []
         crumbs = [f'<a href="/">{esc(ROOT.name)}</a>'] + [
             f'<a href="{href("/".join(parts[:i + 1]))}">{esc(x)}</a>' if i < len(parts) - 1 and (ROOT / "/".join(parts[:i + 1]) / "index.md").exists() else esc(x)
             for i, x in enumerate(parts)]
-        top = (f'<div id=top><a class=brand href="/" title="bowerbird">{LOGO}</a><button id=back title="back ([)">◀</button><button id=fwd title="forward (])">▶</button>'
+        top = (f'<div id=top><a class=brand href="/" title="bowerbird {kb.VERSION}">{LOGO}</a><button id=back title="back ([)">◀</button><button id=fwd title="forward (])">▶</button>'
                f'<span id=crumbs>{" / ".join(crumbs)}</span><div id=sw><select id=mode title="what to search: passages (ranked sections), concepts (whole pages), meaning (passages matched by meaning), tags">{"".join(f"<option value={m}>{n}" for m, n in modes())}</select><input id=q placeholder="search ( / )" autocomplete=off><div id=res></div></div><form method=post action=/_stop onsubmit="return confirm(&quot;Stop the bowerbird server? Reopen it with: bowerbird-mcp serve&quot;)" style=margin:0><input type=hidden name=_t value="{TOKEN}"><button title="stop this server" aria-label="stop this server">⏻</button></form><button id=theme title="theme (t)">◐</button></div>')
-        hint = '<h4>Keys</h4><small><kbd>/</kbd> search <kbd>n</kbd>/<kbd>p</kbd> next/prev unsealed<br><kbd>j</kbd>/<kbd>k</kbd> next/prev doc <kbd>t</kbd> theme <kbd>[</kbd><kbd>]</kbd> history</small>'
+        hint = '<h4>Keys</h4><small><kbd>/</kbd> search <kbd>n</kbd>/<kbd>p</kbd> next/prev unsealed<br><kbd>j</kbd>/<kbd>k</kbd> next/prev doc <kbd>t</kbd> theme <kbd>[</kbd><kbd>]</kbd> history</small><p><small>bowerbird '+kb.VERSION+'</small></p>'
         return (f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>{esc(title)} · bowerbird</title>"
                 f"<link rel=icon type=image/svg+xml href=/_logo.svg><script>try{{var t=localStorage.getItem('kbtheme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}}catch(e){{}}</script>"
-                f"<style>{CSS}</style>{top}<div class=wrap><nav>{left}</nav><main>{body}</main><aside>{right}{hint}</aside></div><script>{JS}</script>").encode()
+                f"<style>{CSS}</style>{top}<div class=wrap><nav>{left}</nav><main>{body}</main><aside>{right}{hint}</aside></div><script>{JS}</script>{setup_dialog()}").encode()
 
     MODES = ("passages", "concepts", "semantic", "tags")
     NAMES = {"passages": "Passages", "concepts": "Concepts", "semantic": "Meaning", "tags": "Tags"}
@@ -337,7 +351,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
 
     TOKEN, LOCK = secrets.token_urlsafe(16), threading.RLock()  # the kb module holds global state: one tool at a time
     HOSTS = {f"127.0.0.1:{port}", f"localhost:{port}"}  # a Host we did not bind is DNS rebinding
-    FORMS = {"move", "archive", "fix"}  # the tools a button here leads to; the rest are the CLI's (`bowerbird-mcp help`)
+    FORMS = {"move", "archive", "unarchive", "fix", "init"}  # the tools a button here leads to; the rest are the CLI's (`bowerbird-mcp help`)
     HIDE = {"by", "ctx", "apply"}  # `by` is never asked: nothing here stamps `generated`
     uq = urllib.parse.quote  # not `q`: do_GET has its own
 
@@ -498,16 +512,19 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 f'<button class=go formaction="/_editlint" title="lint this text without saving it">Lint</button>'
                 f'<a href="{href(key) if cur is not None else "/"}">Cancel</a></div></form>')
 
-    def new_body(d, name="", text="", msg=""):
+    def new_body(d, name="", text="", msg="", tpl=""):
         """The editor, for a page that does not exist yet: the folder is fixed, the name is typed, Save writes it."""
         inner = (f'<input type=hidden name=dir value="{esc(d)}"><textarea name=text spellcheck=false>{esc(text)}</textarea>')
+        opts = "".join(f"<option{' selected' if n == tpl else ''}>{n}" for n in (*kb.TEMPLATES, "blank"))
+        pick = (f'<label>Template <small>(Use template replaces the text below)</small><select form=newf name=tpl>{opts}</select></label>'
+                '<button form=newf class=go name=use value=1 formnovalidate>Use template</button>')
         return (f'<h1>{esc(d + "/" if d else "")}<input form=newf name=name value="{esc(name)}" placeholder="name.md" autofocus style="width:auto;min-width:14rem;font:inherit"></h1>{msg}'
-                f'<p><small>The folder is above; type a file name (.md is added), or a name ending in / to make a folder.</small></p>'
+                f'<p><small>The folder is above; type a file name (.md is added), or a name ending in / to make a folder.</small></p>{pick}'
                 f'<form id=newf method=post action="/_new"><input type=hidden name=_t value="{TOKEN}">{inner}'
                 f'<div class=bar><button class="go hot">Save</button><a href="/">Cancel</a></div></form>')
 
     def backlinks(docs, key):
-        return [src for src, o in docs.items() if src != key and any(resolve(src, link) == key for link in LINK.findall(o["body"]))]
+        return [src for src, o in docs.items() if src != key and src.rsplit("/", 1)[-1] not in ("index.md", "log.md") and any(resolve(src, link) == key for link in LINK.findall(o["body"]))]
 
     def seal_dialog(key):
         """The modal: what seal's MCP prompt shows, and asks the same two things (confirm, and your id)."""
@@ -622,7 +639,11 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     raise ValueError(f"no form for {name!r} here | fix: it is a command-line tool: bowerbird-mcp help {name}")
                 if form is not None:
                     return self.send_bytes(page(name, left, run_tool(name, form)))
-                return self.send_bytes(page(name, left, f"<h1>{name}</h1><p>{esc(' '.join((kb.REG[name].__doc__ or '').split()))}</p>" + tool_form(name, {k: v[0] for k, v in qs.items()})))
+                gone = ""
+                if name == "unarchive":  # the archive is not in the tree: list what can come back
+                    gone = [x.relative_to(kb.arch()).as_posix() for x in sorted(kb.arch().rglob("*.md")) if x.name not in kb.RESERVED]
+                    gone = "<p>Archived:</p><ul>" + "".join(f"<li><code>{esc(x)}</code>" for x in gone) + "</ul>" if gone else "<p>Nothing is archived.</p>"
+                return self.send_bytes(page(name, left, f"<h1>{name}</h1><p>{esc(' '.join((kb.REG[name].__doc__ or '').split()))}</p>{gone}" + tool_form(name, {k: v[0] for k, v in qs.items()})))
             if path == "/_lint":
                 return self.send_bytes(page("Lint", left, lint_body(one("f"))))
             if path == "/_tags":
@@ -665,8 +686,11 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 d = one("dir").strip().strip("/")
                 lf = nav(docs, d + "/" if d else "")
                 if form is None:
-                    return self.send_bytes(page("New", lf, new_body(d)))
+                    return self.send_bytes(page("New", lf, new_body(d, text=kb.new_template(ROOT / d))))
                 name, text = one("name").strip().lstrip("/"), one("text").replace("\r\n", "\n")
+                if one("use"):  # the Use template button: refill the box, save nothing
+                    t = one("tpl")
+                    return self.send_bytes(page("New", lf, new_body(d, name, kb.TEMPLATES.get(t, "").replace("{today}", dt.date.today().isoformat()), tpl=t)))
                 if not name:
                     return self.send_bytes(page("New", lf, new_body(d, name, text, err_box("name it | fix: type a file name, or a name ending in / for a folder"))), code=400)
                 key = f"{d}/{name}" if d else name
@@ -703,7 +727,17 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     if led.pop(os.path.relpath(p, kb.KB_ROOT), None) is not None:
                         changes[kb.KB_ROOT / kb.LEDGER] = kb.ledger_text(led)
                     kb.commit(kb.enclosing(p.parent), changes, True)
+                    if kb.fmt_of(p) == "okf":
+                        call("index", apply=True, bundle=kb.kbpath(kb.enclosing(p.parent)))  # drop it from the generated list
                 return go(self, "/")
+            if path == "/_init":
+                if form is None:
+                    raise ValueError("setup is a form, not a link")
+                about, holds, user = one("about").strip(), one("holds"), one("user").strip().removeprefix("human:")
+                if not about or not user or re.search(r"\s", user):
+                    raise ValueError("about and your id are required, and the id has no spaces | fix: fill both in")
+                r = call("init", apply=True, about=about, holds=holds, user=user)
+                return self.send_bytes(page("Set up", left, f"<h1>Set up</h1>{show(r)}<p>Restart <code>bowerbird-mcp serve</code> to load it.</p>"))
             if path == "/_stop":
                 if form is None:
                     raise ValueError("stop is a button, not a link")
@@ -804,10 +838,16 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 right = f'<h4>On this page</h4>{md.toc}<h4>Linked from ({len(back)})</h4>{lst(back)}<h4>Links to ({len(out)})</h4>{lst(out)}'
                 tf, tb = tfile(rel)
                 made = d["state"] == "derived"  # built from the code: nothing for a person to seal
-                bar = (f'<div class=bar><a href="/_edit?f={uq(rel)}" title="edit" aria-label="edit">✎</a>'
-                       f'<details class=menu><summary title="move, delete, seal" aria-label="more">⚙</summary><div>'
-                       f'<a href="/_tool/move?file={uq(tf)}&bundle={uq(tb)}">Move</a><a href="/_delete?f={uq(rel)}">Delete</a>'
-                       + ("" if made else '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button>') + '</div></details></div>')
+                seal_btn = "" if made else '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button>'
+                if kb.archived(kb.enclosing((ROOT / rel).parent)):  # in the archive: read-only, so only seal and unarchive
+                    ap = (ROOT / rel).relative_to(kb.arch()).as_posix()
+                    bar = (f'<div class=bar><details class=menu><summary title="unarchive, seal" aria-label="more">⚙</summary><div>'
+                           f'<a href="/_tool/unarchive?path={uq(ap)}">Unarchive</a>{seal_btn}</div></details></div>')
+                else:
+                    bar = (f'<div class=bar><a href="/_edit?f={uq(rel)}" title="edit" aria-label="edit">✎</a>'
+                           f'<details class=menu><summary title="move, archive, delete, seal" aria-label="more">⚙</summary><div>'
+                           f'<a href="/_tool/move?file={uq(tf)}&bundle={uq(tb)}">Move</a><a href="/_tool/archive?file={uq(tf)}&bundle={uq(tb)}">Archive</a>'
+                           f'<a href="/_delete?f={uq(rel)}">Delete</a>{seal_btn}</div></details></div>')
                 tags = (post("/_settags", hidden({"file": rel}) + f'<label>tags <small>(comma separated)</small><input name=tags value="{esc(", ".join(map(str, meta.get("tags") or [])) if isinstance(meta.get("tags"), list) else "")}"></label>', "Set tags")
                         if d["fm"] else "")  # any page with frontmatter can carry tags, whatever its format
                 return self.send_bytes(page(d["title"], nav(docs, rel), head + htm + ("" if made else seal_dialog(rel)) + tags, bar + right, rel))

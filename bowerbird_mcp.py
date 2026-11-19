@@ -363,7 +363,7 @@ def kb_user() -> str:
     return os.environ.get("KB_USER") or str(CFG.get("user") or "")
 
 
-VERSION = "2.1.3"  # keep equal to `version` in pyproject.toml (a test checks)
+VERSION = "2.1.4"  # keep equal to `version` in pyproject.toml (a test checks)
 OKF_VERSION = "0.2"
 RESERVED = ("index.md", "log.md")  # §3.1
 ARCHIVE = "archive"  # archive/: a collection within the collection, read-only, set apart from the live one
@@ -1832,6 +1832,23 @@ def adr_meta(d: dict, text: str, p: Path, every: bool = False) -> dict:
         if d.get("status"):
             d["status"] = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", str(d["status"])).strip(" *_`")
     return d
+
+
+TEMPLATES = {  # what a new page starts as, by what its folder holds; the web editor's "+ New file" fills the box with one
+    "okf": "---\ntype: Reference\ntitle: Title\ndescription: One line on what this is\nstatus: draft\ntags: []\n---\n\n# Title\n",
+    "markdown": "---\ntitle: Title\ntags: []\n---\n\n# Title\n",
+    "adr": "---\nstatus: proposed\ndate: {today}\ndecision-makers: \n---\n\n# Title\n\n## Context and Problem Statement\n\n"
+           "## Considered Options\n\n## Decision Outcome\n\n## Consequences\n",
+}
+
+
+def new_template(folder: Path) -> str:
+    """The starting text for a new page in folder: MADR for an ADR folder (format adr, or a path through adr, adrs or
+    decisions), OKF frontmatter for okf, plain frontmatter for markdown; empty for formats with no frontmatter."""
+    fmt = fmt_of(folder)
+    if fmt == "markdown" and {"adr", "adrs", "decisions"} & {x.lower() for x in folder.parts}:
+        fmt = "adr"
+    return TEMPLATES.get(fmt, "").replace("{today}", dt.date.today().isoformat())
 
 
 def load_md(p: Path, b: Path, key: str, fmt: str):

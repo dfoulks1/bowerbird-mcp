@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.1.4 (2026-11-19)
+
+All of the `serve` changes need the `serve` extra (`bowerbird-mcp[serve]`).
+
+### Added
+- `serve`: **+ New file** fills the editor with a starting template by what the folder holds: OKF frontmatter (okf),
+  title and tags (markdown), MADR (format adr, or a path through `adr`, `adrs` or `decisions`). A Template picker
+  (okf, markdown, adr, blank) with a **Use template** button swaps it, keeping the file name. New `TEMPLATES` and
+  `new_template(folder)` in `bowerbird_mcp.py`.
+- `serve`: **New knowledgebase** in the tree runs `init` (preview, then confirm).
+- `serve`: a setup modal opens when the collection has no `kbmcp.yaml`. It asks about, holds and your id, then runs `init`.
+  Restart `serve` afterwards to load the config.
+- `serve`: **Archive** in a page's settings cog, and **Unarchive** (a tree link that lists what is archived, and in the cog
+  of a page in the archive). A page in the archive shows only Unarchive and Seal, with no edit.
+- `serve`: the bowerbird version shows in the side pane and in the logo's tooltip.
+
+### Fixed
+- `serve`: a page could not be deleted in an okf bundle, because `index.md` and `log.md` counted as pages linking to it.
+  They no longer block a delete, and the bundle's generated index list is rebuilt after it.
+- `serve`: the settings cog button stretched to the width of its open menu.
+
 ## 2.1.3 (2026-11-18)
 
 ### Added

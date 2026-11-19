@@ -1472,6 +1472,11 @@ else:
     assert "notes/" in home and "/_new?dir=notes/sub" in home.replace("%2F", "/") and "/_new?dir=\"" in home  # an empty folder shows, each folder ends in + New file
     npg = hit("GET", "/_new?dir=notes")[1]
     assert "notes/" in npg and "form=newf" in npg and "<textarea" in npg and ">Save</button>" in npg and ">Cancel</a>" in npg
+    t = k.new_template(sv / "notes")  # the box starts as the folder's template, by its format
+    assert t in {k.TEMPLATES["okf"], k.TEMPLATES["markdown"], k.TEMPLATES["adr"].replace("{today}", __import__("datetime").date.today().isoformat()), ""} and "{today}" not in t
+    assert k.new_template(sv / "decisions") .startswith("---\nstatus: proposed") or k.OPTS["format"] != "markdown"  # a path through decisions is an ADR
+    st, tp, _ = put_("/_new", dir="notes", name="keep", tpl="adr", use="1")  # Use template: refills the box, keeps the name, saves nothing
+    assert st == 200 and "Considered Options" in tp and 'value="keep"' in tp and not (sv / "notes/keep.md").exists()
     assert put_("/_new", dir="notes", name="fresh", text="---\ntype: Note\n---\n# Fresh\n")[0] == 303 and (sv / "notes/fresh.md").exists()  # Save writes dir/name.md
     assert put_("/_new", dir="notes", name="folder2/")[0] == 303 and (sv / "notes/folder2").is_dir()  # a trailing / is a folder
     assert put_("/_new", dir="", name="a", text="x")[0] == 409 and "x" not in (sv / "a.md").read_text()[:5]  # a.md exists
@@ -1506,7 +1511,8 @@ else:
     assert (sv / "moved.md").exists() and not (sv / "made.md").exists()
     put_("/_tool/move", file="moved.md", to="made.md", _apply="1")
     assert all(x not in "".join(p.read_text() for p in sv.rglob("*.md")) for x in ("generated:",))  # nothing here stamps `generated`
-    assert hit("GET", "/_tool/move")[0] == 200 and hit("GET", "/_tool/archive")[0] == 200
+    assert hit("GET", "/_tool/init")[0] == 200 and "New knowledgebase" in hit("GET", "/")[1]  # the one tool every other surface had
+    assert hit("GET", "/_tool/move")[0] == 200 and hit("GET", "/_tool/archive")[0] == 200 and hit("GET", "/_tool/unarchive")[0] == 200 and "Unarchive" in hit("GET", "/")[1]
     assert all(put_(f"/_tool/{n}", file="made.md")[0] == 400 for n in ("seal", "by", "create", "set", "provenance"))  # the CLI's, not offered
     assert hit("GET", "/_tools")[0] == 400  # the page is gone
     assert "Lint all" in hit("GET", "/a.md")[1] and "/_tags" in hit("GET", "/a.md")[1]
@@ -1514,6 +1520,10 @@ else:
     # delete: refused while linked, ledger entry goes with the file
     assert put_("/_delete", f="b.md")[0] == 400 and (sv / "b.md").exists()
     assert put_("/_delete", f="c.md")[0] == 303 and not (sv / "c.md").exists()
+    (sv / "d.md").write_text("---\ntype: Note\ndescription: Only the index lists it.\n---\n# D\n")
+    with open(sv / "index.md", "a") as f_:
+        f_.write("\n* [d](./d.md)\n")
+    assert put_("/_delete", f="d.md")[0] == 303 and not (sv / "d.md").exists()  # index.md and log.md links do not block a delete
 
     # tags: rename previews, then applies across pages
     assert "old" in hit("GET", "/_tags")[1]
