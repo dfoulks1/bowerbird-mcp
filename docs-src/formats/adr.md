@@ -7,7 +7,7 @@ a person ratify them.
 
 ```text
 platform/
-  kbmcp.yaml             format: adr
+  bower.yaml             format: adr
   docs/adr/
     0001-use-a-managed-queue.md      a Nygard record
     0002-use-postgresql.md           a MADR record
@@ -15,7 +15,7 @@ platform/
 ```
 
 ```yaml
-# kbmcp.yaml
+# bower.yaml
 format: adr
 about: Platform decisions.
 seal: {exempt: [], exempt_status: [proposed, draft]}

@@ -3,15 +3,15 @@
 ## 2.2.0 (unreleased)
 
 ### Added
-- **`bowers:`**, a root `kbmcp.yaml` key listing the folders (globs allowed) that carry their own `kbmcp.yaml`. Only those
-  override the root, a stray `kbmcp.yaml` is never picked up, and a bower run inside the collection finds the root that
+- **`bowers:`**, a root `bower.yaml` key listing the folders (globs allowed) that carry their own `bower.yaml`. Only those
+  override the root, a stray `bower.yaml` is never picked up, and a bower run inside the collection finds the root that
   lists it. A bower run alone is its own collection, and its whole-collection keys are ignored here, so it can ship with
   them. A name that matches no folder stops with an error. A root with no `bowers` key keeps the older rule, where every
-  nested `kbmcp.yaml` is an override.
+  nested `bower.yaml` is an override.
 - The agent rules without a file: an MCP resource `bowerbird://agent-rules` and a prompt `rules` serve the text `create` writes as
   `BOWERBIRD.md`, from the installed package.
 - **Seal comments, and the `seal-extensions` extra.** Every seal can carry a one-line `comment` (`seal --comment "..."`, a Comment field in the
-  MCP prompt and the `serve` dialog; up to 280 characters; kept on the review). With `seal: {extensions: true, quorum: N}` in `kbmcp.yaml`
+  MCP prompt and the `serve` dialog; up to 280 characters; kept on the review). With `seal: {extensions: true, quorum: N}` in `bower.yaml`
   (the `seal-extensions` extra, which has no dependency) different people can seal the same version of a file, kept together on its one
   `.waxseals.yaml` line as `seals: [...]`, and `seal check` reports `short_of_quorum` until N different people have (a machine check never
   counts; the file is `unverified` until then). Off, nothing changes: one latest review per file.
@@ -19,25 +19,27 @@
   `.waxseals.yaml` (`mark_derived(path, generator)`; `docs_tools.py` does it for `docs-src/tools.md`). `serve` and the docs build badge a
   file derived only while that line matches its bytes; `seal.exempt` no longer implies it (it only leaves a file out of `seal check`), so a
   page that is exempt but hand-written is no longer badged as built from the code. `hooks/seal_banner.py` now reads only the ledger: no
-  `kbmcp.yaml`, no globs, the same hash the tool uses, and several seals on one line. A derived line is not a review.
+  `bower.yaml`, no globs, the same hash the tool uses, and several seals on one line. A derived line is not a review (it carries `by: generator:<name>` so a 2.1.x reader can still read the ledger).
 - `serve` shows a link to the repository (from `origin`, when it has a web address) beside the theme and stop buttons. New docs page,
   [Status badges](https://bowerbird.voltpop.com/badges/): the site's review and fact badges, doing the same in another site generator, and a
   script that makes a README badge from `seal check`.
-- **Facts, and `factcheck`.** A fact is a claim and what it rests on, written in a document as a block: `[fact.url] <address>` ...
-  `[fact.end]` (the words pasted from the page), or the one-liner `[fact.mcp] jira INFRA-27707 is open [fact.end]`. It works in every
+- **Facts, and `factcheck`.** A fact is a claim and what it rests on, written in a document as a block: `[fact.url](<address>) the words pasted from the page [fact.end]`, or
+  `[fact.mcp](jira INFRA-27707) is open [fact.end]` (the kind, the source in parentheses, then the claim; one line or many). It works in every
   format. `factcheck` lists the blocks and their state (unchecked, checked, drifted). `factcheck --fetch`, for a person at a terminal,
   shows what it will fetch or call, asks, and compares each block with a fresh result: a page must still hold the words (shape ignored:
   whitespace, case, ticks; with `semantic: true` and the extra, a similar meaning also counts), an MCP call declared under `facts` in
-  `kbmcp.yaml` (tool, arg, watch; the only calls it may make) must return the value it did. State is kept in a `.facts.yaml` beside
+  `bower.yaml` (tool, arg, watch; the only calls it may make) must return the value it did. State is kept in a `.facts.yaml` beside
   the document, which a check never changes. A drift ends every review of the file made before it (`seal check`: "a cited fact
-  drifted after it was reviewed"). `lint` errors on an unclosed or stray tag. The docs build shows each block with its state.
+  drifted after it was reviewed"). `lint` errors on an unclosed or stray tag. The kinds of fact (`url`, `mcp`) are a registry, `bowerbird_facts.FACT_TYPES`, so a new kind is a `register()` call, and the root `bower.yaml` can declare more with
+  `facts: types:` (`[fact.ticket](INFRA-27707) is open [fact.end]`, backed by one tool of an MCP server the collection has). `create --facts` adds a commented
+  block with one such kind per server in `.mcp.json` (Bowerbird's own is left out), also to a `bower.yaml` that is already there. The docs build shows each block with its state.
   For agents, `fact` (was `cite`) takes `result` and keeps its `fact_sha256`; `factcheck file= id= result=` compares.
-- `--config` takes the folder holding a `kbmcp.yaml` as well as the file, and a relative path, `~` or `$VARS`.
+- `--config` takes the folder holding a `bower.yaml` as well as the file, and a relative path, `~` or `$VARS`.
 - **`new`**, a tool (MCP and CLI) that starts a document from a template: `new notes/deploy -t markdown -T "Deploy"`. `template`
-  (`-t`) is `okf`, `markdown` or `adr` and defaults to what the folder holds, from `kbmcp.yaml`; `title` (`-T`) defaults to the
+  (`-t`) is `okf`, `markdown` or `adr` and defaults to what the folder holds, from `bower.yaml`; `title` (`-T`) defaults to the
   file name. It refuses a file that exists. It joins the `write` role (now 7 tools) and every format but seal-only, skos and
   asciidoc. All tools are now 36.
-- **A bare `bowerbird-mcp` at a terminal** prints the help and, in a folder with no `kbmcp.yaml`, offers to make a
+- **A bare `bowerbird-mcp` at a terminal** prints the help and, in a folder with no `bower.yaml`, offers to make a
   knowledgebase there (it runs `create`, which asks for the format, what the folder holds and your id). An MCP host starts the
   server with piped stdio, so it is unaffected. `create`'s prompts now say what each answer is.
 - `create` writes `BOWERBIRD.md` at the collection root: rules for an AI agent using the tools, ending in a "Picking a tool"
@@ -48,30 +50,43 @@
   edit it and point an assistant at it, and its full text (a test keeps the page equal to `AGENTS_MD`).
 
 ### Changed
+- **The collection's files as MCP resources**, at `bowerbird://{bower}/{path}`. Every file belongs to a bower, a folder that holds a
+  `bower.yaml` (the root is one, named by its folder); the path inside it is the file's path as every tool takes it, so the bundle needs no
+  segment of its own (`bowerbird://wiki/a.md`, `bowerbird://docs/sub/b.md`). `?lines=10-20` returns only those lines. They are listed
+  (up to 1,000) and read for the `read` role; a dotfile, a link, a folder or anything outside the collection is refused. The SDK's
+  templates match one path segment, so Bowerbird handles listing and reading for its own scheme and passes `okf://spec` and
+  `bowerbird://agent-rules` through.
+- **The `kb` names are gone.** The settings file is `bower.yaml` (was `kbmcp.yaml`), the environment variables are `BOWERBIRD_*` (were `KB_*`),
+  the lint skip file is `bower.nolint` (was `kbmcp.nolint`; the inline marker is `<!-- bower-nolint -->`), the index cache is `.bower/` (was
+  `.kbmcp/`; a cache, rebuilt on first use), and the generated-list markers say `bowerbird-index` (the old `kb-index` is still read, and replaced
+  the next time `index` runs). `serve` keeps its theme and search mode under `bowerbird-*` keys (the old ones are read once). The old file and
+  variable names keep working for now: one is read with a one-line warning on stderr that names the new one (`git mv kbmcp.yaml bower.yaml`),
+  and when both exist the new one wins. `KB_ROOT` and `BOWERBIRD_ROOT` are still refused. Inside, `KB_ROOT` is `ROOT`, `kbpath` is
+  `bundle_name`, `kb_user` is `user_id`, and the module `serve` and the tests import is `bb`.
 - **`init` is now `create`, and the old `create` is part of `new`.** `create` makes a collection, and also a bower: inside a collection
-  with a `bowers:` list, `create docs` writes `docs/kbmcp.yaml` (the whole commented template, with only your answers uncommented) and adds the folder to the root's list (comments kept); the root's
+  with a `bowers:` list, `create docs` writes `docs/bower.yaml` (the whole commented template, with only your answers uncommented) and adds the folder to the root's list (comments kept); the root's
   `.mcp.json`, `.env` and `BOWERBIRD.md` serve it. `create [path] [--mcp] [--env] [--apply]`: no flag runs every step; `--mcp` writes
   `BOWERBIRD.md` (and prints its path) and adds bowerbird to `.mcp.json`, keeping the other servers and leaving a different bowerbird
-  entry alone; `--env` writes `env.example` and the `.gitignore` line. Settings passed for a folder that already has a `kbmcp.yaml` are
+  entry alone; `--env` writes `env.example` and the `.gitignore` line. Settings passed for a folder that already has a `bower.yaml` are
   reported as ignored. `new` writes a document and takes what the old `create` did (`type`, `description`, `resource`, `tags`, `status`,
   `body`, `by`): bare, it is the template; with those, it is written filled in. The old names print where they went (`init` says
   `create`; `create file=... type=...` says `new`). The web UI's New knowledgebase runs `create`.
 - **Renamed:** `cite` is `fact`, and `recheck_plan` is `factcheck` (the old names print where they went). **Removed:**
   `recheck_apply`. A check is recorded by `factcheck` with a result, and only when the result is the evidence. It no longer
-  adds a `verified` entry; `seal` is how a human confirms a file. The MCP tool list is now 34 tools (about 4,200 tokens).
+  adds a `verified` entry; `seal` is how a human confirms a file. The MCP tool list is now 34 tools (about 3,700 tokens).
 - **Semantic search is an add-on.** `fastembed` (about 150 MB with its dependencies) moved from the package's dependencies to the
   `semantic` extra, so the base install is small and `uvx` starts faster. To keep meaning search, ask for the extra:
   `uvx --from 'bowerbird-mcp[semantic]' bowerbird-mcp`, or `uv tool install 'bowerbird-mcp[semantic]'`, and in a project's
   `.mcp.json` write `"bowerbird-mcp[semantic]>=2,<3"` after `--from`. A collection with `semantic: true` and no extra stops with
   a message that says so; nothing else changes.
-- **The MCP tool list is about 45% smaller.** What the server sends an agent for each tool is now a dense one- or two-line
-  description (`MCP_TEXT`), with a preview note added for tools that take `apply`. All 34 tools cost about 4,200 tokens, down
-  from about 7,250 for the 35 of 2.1.4 (descriptions went from about 4,600 to 1,350; the argument schemas, about 2,340, are
-  unchanged). With the new `BOWERBIRD.md` (about 1,260 tokens), an agent's tool overhead is about 5,400 tokens, down from about
-  7,400. The full docstrings stay for `help <tool>`, the command line, the docs and the browser. The safety rules stay in the
+- **The MCP tool list is about half the size.** What the server sends an agent for each tool is now a dense one- or two-line
+  description (`MCP_TEXT`), with a preview note added for tools that take `apply`. All 34 tools cost about 3,700 tokens, down
+  from about 7,250 for the 35 of 2.1.4 (descriptions went from about 4,600 to 1,430; the argument schemas from about 2,340 to 1,850,
+  by leaving out the empty defaults and null wrappers an agent does not need). With the new `BOWERBIRD.md` (about 1,350 tokens), an
+  agent's tool overhead is about 5,100 tokens, down from about 7,400. The full docstrings stay for `help <tool>`, the command line, the docs and the browser. The safety rules stay in the
   short text: `seal` never takes `human:<id>`, `passages` says to report a gap, and tools that write preview first.
 - **`seal check` scans everything except what is exempt.** `seal.require` is gone, replaced by `seal.exempt`, a list of
-  globs to leave out; every other file is checked, in every format. A `kbmcp.yaml` that still has `seal.require` stops with
+  globs to leave out; every other file is checked, in every format. A `bower.yaml` that still has `seal.require` stops with
   an error that says so: list the files to leave out instead (a `!` glob in `require` becomes a plain entry in `exempt`). In
   seal-only there is no list to fill in, and `create holds=seal-only` writes no `seal` line. `unreadable` now points at
   `seal.exempt`.
@@ -88,10 +103,19 @@
   with `uv tool install`, the basic commands, updating and pinning, and a table of the extras (`serve`, `syntax`, `semantic`,
   `skos`, `sqlite-vec`, `hnsw`) with how to ask for one on the fly, installed, with pip and in an MCP config.
 - `new` is in the format pages and the format tool matrix, and `--config` is described in the command-line page.
+- Getting started is one self-guided page: an empty folder to a working collection, the command line, the web UI, an assistant's configuration,
+  searching and sealing.
+- The extras section explains `--extra` against `--with` for `uv run`, `uvx` and `uv tool install`, and when to use which.
+
+### Development
+- `tools/QA.sh --rebuild` regenerates `docs-src/tools.md` and rebuilds `docs/` first; without it the script changes nothing. Ruff and mypy are
+  now its last steps (both are clean; the mypy settings are in `pyproject.toml`), and a failure in either is reported after the other has run.
+- `serve restart` has a subprocess test: start, a restart that replaces the process, stop, and a foreign listener on the port is refused.
 
 ### Fixed
-- Outside a git work tree and with no root `kbmcp.yaml`, nothing below the folder is scanned for nested `kbmcp.yaml` files
+- Outside a git work tree and with no root `bower.yaml`, nothing below the folder is scanned for nested `bower.yaml` files
   (a stray one in a temp folder could break `serve status` from `/tmp`).
+- `SPEC.md` (OKF v0.2, copied from upstream) moved to `docs-src/prompts/`; the `okf://spec` resource reads it from there in a checkout.
 
 ## 2.1.4 (2026-11-19)
 

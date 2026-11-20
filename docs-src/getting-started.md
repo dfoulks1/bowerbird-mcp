@@ -7,7 +7,7 @@ and sealing. You do not need any AI tooling to start, and nothing here sends you
 
 ## What this is, in plain words
 
-A **collection**, or knowledgebase, is any folder with a `kbmcp.yaml` in it. It holds files you want to keep in order:
+A **collection**, or knowledgebase, is any folder with a `bower.yaml` in it. It holds files you want to keep in order:
 notes, decisions, vocabularies, even code. Bowerbird looks after it for three kinds of user:
 
 - **A person**, at a terminal or in a browser, can search the collection and seal files. No AI involved.
@@ -15,7 +15,7 @@ notes, decisions, vocabularies, even code. Bowerbird looks after it for three ki
   saying which file and line it used and whether a person has reviewed it.
 - **CI**, your automated checks, can fail a change that has no human review.
 
-It is not tied to one format. A `format:` line in `kbmcp.yaml` says what a folder holds: Markdown, ADR, OKF, SKOS or
+It is not tied to one format. A `format:` line in `bower.yaml` says what a folder holds: Markdown, ADR, OKF, SKOS or
 seal-only. [Formats](formats.md) shows each one. This page uses plain Markdown: it asks nothing of your files, and it does
 more than seal them, because it searches them too.
 
@@ -35,7 +35,7 @@ uvx bowerbird-mcp help          # the everyday commands for your format; `help a
 uvx bowerbird-mcp help seal     # one command: what it does, its arguments, an example
 ```
 
-Run it with no arguments at a terminal and it prints this help too. In a folder with no `kbmcp.yaml` it also offers to make a
+Run it with no arguments at a terminal and it prints this help too. In a folder with no `bower.yaml` it also offers to make a
 knowledgebase there: it asks for the format, what the folder holds and your id, then runs `create`.
 
 Any folder of files will do. Start with an empty one and give it three short runbooks:
@@ -64,7 +64,7 @@ A collection holds one kind of thing, and you say which when you make it:
 | `seal-only` | any text files (code, configuration) with nothing searched: just a guaranteed human review of each |
 
 Leave `holds=` out and `create` guesses from the folder, then asks you for what it cannot know. The choice is written to
-`kbmcp.yaml` as `format:`, and you can change it later by editing that line. Here it is `markdown`:
+`bower.yaml` as `format:`, and you can change it later by editing that line. Here it is `markdown`:
 
 ```sh
 uvx bowerbird-mcp create -t markdown -a "Infra runbooks." --apply -O text
@@ -72,15 +72,15 @@ uvx bowerbird-mcp create -t markdown -a "Infra runbooks." --apply -O text
 
 ```text
 edited: {}
-config: {"files": ["kbmcp.yaml", ".env", "env.example", ".mcp.json", "BOWERBIRD.md"], "missing": [], "gitignore": "not a git work tree"}
+config: {"files": ["bower.yaml", ".env", "env.example", ".mcp.json", "BOWERBIRD.md"], "missing": [], "gitignore": "not a git work tree"}
 ```
 
 Your notes are not touched. `create` wrote the collection's settings:
 
-- `kbmcp.yaml`: the collection's own configuration, with its `format`. Commit it.
+- `bower.yaml`: the collection's own configuration, with its `format`. Commit it.
 - `.mcp.json`: how an AI assistant starts the tool for this folder. Commit it too (part 4).
 - `BOWERBIRD.md`: rules for an AI assistant using the tools ([Agent rules](agents.md)). Commit it, and edit it.
-- `env.example` lists every personal override, and `.env` holds your id from `KB_USER` or your git email. `.env`
+- `env.example` lists every personal override, and `.env` holds your id from `BOWERBIRD_USER` or your git email. `.env`
   stays out of git.
 
 At a terminal a command prints readable lines. Piped, in a script or in CI it prints JSON; `-O text` or `-O json` (checks
@@ -180,14 +180,14 @@ An assistant needs two things: the tools, and the rules for using them. `create`
 ```
 
 **Commit it**: anyone who clones the repository then has the tools, with nothing to set up on their own machine (Claude
-Code asks once to approve a project's server; `/mcp` shows it). Bowerbird takes no `--config`: it finds `kbmcp.yaml` from
+Code asks once to approve a project's server; `/mcp` shows it). Bowerbird takes no `--config`: it finds `bower.yaml` from
 the folder the assistant starts in, so start the assistant at the collection's root. If your folder has no `.mcp.json`, or
 you use another assistant, add the same entry to its servers file (`.mcp.json` for Claude Code, `claude_desktop_config.json`
 for Claude Desktop, `.cursor/mcp.json` for Cursor). To load several collections side by side, give each its own entry
-with `"--config", "path/to/notes"` (the folder holding its `kbmcp.yaml`, or the file itself; `~` and a path relative to where the assistant starts work too). Restart the assistant (in Claude Code, `/mcp` reconnects).
+with `"--config", "path/to/notes"` (the folder holding its `bower.yaml`, or the file itself; `~` and a path relative to where the assistant starts work too). Restart the assistant (in Claude Code, `/mcp` reconnects).
 
 The assistant now has the tools and a short instruction on how to use them: look at `passages`, cite the file and line,
-and say so when the answer is a gap or the file is unverified or stale. Open `kbmcp.yaml` and check `about:`; the assistant
+and say so when the answer is a gap or the file is unverified or stale. Open `bower.yaml` and check `about:`; the assistant
 is told it, which matters most when you load several collections.
 
 ### The rules: `BOWERBIRD.md`
@@ -215,7 +215,7 @@ A team can go one step further and keep every assistant's rules in one place: ea
 
 ### Give an assistant only what it needs
 
-An OKF collection gets all 34 tools, about 4,200 tokens of tool definitions (an estimate: each tool's name, description
+An OKF collection gets all 34 tools, about 3,700 tokens of tool definitions (an estimate: each tool's name, description
 and argument schema, in characters divided by four) before the assistant has said a word. Give each assistant only what
 it needs with a role: `"--role", "read"` (find and read only, 10 tools, safe to auto-approve), `write`, `structure`,
 `lifecycle` or `seal` (record a human's review). The first four are each about a quarter of the total. [The
@@ -320,7 +320,7 @@ hits:
   - bundle: ., file: runbooks/rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 1, text: To roll back a release, redeploy the previous tag, ...
 ```
 
-The first `passages` also builds a small search index in a `.kbmcp/` folder beside your files. It is a cache: safe to delete,
+The first `passages` also builds a small search index in a `.bower/` folder beside your files. It is a cache: safe to delete,
 and it ignores itself in git. For each section you get:
 
 - **file and line**, so an answer can say exactly where it came from;
@@ -352,7 +352,7 @@ gap: true
 hits: []
 ```
 
-Semantic search also matches by **meaning**. Turn it on in `kbmcp.yaml` (or for your machine only, with `KB_SEMANTIC=true`
+Semantic search also matches by **meaning**. Turn it on in `bower.yaml` (or for your machine only, with `BOWERBIRD_SEMANTIC=true`
 in `.env`):
 
 ```yaml
@@ -405,7 +405,7 @@ bowerbird-mcp seal: FAILED: 3 file(s) checked, 3 finding(s)
 ```
 
 `-c` (`--check`) changes nothing and exits with a failure code, which is what makes it useful in a hook or in CI (part 7).
-By default every file in the collection needs a review; the `seal` key in `kbmcp.yaml` says which.
+By default every file in the collection needs a review; the `seal` key in `bower.yaml` says which.
 
 ### Seal one, from the terminal
 
@@ -462,7 +462,7 @@ accepted or rejected. If the page changed while the dialog was open, nothing is 
 A person's review is only ever recorded with that person's own confirmation: `--attest` at their terminal, the browser
 dialog, or a prompt over MCP. An AI assistant can seal as itself (`by=process:<id>`), never as a person, and its rules
 (part 4) say to leave the sealing to you. These tiers are advisory labels, not access control: the guarantee is only as
-strong as who can write to the repository, so protect `.waxseals.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
+strong as who can write to the repository, so protect `.waxseals.yaml` and `bower.yaml` with `CODEOWNERS` or branch
 protection. [Sealing](sealing.md) has the full story.
 
 ## 7. Check it in CI
@@ -498,7 +498,7 @@ and it does.
 - `--only stub,island` keeps just those kinds of finding, and `--ignore` (`-i`) drops some.
 - Name files or folders (`lint notes/a.md docs/`) to check just those.
 - `--scope okf` is the format's own rules; `--scope house` is the tidiness rules on top.
-- A `kbmcp.nolint` file lists files to skip, in `.gitignore` syntax.
+- A `bower.nolint` file lists files to skip, in `.gitignore` syntax.
 
 ### Where to run it
 
@@ -552,7 +552,7 @@ and it does.
 ## Where next
 
 - [Formats](formats.md): what each kind of collection looks like.
-- [The guide](guide.md): layout, settings, sealing, CI and every setting in `kbmcp.yaml`.
+- [The guide](guide.md): layout, settings, sealing, CI and every setting in `bower.yaml`.
 - [Command line](cli.md): flags, short flags, output and exit codes. Everything above works with no AI at all.
 - [Serve](serve.md): the Web UI in full.
 - [Agent rules](agents.md): the full `BOWERBIRD.md`.

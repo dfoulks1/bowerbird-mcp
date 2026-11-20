@@ -38,8 +38,8 @@ conventions for exactly these questions and leaves everything else to you.
 A collection is a folder of *bundles*; a bundle is a folder of concepts, one Markdown file each.
 
 ```text
-kb/
-  kbmcp.yaml               format: okf (the default)
+notes/
+  bower.yaml               format: okf (the default)
   index.md                 lists the bundles
   eng/                     a bundle: its index.md declares okf_version "0.2"
     index.md
@@ -140,7 +140,7 @@ A **fact** is a claim together with where it came from, written so it can be che
 relied on in a block, in any Markdown document (it works in every format, not only OKF):
 
 ```markdown
-[fact.url] https://stackoverflow.com/questions/8072700/how-to-restart-jenkins-manually
+[fact.url](https://stackoverflow.com/questions/8072700/how-to-restart-jenkins-manually)
 
 (jenkins_url)/safeRestart - Allows all running jobs to complete. New jobs will remain in the queue to run after the restart is complete.
 
@@ -148,14 +148,21 @@ relied on in a block, in any Markdown document (it works in every format, not on
 
 [fact.end]
 
-The ticket: [fact.mcp] jira INFRA-27707 is open [fact.end]
+The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
 ```
 
-- **`[fact.url] <address>`** starts the block; the words after it, up to `[fact.end]`, are what is checked: paste them from the page.
-  A block holds one source and any number of claims.
-- **`[fact.mcp] <server> <key> <claim> [fact.end]`** is the one-line form for a fact that comes from an MCP tool. Which tool to call,
-  with what, and which part of the result to watch is declared once in `kbmcp.yaml`, under `facts` (see below).
-- A block with no `[fact.end]`, an end with no start, or an unknown kind is a `lint` error. Blocks inside code are ignored, so
+- **`[fact.<kind>](<source>) <the claim> [fact.end]`** is the whole form. The kind says what the source is, the source goes in parentheses
+  right after it (it ends at the first `)`, so write a `)` inside an address as `%29`), and the words up to `[fact.end]` are what is
+  checked: paste them from the page. A block holds one source and any number of claims, on one line or many. In a Markdown renderer
+  that knows nothing of facts, `fact.url` shows as a link to the source.
+- **`[fact.url](address)`** is a page: its words must still appear there.
+- **`[fact.<name>](key)`**, for a name the root `bower.yaml` declares under `facts: types:`, is a fact from one tool of an MCP server the collection
+  already has, so the source is just the key: `[fact.ticket](INFRA-27707) is open [fact.end]`. Only the root declares one (a page cannot add a kind,
+  or choose what runs), and `lint` flags a kind nobody declared.
+- **`[fact.mcp](server key)`** is the general form, a fact from an MCP tool, for example `[fact.mcp](jira INFRA-27707) is open [fact.end]`. Which tool to
+  call, with what, and which part of the result to watch is declared once in `bower.yaml`, under `facts` (see below).
+- The kinds are a registry (`bowerbird_facts.FACT_TYPES`): `url` and `mcp` are registered, and a new kind is one `register(name, sample, valid)` call plus a `check` for
+  `factcheck --fetch`. A block with no `[fact.end]`, an end with no start, or an unknown kind is a `lint` error. Blocks inside code are ignored, so
   examples like the one above are safe.
 
 **Checking.** `factcheck` with no arguments lists every block and its state: *unchecked*, *checked* (with the date and how), or
@@ -169,10 +176,12 @@ then compares each block with a fresh result:
 - an **MCP call** (only one declared under `facts`) must still return the value it did. The first check records that value.
 
 ```yaml
-# kbmcp.yaml, at the collection root: the only calls factcheck may make
+# bower.yaml, at the collection root: the only calls factcheck may make
 facts:
   mcp:
     jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
+  types:   # optional: a kind of fact for one tool, so the source is just the key
+    ticket: {server: jira, tool: get_issue, arg: issue_key, watch: fields.status.name}
 ```
 
 The document supplies only the key (`INFRA-27707`), never the tool, so a page cannot make `factcheck` call something it was not

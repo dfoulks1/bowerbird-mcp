@@ -2,14 +2,14 @@
 
 <!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. The tables are built from the code's own role and tier lists; each format's page has its commands and output, run for real. -->
 
-Bowerbird is not tied to one way of keeping knowledge. A `kbmcp.yaml` at the root of a folder says what the folder
+Bowerbird is not tied to one way of keeping knowledge. A `bower.yaml` at the root of a folder says what the folder
 holds, with one line:
 
 ```yaml
 format: markdown      # markdown | adr | okf | skos | asciidoc | seal-only
 ```
 
-All six share the same ideas: the folder is a git repository, `kbmcp.yaml` is committed with it, and a human's
+All six share the same ideas: the folder is a git repository, `bower.yaml` is committed with it, and a human's
 review is recorded against the exact bytes they reviewed (see [Sealing](sealing.md)).
 `seal` is what guarantees a person was in the loop, for stored knowledge and for decisions alike. Renaming a file with
 `move` keeps its seal when its text is unchanged.
@@ -32,8 +32,8 @@ concept keeps its `verified` entries in its own frontmatter, while the other for
 
 ## Tools by format
 
-Which tools a server offers, by role. The role is what `roles:` in `kbmcp.yaml` turns on (all five are on by default;
-`--role` or `KB_ROLE` picks one for a single server). Naming a role that is off refuses to start.
+Which tools a server offers, by role. The role is what `roles:` in `bower.yaml` turns on (all five are on by default;
+`--role` or `BOWERBIRD_ROLE` picks one for a single server). Naming a role that is off refuses to start.
 
 **✓** a server offers it. **CLI** command line only (written for OKF files, so not offered outside OKF). **—** nothing to act on (seal-only indexes nothing).
 

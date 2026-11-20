@@ -37,5 +37,6 @@ for name, fn in sorted(k.REG.items()):
             out.append(f"| `{n}` | `{k.flag_text(n, p, sh)}` | `{k.type_text(p).split(', default')[0].removesuffix(', required')}` | " + ("required" if p.default is p.empty else "unset" if p.default is None else f"`{p.default!r}`") + " |")
         out.append("")
 (HERE / "docs-src/tools.md").write_text("\n".join(out))
-if k.KB_ROOT == HERE:
-    k.mark_derived(HERE / "docs-src/tools.md", "docs_tools.py")  # the ledger says this page is built from the code, for these bytes
+if k.ROOT == HERE:  # the ledger says this page is built from the code, for these bytes, and it is left out of the review check
+    for change in k.mark_derived(HERE / "docs-src/tools.md", "docs_tools.py"):
+        print(f"derived: {change}")

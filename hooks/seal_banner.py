@@ -45,7 +45,7 @@ def banner(src: Path, rel: str, docs: Path, text: str, includes: bool) -> str:
 
 
 def facts(markdown: str, src: Path) -> str:
-    """Show each fact block (`[fact.url] <address>` ... `[fact.end]`, `[fact.mcp] ... [fact.end]`) as a quotation with its source and
+    """Show each fact block (`[fact.url](<address>) the claim [fact.end]`, `[fact.mcp](<server> <key>) the claim [fact.end]`) as a quotation with its source and
     the state of its last check, from the .facts.yaml beside the page: not yet checked, checked on a date, or drifted. The tags are
     not shown. A page with no blocks, or no bowerbird_facts.py beside the repo's root, is left alone."""
     if "[fact." not in markdown:
@@ -57,7 +57,7 @@ def facts(markdown: str, src: Path) -> str:
         return markdown
     finally:
         sys.path.pop(0)
-    blocks, _ = F.parse(markdown)
+    blocks, _ = F.parse(markdown, strict=False)
     out, pos = [], 0
     for b in blocks:
         st = F.status_of(src.parent, src.name, b)
@@ -65,8 +65,8 @@ def facts(markdown: str, src: Path) -> str:
         label = {"unchecked": "not yet checked", "checked": f"checked{when_}", "drifted": f"drifted{when_}"}[st["status"]]
         label += f" ({st['method']})" if st["method"] and st["status"] != "unchecked" else ""
         badge = f'<span class="fact-badge" data-state="{st["status"]}">{html.escape(label)}</span>'
-        if b.line == b.end_line:  # an inline fact: the claim, then its state
-            out += [markdown[pos:b.start], f"{b.claim} {badge}"]
+        if b.line == b.end_line:  # an inline fact: the claim, then its state (an address links the claim; a server and key read before it)
+            out += [markdown[pos:b.start], (f"[{b.claim}]({b.source}) {badge}" if b.kind == "url" else f"{b.source} {b.claim} {badge}")]
         else:
             quote = "\n".join("> " + ln if ln.strip() else ">" for ln in b.claim.splitlines())
             link = f'<a href="{html.escape(b.source)}">source</a>' if b.kind == "url" else html.escape(b.source)

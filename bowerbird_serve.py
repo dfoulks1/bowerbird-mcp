@@ -1,6 +1,6 @@
 """bowerbird serve: browse the collection in a browser (localhost only, rereads files on every request).
 
-Search is bowerbird's own `passages` (BM25 ranked sections, semantic too when kbmcp.yaml turns it on). Seal state comes
+Search is bowerbird's own `passages` (BM25 ranked sections, semantic too when bower.yaml turns it on). Seal state comes
 from bowerbird's own hash and ledger, so a page reads sealed, stale or unsealed exactly as `seal check=true` would.
 A human's front end to the CLI, with no AI in it. Writes go through the same tools the CLI runs (a diff first, then
 Confirm). A human seals from a modal that asks what the MCP prompt asks. Nothing here stamps `generated`.
@@ -49,7 +49,7 @@ main{padding:1rem 0;min-width:0}h1{margin-top:.2rem}table{border-collapse:collap
 td,th{border:1px solid var(--line);padding:.25rem .5rem;vertical-align:top}code,pre{background:var(--line);border-radius:3px}code{padding:0 .2rem}pre{padding:.6rem;overflow:auto}pre code{background:none}
 .meta{color:var(--mut);font-size:13px;border:1px solid var(--line);border-radius:6px;padding:.4rem .7rem;margin-bottom:1rem}
 .b{display:inline-block;padding:0 .4rem;border-radius:9px;border:1px solid currentColor;font-size:12px;margin-right:.3rem}
-.sealed{color:var(--ok)}.derived{color:var(--mut)}.broken-seal{color:var(--bad)}.unsealed{color:var(--warn)}a.broken{color:var(--bad);text-decoration:line-through}
+.sealed{color:var(--ok)}.derived{color:var(--acc)}.broken-seal{color:var(--bad)}.unsealed{color:var(--warn)}a.broken{color:var(--bad);text-decoration:line-through}
 aside h4{margin:.8rem 0 .2rem;color:var(--mut);text-transform:uppercase;font-size:11px}aside ul{margin:0;padding-left:1rem}
 input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}
 #top{position:sticky;top:0;z-index:5;display:flex;gap:.5rem;align-items:center;height:3rem;padding:0 1rem;background:var(--bg);border-bottom:1px solid var(--line)}
@@ -59,7 +59,7 @@ input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px s
 #crumbs{color:var(--mut);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}#crumbs a{color:var(--mut)}
 #sw{position:relative;width:24rem;display:flex;gap:.3rem}#sw select{width:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}#res{display:none;position:absolute;top:2.2rem;left:0;right:0;z-index:7;background:var(--bg);border:1px solid var(--line);border-radius:6px;max-height:70vh;overflow:auto;box-shadow:0 6px 20px #0004}
 #res a{display:block;padding:.3rem .6rem;text-decoration:none;color:var(--fg)}#res a.sel,#res a:hover{background:var(--acc);color:#fff}#res small{color:inherit;opacity:.7}
-.dot{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.35rem;background:var(--warn)}.dot.sealed{background:var(--ok)}.dot.derived{background:var(--line)}.dot.broken-seal{background:var(--bad)}
+.dot{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.35rem;background:var(--warn)}.dot.sealed{background:var(--ok)}.dot.derived{background:var(--acc)}.dot.broken-seal{background:var(--bad)}
 aside li.act>a{font-weight:700}kbd{border:1px solid var(--line);border-radius:3px;padding:0 .3rem;font-size:12px}.dot.none{background:var(--line)}
 .diff .a{color:var(--ok)}.diff .d{color:var(--bad)}nav a.new{color:var(--mut);font-size:12px}.menu{position:relative}.menu summary{width:fit-content;list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:.15rem .6rem}.menu summary::-webkit-details-marker{display:none}
 .menu div{position:absolute;right:0;z-index:6;min-width:9rem;background:var(--bg);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px #0004;padding:.2rem}.menu div a,.menu div button{display:block;width:100%;text-align:left;border:0;padding:.3rem .6rem;background:none;color:var(--fg);font:inherit;cursor:pointer;text-decoration:none}.menu div a:hover,.menu div button:hover{background:var(--acc);color:#fff}
@@ -74,16 +74,16 @@ JS = r"""
 (()=>{
 const $=(q,e=document)=>e.querySelector(q), $$=(q,e=document)=>[...e.querySelectorAll(q)];
 const root=document.documentElement, mq=matchMedia('(prefers-color-scheme:dark)'), tb=$('#theme'), ST=['auto','light','dark'], IC={auto:'◐',light:'☀',dark:'☾'};
-let mode='auto'; try{const t=localStorage.getItem('kbtheme'); if(ST.includes(t)) mode=t;}catch(e){}
+let mode='auto'; try{const t=(localStorage.getItem('bowerbird-theme')||localStorage.getItem('kbtheme')); if(ST.includes(t)) mode=t;}catch(e){}
 const applyTheme=()=>{if(mode==='auto')delete root.dataset.theme;else root.dataset.theme=mode;tb.textContent=IC[mode];tb.title='theme: '+mode+(mode==='auto'?' (follows system, now '+(mq.matches?'dark':'light')+')':'')+' (t)'};
-tb.onclick=()=>{mode=ST[(ST.indexOf(mode)+1)%3];try{localStorage.setItem('kbtheme',mode)}catch(e){}applyTheme()};
+tb.onclick=()=>{mode=ST[(ST.indexOf(mode)+1)%3];try{localStorage.setItem('bowerbird-theme',mode)}catch(e){}applyTheme()};
 mq.addEventListener('change',applyTheme); applyTheme();
 $('#back').onclick=()=>history.back(); $('#fwd').onclick=()=>history.forward();
 const q=$('#q'), res=$('#res'); let sel=-1, tm;
-const md=$('#mode'); try{const m=new URLSearchParams(location.search).get('mode')||localStorage.getItem('kbmode'); if(m&&[...md.options].some(o=>o.value===m)) md.value=m;}catch(e){}
+const md=$('#mode'); try{const m=new URLSearchParams(location.search).get('mode')||localStorage.getItem('bowerbird-mode')||localStorage.getItem('kbmode'); if(m&&[...md.options].some(o=>o.value===m)) md.value=m;}catch(e){}
 const show=items=>{res.innerHTML=items.map(r=>r.error?`<a>${r.error}</a>`:`<a href="${r.href}"><b>${r.title}</b><br><small>${r.sub}</small></a>`).join('')||'<a>nothing in the collection</a>';res.style.display='block';sel=-1;};
 const run=()=>{clearTimeout(tm);const v=q.value.trim();if(!v){res.style.display='none';return}tm=setTimeout(()=>fetch('/_search.json?mode='+md.value+'&q='+encodeURIComponent(v)).then(r=>r.json()).then(show),200)};
-q.oninput=run; md.onchange=()=>{try{localStorage.setItem('kbmode',md.value)}catch(e){}run()};
+q.oninput=run; md.onchange=()=>{try{localStorage.setItem('bowerbird-mode',md.value)}catch(e){}run()};
 q.onkeydown=e=>{const a=$$('a[href]',res);if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:-1)+a.length)%a.length;a.forEach((x,i)=>x.classList.toggle('sel',i===sel))}
  else if(e.key==='Enter'){e.preventDefault();location=sel>=0?a[sel].href:'/_search?mode='+md.value+'&q='+encodeURIComponent(q.value)}else if(e.key==='Escape'){res.style.display='none';q.blur()}};
 document.addEventListener('click',e=>{if(!e.target.closest('#sw'))res.style.display='none';$$('details.menu[open]').forEach(m=>{if(!m.contains(e.target))m.open=false})});
@@ -143,27 +143,27 @@ def stop(port: int = PORT) -> int:
     return 0
 
 
-def start(kb, port: int = PORT, foreground: bool = False) -> int:
+def start(bb, port: int = PORT, foreground: bool = False) -> int:
     """Start only when nothing is on the port: ours already there is a no-op (exit 0), something else is an error (exit 1)."""
     if found(port):
         return status(port)
     if listening(port):
         print(f"error: port {port} is in use by something else | fix: pick another port (`serve start 8080`)")
         return 1
-    return run(kb, port, foreground)
+    return run(bb, port, foreground)
 
 
-def restart(kb, port: int = PORT, foreground: bool = False) -> int:
+def restart(bb, port: int = PORT, foreground: bool = False) -> int:
     """Stop what is found on port (if anything), wait for the port to clear, then start."""
     stop(port)
     for _ in range(50):  # up to 5 s for the old server to let go of the port
         if not listening(port):
             break
         time.sleep(0.1)
-    return start(kb, port, foreground)
+    return start(bb, port, foreground)
 
 
-def run(kb, port: int = PORT, foreground: bool = False) -> int:
+def run(bb, port: int = PORT, foreground: bool = False) -> int:
     """Serve the collection kb (the bowerbird_mcp module) on localhost:port, in the background unless foreground."""
     # kb is the bowerbird_mcp module, passed in by its `serve` command.
     try:
@@ -171,8 +171,8 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
     except ImportError:
         print("error: serve needs the markdown package | fix: pip install 'bowerbird-mcp[serve]' (or uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve)")
         return 2
-    ROOT = kb.KB_ROOT
-    REPO = kb.web_base(ROOT)  # the repository's web address, when the collection is in a git work tree with a web remote
+    ROOT = bb.ROOT
+    REPO = bb.web_base(ROOT)  # the repository's web address, when the collection is in a git work tree with a web remote
     SKIP: list = [set()]
     MAXSIZE = 512 * 1024  # seal-only files not shown (binary or oversized); the size cap in bytes
     os.chdir(ROOT)  # tools default to the bundle around the working directory: serve means the whole collection, wherever it was started
@@ -182,7 +182,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
     def scan():
         """rel path -> {title, meta, body, state, by, at}, with seals checked by bowerbird's own hash and ledger."""
         try:
-            ledger = kb.ledger_by_file()
+            ledger = bb.ledger_by_file()
         except ValueError:
             ledger = {}
         docs = {}
@@ -191,27 +191,27 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             rel = p.relative_to(ROOT)
             if p.is_symlink() or any(part.startswith(".") for part in rel.parts):  # never follow a link, never show a dotfile
                 continue
-            key, text = rel.as_posix(), kb.read(p)
+            key, text = rel.as_posix(), bb.read(p)
             if text is None:
                 continue
-            d = kb.meta(text)[0] or {}
-            es, valid = kb.reviews(d, key, text, ledger)
+            d = bb.meta(text)[0] or {}
+            es, valid = bb.reviews(d, key, text, ledger)
             last = (valid or es or [{}])[-1]
-            docs[key] = {"title": kb.title_of(d, text, p), "meta": d, "fm": kb.meta(text)[0] is not None, "body": kb.split(text)[1],
-                         "state": "derived" if kb.derived(p, ledger) else "unsealed" if not es else "sealed" if valid else "broken-seal",
+            docs[key] = {"title": bb.title_of(d, text, p), "meta": d, "fm": bb.meta(text)[0] is not None, "body": bb.split(text)[1],
+                         "state": "derived" if bb.derived(p, ledger) else "unsealed" if not es else "sealed" if valid else "broken-seal",
                          "by": last.get("by", ""), "at": last.get("at", "")}
-        for p, made in [(q, False) for q in kb.sealonly_files()] + [(q, True) for q in kb.derived_files()]:  # seal-only files: a page each, read-only; derived ones are marked, not sealed
+        for p, made in [(q, False) for q in bb.sealonly_files()] + [(q, True) for q in bb.derived_files()]:  # seal-only files: a page each, read-only; derived ones are marked, not sealed
             rel = p.relative_to(ROOT)
             key = rel.as_posix()
             if made and key in docs:
                 continue
             if p.is_symlink() or any(part.startswith(".") for part in rel.parts):  # sealable from the CLI, not shown here
                 continue
-            text = kb.read(p) if p.stat().st_size <= MAXSIZE else None
+            text = bb.read(p) if p.stat().st_size <= MAXSIZE else None
             if text is None:  # binary or over the cap: not listed, not shown
                 skip.add(key)
                 continue
-            es, valid = kb.reviews({}, key, text, ledger)
+            es, valid = bb.reviews({}, key, text, ledger)
             last = (valid or es or [{}])[-1]
             docs[key] = {"title": key, "meta": {}, "fm": False, "body": "", "code": True, "text": text,
                          "state": "derived" if made else "unsealed" if not es else "sealed" if valid else "broken-seal",
@@ -291,15 +291,15 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         return f"<details open><summary>{esc(ROOT.name)}/</summary>{walk(tree)}{newlink('')}<a class=new href=/_lint>Lint all</a><a class=new href=/_tags>Tags</a><a class=new href=/_tool/unarchive>Unarchive</a><a class=new href=/_tool/create>New knowledgebase</a></details>"
 
     def setup_dialog():
-        """No kbmcp.yaml here: ask the three things create cannot know (about, holds, user), as create's own prompt does."""
-        if kb.CFG_DIR or (kb.KB_ROOT / kb.CONFIG).exists():
+        """No bower.yaml here: ask the three things create cannot know (about, holds, user), as create's own prompt does."""
+        if bb.CFG_DIR or bb.config_file(bb.ROOT):
             return ""
-        opts = "".join(f"<option{' selected' if f == kb.detect_holds(kb.KB_ROOT) else ''}>{f}" for f in kb.FORMATS)
+        opts = "".join(f"<option{' selected' if f == bb.detect_holds(bb.ROOT) else ''}>{f}" for f in bb.FORMATS)
         return (f'<dialog id=setup><form method=post action="/_init"><input type=hidden name=_t value="{TOKEN}"><h3>Set up this collection</h3>'
-                f'<p>No {kb.CONFIG} in {esc(kb.KB_ROOT.name)}/. Three answers write it (never overwriting a file).</p>'
+                f'<p>No {bb.CONFIG} in {esc(bb.ROOT.name)}/. Three answers write it (never overwriting a file).</p>'
                 f'<label>About <small>(one sentence: what this holds)</small><input name=about></label>'
                 f'<label>Holds<select name=holds>{opts}</select></label>'
-                f'<label>Your id <small>(kept in .env, not committed)</small><input name=user value="{esc(kb.kb_user())}"></label>'
+                f'<label>Your id <small>(kept in .env, not committed)</small><input name=user value="{esc(bb.user_id())}"></label>'
                 f'<div class=bar><button class="go hot">Create</button><button type=button class=go onclick="this.closest(\'dialog\').close()">Not now</button></div></form></dialog>'
                 "<script>document.getElementById('setup').showModal()</script>")
 
@@ -310,45 +310,45 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             for i, x in enumerate(parts)]
         repo = (f'<a class=repo href="{esc(REPO)}" target=_blank rel=noopener title="the repository: {esc(REPO.removeprefix("https://"))}" aria-label="the repository">'
                 '<svg viewBox="0 0 16 16"><circle cx=4 cy=3.5 r=1.7 /><circle cx=4 cy=12.5 r=1.7 /><circle cx=12 cy=6 r=1.7 /><path d="M4 5.2v5.6M12 7.7c0 2.6-3.2 2.4-6.6 4.2"/></svg></a>') if REPO else ""
-        top = (f'<div id=top><a class=brand href="/" title="bowerbird {kb.VERSION}">{LOGO}</a><button id=back title="back ([)">◀</button><button id=fwd title="forward (])">▶</button>'
+        top = (f'<div id=top><a class=brand href="/" title="bowerbird {bb.VERSION}">{LOGO}</a><button id=back title="back ([)">◀</button><button id=fwd title="forward (])">▶</button>'
                f'<span id=crumbs>{" / ".join(crumbs)}</span><div id=sw><select id=mode title="what to search: passages (ranked sections), concepts (whole pages), meaning (passages matched by meaning), tags">{"".join(f"<option value={m}>{n}" for m, n in modes())}</select><input id=q placeholder="search ( / )" autocomplete=off><div id=res></div></div><form method=post action=/_stop onsubmit="return confirm(&quot;Stop the bowerbird server? Reopen it with: bowerbird-mcp serve&quot;)" style=margin:0><input type=hidden name=_t value="{TOKEN}"><button title="stop this server" aria-label="stop this server">⏻</button></form>{repo}<button id=theme title="theme (t)">◐</button></div>')
-        hint = '<h4>Keys</h4><small><kbd>/</kbd> search <kbd>n</kbd>/<kbd>p</kbd> next/prev unsealed<br><kbd>j</kbd>/<kbd>k</kbd> next/prev doc <kbd>t</kbd> theme <kbd>[</kbd><kbd>]</kbd> history</small><p><small>bowerbird '+kb.VERSION+'</small></p>'
+        hint = '<h4>Keys</h4><small><kbd>/</kbd> search <kbd>n</kbd>/<kbd>p</kbd> next/prev unsealed<br><kbd>j</kbd>/<kbd>k</kbd> next/prev doc <kbd>t</kbd> theme <kbd>[</kbd><kbd>]</kbd> history</small><p><small>bowerbird '+bb.VERSION+'</small></p>'
         return (f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>{esc(title)} · bowerbird</title>"
-                f"<link rel=icon type=image/svg+xml href=/_logo.svg><script>try{{var t=localStorage.getItem('kbtheme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}}catch(e){{}}</script>"
+                f"<link rel=icon type=image/svg+xml href=/_logo.svg><script>try{{var t=(localStorage.getItem('bowerbird-theme')||localStorage.getItem('kbtheme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}}catch(e){{}}</script>"
                 f"<style>{CSS}</style>{top}<div class=wrap><nav>{left}</nav><main>{body}</main><aside>{right}{hint}</aside></div><script>{JS}</script>{setup_dialog()}").encode()
 
     MODES = ("passages", "concepts", "semantic", "tags")
     NAMES = {"passages": "Passages", "concepts": "Concepts", "semantic": "Meaning", "tags": "Tags"}
-    modes = lambda: [(m, NAMES[m]) for m in MODES if m != "semantic" or kb.OPTS["semantic"]]  # meaning is offered only when kbmcp.yaml turns it on
+    modes = lambda: [(m, NAMES[m]) for m in MODES if m != "semantic" or bb.OPTS["semantic"]]  # meaning is offered only when bower.yaml turns it on
     pth = lambda b, f: f if b in (".", "") else f"{b}/{f}"
 
     def ask(q, mode="passages"):
         """(hits, error) for the four searches. A hit: {path, title, line, heading, extra, text}.
         passages: ranked sections by keyword. concepts: whole pages (`search`). semantic: passages fused with meaning,
-        when kbmcp.yaml turns it on. tags: pages carrying a tag that contains q."""
+        when bower.yaml turns it on. tags: pages carrying a tag that contains q."""
         mode = mode if mode in MODES else "passages"
         try:
             if mode == "concepts":
                 return [{"path": pth(h["bundle"], h["file"]), "title": h["title"], "line": h["line"], "heading": "",
                          "extra": f'{h["type"] or ""} · matched {", ".join(h["matched"])}', "text": h["text"]}
-                        for h in kb.REG["search"](q, limit=12)["hits"]], ""
+                        for h in bb.REG["search"](q, limit=12)["hits"]], ""
             if mode == "tags":
                 want, out = q.lower(), []
-                for b, x in kb.every(kb.KB_ROOT, ""):
-                    hit = [t for t in map(str, kb.tags_of(x)) if want in t.lower()]
+                for b, x in bb.every(bb.ROOT, ""):
+                    hit = [t for t in map(str, bb.tags_of(x)) if want in t.lower()]
                     if hit:
-                        out.append({"path": pth(kb.kbpath(b), x.rel), "title": kb.title_of(x.meta or {}, x.text, x.path), "line": 1, "heading": "",
+                        out.append({"path": pth(bb.bundle_name(b), x.rel), "title": bb.title_of(x.meta or {}, x.text, x.path), "line": 1, "heading": "",
                                     "extra": "tags: " + ", ".join(hit), "text": str((x.meta or {}).get("description") or "")})
                 return sorted(out, key=lambda h: h["path"])[:50], ""
-            if mode == "semantic" and not kb.OPTS["semantic"]:
-                return [], "meaning search is off | fix: set `semantic: true` in kbmcp.yaml (it needs the `semantic` extra: bowerbird-mcp[semantic]), then reindex"
+            if mode == "semantic" and not bb.OPTS["semantic"]:
+                return [], "meaning search is off | fix: set `semantic: true` in bower.yaml (it needs the `semantic` extra: bowerbird-mcp[semantic]), then reindex"
             with LOCK:  # passages reads one global switch: keyword mode turns it off for this call
-                keep = kb.OPTS["semantic"]
-                kb.OPTS["semantic"] = keep and mode == "semantic"
+                keep = bb.OPTS["semantic"]
+                bb.OPTS["semantic"] = keep and mode == "semantic"
                 try:
-                    r = kb.REG["passages"](q, limit=12)
+                    r = bb.REG["passages"](q, limit=12)
                 finally:
-                    kb.OPTS["semantic"] = keep
+                    bb.OPTS["semantic"] = keep
         except (ValueError, KeyError, OSError) as e:
             return [], str(e).split(" | ")[0]
         return [{"path": pth(h["bundle"], h["file"]), "title": h["title"], "line": h["line"], "heading": h["heading"] or "",
@@ -367,14 +367,14 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
     def tfile(key):
         """(file, bundle) as the tools name a file: within its bundle for okf, from the collection root otherwise."""
         p = ROOT / key
-        if kb.fmt_of(p) != "okf":
+        if bb.fmt_of(p) != "okf":
             return key, ""
-        b = kb.enclosing(p.parent)
-        return kb.rel(p, b), kb.kbpath(b)
+        b = bb.enclosing(p.parent)
+        return bb.rel(p, b), bb.bundle_name(b)
 
     def call(name, **args):
         with LOCK:
-            r = kb.REG[name](**args)
+            r = bb.REG[name](**args)
             return asyncio.run(r) if inspect.isawaitable(r) else r
 
     def post(action, inner, button="Go", hot=False):
@@ -395,13 +395,13 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         return out
 
     def tool_form(name, vals):
-        params = inspect.signature(kb.REG[name]).parameters
+        params = inspect.signature(bb.REG[name]).parameters
         rows = []
         for k, p in params.items():
             if k in HIDE:
                 continue
             v = vals.get(k, "")
-            if kb.conv("1", p.annotation) is True:
+            if bb.conv("1", p.annotation) is True:
                 rows.append(f'<label><input type=checkbox name="{k}" {"checked" if v else ""} style="width:auto"> {k}</label>')
             else:
                 hint = "JSON" if "dict" in str(p.annotation) else "a, b" if "list" in str(p.annotation) else "required" if p.default is p.empty else str(p.default)
@@ -409,7 +409,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         return post(f"/_tool/{name}", "".join(rows), "Preview" if "apply" in params else "Run", True)
 
     def run_tool(name, form):
-        params = inspect.signature(kb.REG[name]).parameters
+        params = inspect.signature(bb.REG[name]).parameters
         vals, args = {}, {}
         for k, p in params.items():
             if k in HIDE:
@@ -417,7 +417,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             v = form.get(k, [""])[0].strip()
             vals[k] = v
             if v:
-                args[k] = kb.conv(v, p.annotation)
+                args[k] = bb.conv(v, p.annotation)
         applied = "_apply" in form
         if "apply" in params:
             args["apply"] = applied
@@ -428,7 +428,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         return f'<h1>{name}{" (applied)" if applied else ""}</h1>{show(r)}{confirm}<p><a href="/_tool/{name}">Again</a></p>'
 
     def concepts():
-        return kb.every(kb.KB_ROOT, "")
+        return bb.every(bb.ROOT, "")
 
     def lint_body(key=""):
         kw = {"limit": 0}
@@ -455,19 +455,19 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             raise ValueError("a new page has nothing on disk to lint | fix: save it once, then lint")
         f, b = tfile(key)
         with LOCK:
-            real = kb.read
-            kb.read = lambda q: text if Path(q).resolve() == p else real(q)
+            real = bb.read
+            bb.read = lambda q: text if Path(q).resolve() == p else real(q)
             try:
-                r = kb.REG["lint"](limit=0, file=f, bundle=b)
+                r = bb.REG["lint"](limit=0, file=f, bundle=b)
             finally:
-                kb.read = real
+                bb.read = real
         fs = r.get("findings", [])
         return f'<h3>Lint (this text, not saved): ok {r.get("ok")}, {len(fs)} finding(s)</h3>{ftable(fs, True)}'
 
     def tags_body(msg="", old=""):
         n = {}
         for _, x in concepts():
-            for t in map(str, kb.tags_of(x)):
+            for t in map(str, bb.tags_of(x)):
                 n[t] = n.get(t, 0) + 1
         intro = ('<p>A tag is a word in a page\'s frontmatter, the <code>---</code> block at the top of the file: '
                  '<code>tags: [deploy, runbook]</code>. Bowerbird reads them for search (the Tags search type, and tags weigh into the '
@@ -485,19 +485,19 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         outs = []
         with LOCK:
             for b, x in concepts():
-                ts = [str(t) for t in kb.tags_of(x)]
+                ts = [str(t) for t in bb.tags_of(x)]
                 if old in ts:
                     nt = []
                     for t in ts:
                         t = new if t == old else t
                         if t and t not in nt:
                             nt.append(t)
-                    outs.append(kb.set_(fields={"tags": nt}, file=x.rel, bundle=kb.kbpath(b), apply=apply))
+                    outs.append(bb.set_(fields={"tags": nt}, file=x.rel, bundle=bb.bundle_name(b), apply=apply))
         return outs
 
     def editable(key):
         p = (ROOT / key).resolve()
-        if not key or not kb.inside(p, ROOT) or p.suffix != ".md" or any(x.startswith(".") for x in p.relative_to(ROOT).parts):
+        if not key or not bb.inside(p, ROOT) or p.suffix != ".md" or any(x.startswith(".") for x in p.relative_to(ROOT).parts):
             raise ValueError(f"{key!r} is not a page | fix: pages are .md files inside the collection")  # shortcut: .md only, so no config or code file is editable here
         return p
 
@@ -506,7 +506,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
 
     def edit_body(key, text=None, msg=""):
         p = editable(key)
-        cur = kb.read(p) if p.exists() else None
+        cur = bb.read(p) if p.exists() else None
         if p.exists() and cur is None:
             raise ValueError(f"{key} is not UTF-8 text")
         body = cur if text is None else text
@@ -521,7 +521,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
     def new_body(d, name="", text="", msg="", tpl=""):
         """The editor, for a page that does not exist yet: the folder is fixed, the name is typed, Save writes it."""
         inner = (f'<input type=hidden name=dir value="{esc(d)}"><textarea name=text spellcheck=false>{esc(text)}</textarea>')
-        opts = "".join(f"<option{' selected' if n == tpl else ''}>{n}" for n in (*kb.TEMPLATES, "blank"))
+        opts = "".join(f"<option{' selected' if n == tpl else ''}>{n}" for n in (*bb.TEMPLATES, "blank"))
         pick = (f'<label>Template <small>(Use template replaces the text below)</small><select form=newf name=tpl>{opts}</select></label>'
                 '<button form=newf class=go name=use value=1 formnovalidate>Use template</button>')
         return (f'<h1>{esc(d + "/" if d else "")}<input form=newf name=name value="{esc(name)}" placeholder="name.md" autofocus style="width:auto;min-width:14rem;font:inherit"></h1>{msg}'
@@ -536,7 +536,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         """The modal: what seal's MCP prompt shows, and asks the same two things (confirm, and your id)."""
         try:
             f, b = tfile(key)
-            okf, _p, _r, t, d, label = kb.review_target(f, b, "")
+            okf, _p, _r, t, d, label = bb.review_target(f, b, "")
         except (ValueError, OSError):
             return ""
         extra = ""
@@ -544,11 +544,11 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             extra = '<label><input type=checkbox name=promote style="width:auto"> promote draft to stable (§5.4)</label>'
         elif not okf:
             extra = '<label>decision <small>(optional)</small><select name=decision><option value="">none<option>accepted<option>rejected</select></label>'
-        msg = kb.review_message(label, okf, t, d, "", False)
+        msg = bb.review_message(label, okf, t, d, "", False)
         return (f'<dialog id=seal><form method=post action="/_seal"><input type=hidden name=_t value="{TOKEN}"><input type=hidden name=file value="{esc(key)}">'
-                f'<input type=hidden name=sha value="{kb.content_hash(t, okf)}"><h3>Confirm seal: {esc(key)}</h3><pre class=facts>{esc(msg)}</pre>'
+                f'<input type=hidden name=sha value="{bb.content_hash(t, okf)}"><h3>Confirm seal: {esc(key)}</h3><pre class=facts>{esc(msg)}</pre>'
                 f'<label><input type=checkbox name=confirm style="width:auto"> I reviewed this concept and confirm it is accurate</label>'
-                f'<label>Your id <small>(recorded as human:&lt;id&gt;)</small><input name=reviewer value="{esc(kb.kb_user())}"></label>'
+                f'<label>Your id <small>(recorded as human:&lt;id&gt;)</small><input name=reviewer value="{esc(bb.user_id())}"></label>'
                 f'<label>Comment <small>(optional, one line, kept with your seal)</small><input name=comment maxlength=280></label>{extra}'
                 f'<div class=bar><button class="go hot">Seal</button><button type=button class=go onclick="this.closest(\'dialog\').close()">Cancel</button></div></form></dialog>')
 
@@ -558,19 +558,19 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             return "not confirmed; nothing written"
         if not rid or re.search(r"\s", rid):
             raise ValueError("reviewer id is empty or has spaces | fix: confirm again with your id")
-        if kb.derived(ROOT / key):
+        if bb.derived(ROOT / key):
             raise ValueError(f"{key} is derived from the code | fix: nothing to review; `seal.exempt` leaves it out")
         f, b = tfile(key)
         decision = form.get("decision", [""])[0]
         with LOCK:
-            okf, _p, _r, t, _d, _label = kb.review_target(f, b, decision)
-            if kb.content_hash(t, okf) != form.get("sha", [""])[0]:
+            okf, _p, _r, t, _d, _label = bb.review_target(f, b, decision)
+            if bb.content_hash(t, okf) != form.get("sha", [""])[0]:
                 raise ValueError(f"{key} changed while the prompt was open; nothing written | fix: review it again")
-            kb.ATTEST = f"human:{rid}"  # the one place a human is recorded here: this click, with this typed id
+            bb.ATTEST = f"human:{rid}"  # the one place a human is recorded here: this click, with this typed id
             try:
-                asyncio.run(kb.seal(file=f, bundle=b, promote="promote" in form, decision=decision, comment=form.get("comment", [""])[0]))
+                asyncio.run(bb.seal(file=f, bundle=b, promote="promote" in form, decision=decision, comment=form.get("comment", [""])[0]))
             finally:
-                kb.ATTEST = ""
+                bb.ATTEST = ""
         return f"sealed as human:{rid}"
 
     def go(h, where):
@@ -602,7 +602,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     cur = cur / x
                     if x.startswith(".") or cur.is_symlink():
                         return True
-                return not kb.inside(cur, ROOT) or "/".join(parts) in SKIP[0]  # a seal-only file not shown (binary, oversized)
+                return not bb.inside(cur, ROOT) or "/".join(parts) in SKIP[0]  # a seal-only file not shown (binary, oversized)
             except (ValueError, OSError):  # a NUL byte, a name too long: no such file
                 return True
 
@@ -648,9 +648,9 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     return self.send_bytes(page(name, left, run_tool(name, form)))
                 gone = ""
                 if name == "unarchive":  # the archive is not in the tree: list what can come back
-                    gone = [x.relative_to(kb.arch()).as_posix() for x in sorted(kb.arch().rglob("*.md")) if x.name not in kb.RESERVED]
+                    gone = [x.relative_to(bb.arch()).as_posix() for x in sorted(bb.arch().rglob("*.md")) if x.name not in bb.RESERVED]
                     gone = "<p>Archived:</p><ul>" + "".join(f"<li><code>{esc(x)}</code>" for x in gone) + "</ul>" if gone else "<p>Nothing is archived.</p>"
-                return self.send_bytes(page(name, left, f"<h1>{name}</h1><p>{esc(' '.join((kb.REG[name].__doc__ or '').split()))}</p>{gone}" + tool_form(name, {k: v[0] for k, v in qs.items()})))
+                return self.send_bytes(page(name, left, f"<h1>{name}</h1><p>{esc(' '.join((bb.REG[name].__doc__ or '').split()))}</p>{gone}" + tool_form(name, {k: v[0] for k, v in qs.items()})))
             if path == "/_lint":
                 return self.send_bytes(page("Lint", left, lint_body(one("f"))))
             if path == "/_tags":
@@ -684,26 +684,26 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 text = one("text").replace("\r\n", "\n")
                 text = text if text.endswith("\n") or not text else text + "\n"
                 with LOCK:
-                    cur = kb.read(p) if p.exists() else None
+                    cur = bb.read(p) if p.exists() else None
                     if sha(cur) != one("base"):
                         return self.send_bytes(page("Edit", left, edit_body(key, text, err_box("this page changed since you opened it | fix: copy your text, reload, and edit again; nothing was saved"))), code=409)
-                    kb.commit(kb.enclosing(p.parent), {p: text}, True)
+                    bb.commit(bb.enclosing(p.parent), {p: text}, True)
                 return go(self, href(key))
             if path == "/_new":
                 d = one("dir").strip().strip("/")
                 lf = nav(docs, d + "/" if d else "")
                 if form is None:
-                    return self.send_bytes(page("New", lf, new_body(d, text=kb.new_template(ROOT / d))))
+                    return self.send_bytes(page("New", lf, new_body(d, text=bb.new_template(ROOT / d))))
                 name, text = one("name").strip().lstrip("/"), one("text").replace("\r\n", "\n")
                 if one("use"):  # the Use template button: refill the box, save nothing
                     t = one("tpl")
-                    return self.send_bytes(page("New", lf, new_body(d, name, kb.TEMPLATES.get(t, "").replace("{today}", dt.date.today().isoformat()), tpl=t)))
+                    return self.send_bytes(page("New", lf, new_body(d, name, bb.TEMPLATES.get(t, "").replace("{today}", dt.date.today().isoformat()), tpl=t)))
                 if not name:
                     return self.send_bytes(page("New", lf, new_body(d, name, text, err_box("name it | fix: type a file name, or a name ending in / for a folder"))), code=400)
                 key = f"{d}/{name}" if d else name
                 if name.endswith("/"):  # shortcut: a trailing / makes a folder, instead of a second form
                     p = (ROOT / key).resolve()
-                    if not kb.inside(p, ROOT) or any(x.startswith(".") for x in p.relative_to(ROOT).parts):
+                    if not bb.inside(p, ROOT) or any(x.startswith(".") for x in p.relative_to(ROOT).parts):
                         raise ValueError(f"{key!r} is not a folder here | fix: a relative path inside the collection, not starting with .")
                     p.mkdir(parents=True, exist_ok=True)  # git keeps a folder once it holds a file
                     return go(self, f"/_new?dir={uq(key.rstrip('/'))}")
@@ -712,7 +712,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 if p.exists():
                     return self.send_bytes(page("New", lf, new_body(d, name, text, err_box(f"{key} already exists | fix: pick another name, or edit it from the tree"))), code=409)
                 with LOCK:
-                    kb.commit(kb.enclosing(p.parent), {p: text if text.endswith("\n") or not text else text + "\n"}, True)
+                    bb.commit(bb.enclosing(p.parent), {p: text if text.endswith("\n") or not text else text + "\n"}, True)
                 return go(self, href(key))
             if path == "/_delete":
                 key = one("f")
@@ -730,12 +730,12 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     raise ValueError(f"{len(back)} page(s) link to {key} | fix: unlink them first, or archive it")
                 with LOCK:
                     changes = {p: None}
-                    led = kb.ledger_all(kb.KB_ROOT / kb.LEDGER)
-                    if led.pop(os.path.relpath(p, kb.KB_ROOT), None) is not None:
-                        changes[kb.KB_ROOT / kb.LEDGER] = kb.ledger_text(led)
-                    kb.commit(kb.enclosing(p.parent), changes, True)
-                    if kb.fmt_of(p) == "okf":
-                        call("index", apply=True, bundle=kb.kbpath(kb.enclosing(p.parent)))  # drop it from the generated list
+                    led = bb.ledger_all(bb.ROOT / bb.LEDGER)
+                    if led.pop(os.path.relpath(p, bb.ROOT), None) is not None:
+                        changes[bb.ROOT / bb.LEDGER] = bb.ledger_text(led)
+                    bb.commit(bb.enclosing(p.parent), changes, True)
+                    if bb.fmt_of(p) == "okf":
+                        call("index", apply=True, bundle=bb.bundle_name(bb.enclosing(p.parent)))  # drop it from the generated list
                 return go(self, "/")
             if path == "/_init":
                 if form is None:
@@ -846,8 +846,8 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 tf, tb = tfile(rel)
                 made = d["state"] == "derived"  # built from the code: nothing for a person to seal
                 seal_btn = "" if made else '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button>'
-                if kb.archived(kb.enclosing((ROOT / rel).parent)):  # in the archive: read-only, so only seal and unarchive
-                    ap = (ROOT / rel).relative_to(kb.arch()).as_posix()
+                if bb.archived(bb.enclosing((ROOT / rel).parent)):  # in the archive: read-only, so only seal and unarchive
+                    ap = (ROOT / rel).relative_to(bb.arch()).as_posix()
                     bar = (f'<div class=bar><details class=menu><summary title="unarchive, seal" aria-label="more">⚙</summary><div>'
                            f'<a href="/_tool/unarchive?path={uq(ap)}">Unarchive</a>{seal_btn}</div></details></div>')
                 else:

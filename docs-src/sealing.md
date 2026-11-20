@@ -38,7 +38,7 @@ function.
 - {file: src/app.py, sha256: ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772, by: 'human:you', at: '2026-11-16T15:01:31Z', bowerbird: 2.0.0}
 ```
 
-There is one `.waxseals.yaml`, at the collection root beside `kbmcp.yaml`, with one dense line per file (its path from that
+There is one `.waxseals.yaml`, at the collection root beside `bower.yaml`, with one dense line per file (its path from that
 root). **Only the latest seal is kept**: sealing a file again replaces its line. That is deliberate. When an edit breaks a
 seal, the line still names the version a person reviewed, and git shows what has changed since; the earlier reviews are in
 the file's history. `bowerbird` is the version of Bowerbird that wrote the line, so a review can be traced to the tool that recorded it.
@@ -54,7 +54,7 @@ you [change format](formats.md#changing-your-mind); after a switch the files may
 ## Several signers and a quorum (the `seal-extensions` extra)
 
 By default a version of a file has one review: the latest. Where a change should be reviewed by more than one person, switch the seal
-extensions on in the root `kbmcp.yaml`:
+extensions on in the root `bower.yaml`:
 
 ```yaml
 seal: {extensions: true, quorum: 2}
@@ -117,7 +117,7 @@ src/app.py: error: stale_signature: edited since it was reviewed | fix: review i
 
 ## The policy
 
-The policy is the `seal` key in the committed `kbmcp.yaml`, so nothing local can loosen it. By default every file needs a review,
+The policy is the `seal` key in the committed `bower.yaml`, so nothing local can loosen it. By default every file needs a review,
 except those whose status is `proposed` or `draft`:
 
 ```yaml
@@ -134,10 +134,11 @@ badged as built from the code on that account alone.
 not), a script that uses Bowerbird as a library calls `mark_derived(path, "gen.py")`, which adds a line with `derived: gen.py` and the
 file's `sha256` (`docs_tools.py` does this for `docs-src/tools.md`). `serve` and the docs build then badge the file "derived from the code",
 and `serve` offers no Seal button. It is not a tool, so an agent cannot declare a file free of review. Edit the file by hand and the hash no
-longer matches: it stops being derived, and the next run of the generator records it again.
+longer matches: it stops being derived, and the next run of the generator records it again. The line carries a `by` so that an older
+Bowerbird can still read the ledger; the `derived` key is what says it is not a person's review.
 
 ```yaml
-- {file: docs-src/tools.md, sha256: 5d1c…, derived: docs_tools.py, at: '2026-11-20T15:02:10Z', bowerbird: 2.2.0}
+- {file: docs-src/tools.md, sha256: 5d1c…, by: 'generator:docs_tools.py', at: '2026-11-20T15:02:10Z', bowerbird: 2.2.0, derived: docs_tools.py}
 ```
 
 ## Enforcing it
@@ -172,14 +173,14 @@ version, enforced at commit time, with nothing indexed or searched. The only too
 
 ```text
 service/
-  kbmcp.yaml             format: seal-only
+  bower.yaml             format: seal-only
   .waxseals.yaml          the reviews (commit it)
   src/app.py
   config/limits.yaml
 ```
 
 ```yaml
-# kbmcp.yaml
+# bower.yaml
 format: seal-only
 about: Reviewed code.
 seal: {exempt: ["src/gen_*.py"]}
@@ -202,11 +203,11 @@ line only.
 A badge naming the reviewer cannot be written into the sealed file. The build can fill it in from the ledger instead; see
 [the website use case](formats/markdown.md#use-case-content-for-a-generated-website) and [Status badges](badges.md). The MkDocs hook,
 `hooks/seal_banner.py`, reads only `.waxseals.yaml`: a person's seal, an edit since, or a generator's `derived` line. It does not read
-`kbmcp.yaml` or apply any glob.
+`bower.yaml` or apply any glob.
 
 ## Limits
 
 - The prompt shows the start of the file; the reviewer is trusted to have read all of it, or the diff.
-- `seal` proves a ledger entry exists for these bytes, not who typed it. Protect `.waxseals.yaml` and `kbmcp.yaml` with
+- `seal` proves a ledger entry exists for these bytes, not who typed it. Protect `.waxseals.yaml` and `bower.yaml` with
   `CODEOWNERS` or branch protection, so a change to them needs a named reviewer.
 - A SKOS file is sealed whole, not per concept. A page that includes text from another file is not covered for that text.

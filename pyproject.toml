@@ -26,8 +26,8 @@ classifiers = [
 ]
 dependencies = ["mcp>=1.10,<2", "pyyaml"]  # light on purpose: semantic search (fastembed, about 150 MB) is the `semantic` extra
 
-[project.optional-dependencies]  # vector_index in kbmcp.yaml: sqlite-vec (exact, in C) or hnsw (approximate); scan needs neither
-semantic = ["fastembed"]  # `semantic: true` in kbmcp.yaml: match passages by meaning (the model, ~65 MB, downloads once)
+[project.optional-dependencies]  # vector_index in bower.yaml: sqlite-vec (exact, in C) or hnsw (approximate); scan needs neither
+semantic = ["fastembed"]  # `semantic: true` in bower.yaml: match passages by meaning (the model, ~65 MB, downloads once)
 sqlite-vec = ["sqlite-vec"]
 hnsw = ["hnswlib"]
 skos = ["rdflib"]  # format: skos
@@ -59,7 +59,7 @@ dev = ["ruff"]
 python_version = "3.10"  # the oldest Python the package supports
 
 [[tool.mypy.overrides]]  # optional backends, installed by their extras: absent here is fine
-module = ["rdflib", "rdflib.*", "sqlite_vec", "hnswlib", "fastembed"]
+module = ["rdflib", "rdflib.*", "sqlite_vec", "hnswlib", "fastembed", "numpy"]
 ignore_missing_imports = true
 
 [tool.ruff]

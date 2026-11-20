@@ -36,7 +36,25 @@ uvx --from 'bowerbird-mcp[serve,semantic]' bowerbird-mcp status   # no install: 
 pip install 'bowerbird-mcp[serve,semantic]'                       # pip
 ```
 
-A feature that needs an extra you did not ask for stops with a message that names it and the fix. The same table, and the MCP-config form, are in the [guide](guide.md#extras).
+**`--extra` and `--with` are different things.** An *extra* is a named bundle the package declares (`serve` is `markdown`, `semantic` is
+`fastembed`, and so on). `--with` adds any package you name yourself, at any version, whether or not Bowerbird lists it as an extra. Which
+flag you use depends on how you run the command:
+
+| How you run it | An extra | A package you name |
+|---|---|---|
+| `uv run`, in a checkout | `uv run --extra serve --extra semantic bowerbird_mcp.py status` | `uv run --with markdown --with fastembed bowerbird_mcp.py status` |
+| `uvx`, from PyPI | `uvx --from 'bowerbird-mcp[serve,semantic]' bowerbird-mcp status` | `uvx --from bowerbird-mcp --with markdown --with fastembed bowerbird-mcp status` |
+| installed once | `uv tool install 'bowerbird-mcp[serve,semantic]'` | `uv tool install bowerbird-mcp --with markdown --with fastembed` |
+
+- In `uvx`, `--from` says which package provides the command (and which of its extras), and `--with` adds more packages to the same
+  one-off environment. `uvx` has no `--extra` flag: the extra goes in brackets on `--from`.
+- `uv run --extra` reads the extras from a `pyproject.toml`, so it needs a checkout. `--with` works anywhere, including the bare script.
+- Prefer the extra: it is what Bowerbird says it needs, so it stays right if an extra's contents change. Use `--with` for something no
+  extra covers (a backend you bring yourself) or to pin a version (`--with 'markdown<4'`).
+- In an MCP config the two look like this: `"args": ["--from", "bowerbird-mcp[semantic]>=2,<3", "bowerbird-mcp"]`, or
+  `"args": ["--from", "bowerbird-mcp>=2,<3", "--with", "fastembed", "bowerbird-mcp"]`.
+
+A feature that needs an extra you did not ask for stops with a message that names it and the fix. The same table is in the [guide](guide.md#extras).
 
 ## Finding your way
 
@@ -92,7 +110,7 @@ bowerbird serve start -f    # in the foreground (ctrl-c stops)
 bowerbird serve stop        # end it; nothing running is not an error
 bowerbird serve restart     # stop what is found, then start: always ends with a running server
 bowerbird serve start 8080  # another port (any verb takes one; 26937 when left out)
-bowerbird --config ~/notes serve start   # another collection, from anywhere: --config takes a kbmcp.yaml or its folder (a relative
+bowerbird --config ~/notes serve start   # another collection, from anywhere: --config takes a bower.yaml or its folder (a relative
                                          # path, ~ or a full path) and goes BEFORE `serve`; without it, run inside the collection
 ```
 
@@ -140,32 +158,37 @@ bowerbird-mcp fix --apply         # write them, re-lint, report what remains
 
 ## Making a collection or a bower
 
-`create` makes a folder into a collection: a `kbmcp.yaml`, and for a new root the files an assistant needs. It previews until you add
+`create` makes a folder into a collection: a `bower.yaml`, and for a new root the files an assistant needs. It previews until you add
 `--apply`, and it never overwrites. Run bare at a terminal it asks for what it cannot guess (what the folder holds, one sentence
 about it, your id).
 
 ```sh
 bowerbird create                                  # preview: this collection's root (a new one, if there is none)
-bowerbird create --apply                          # write it: kbmcp.yaml, BOWERBIRD.md, .mcp.json, env.example, .env in .gitignore
+bowerbird create --apply                          # write it: bower.yaml, BOWERBIRD.md, .mcp.json, env.example, .env in .gitignore
 bowerbird create --mcp --apply                    # only the assistant's part: BOWERBIRD.md, and bowerbird added to .mcp.json
 bowerbird create --env --apply                    # only env.example and the .gitignore line for .env
+bowerbird create --facts --apply                  # a commented `facts: types:` block: one kind of fact per MCP server in .mcp.json
 bowerbird create docs -t markdown -a "Site pages" --apply   # a folder: a bower, if it is inside a collection; else a new root
 ```
 
-- With no flag, every step runs. With `--mcp` or `--env`, only those steps run (and `kbmcp.yaml`, if it is missing).
+- With no flag, every step runs. With `--mcp` or `--env`, only those steps run (and `bower.yaml`, if it is missing).
+- `--facts` looks at the servers in `.mcp.json` (Bowerbird's own is left out, however it is started) and adds a commented
+  `facts: types:` block to the root `bower.yaml`, one line per server with `tool`, `arg` and `watch` to fill in. It works on a new collection
+  and on a `bower.yaml` that is already there (the block is appended once; nothing else is touched). A file that already declares `facts`
+  is left alone, and one that does not parse is reported and left alone. Uncomment a line and fill it in to turn that kind on.
 - `--mcp` prints the path of `BOWERBIRD.md`. `.mcp.json` keeps the other servers it holds, adds bowerbird, and leaves a bowerbird
   entry that differs from the default alone (you may have set extras or `--config` in it).
-- **A bower.** Inside a collection whose `kbmcp.yaml` has a `bowers:` list, `create docs` writes `docs/kbmcp.yaml` and adds `docs` to that
+- **A bower.** Inside a collection whose `bower.yaml` has a `bowers:` list, `create docs` writes `docs/bower.yaml` and adds `docs` to that
   list, keeping the file's comments. The new file is the whole commented template (every setting, with its documentation), with only what
   you answered (`about`, `format`) uncommented, and a note on top that a bower reads only `format`, `seal`, `about`, `hubs` and
   `min_similarity`. The rest are the root's to decide. A root with no `bowers:` key finds the new folder by the older rule, and `create` says
   so. A bower shares the root's `.mcp.json`, `.env` and `BOWERBIRD.md`.
-- Settings you pass (`about`, `holds`, `user`) are ignored for a folder that already has a `kbmcp.yaml`, and the result says so.
+- Settings you pass (`about`, `holds`, `user`) are ignored for a folder that already has a `bower.yaml`, and the result says so.
 - A document is not made here: `new` writes one.
 
 ## Sealing as a person
 
-`--attest` records you as a human, as `human:<KB_USER>` (else your git `user.email`). It works only on the command line,
+`--attest` records you as a human, as `human:<BOWERBIRD_USER>` (else your git `user.email`). It works only on the command line,
 needs a terminal (stdin a TTY), and no MCP call can pass it. It applies to `seal`, `new` and `provenance`.
 
 ```sh
@@ -176,6 +199,6 @@ bowerbird-mcp seal check=true since=origin/main                          # what 
 
 ## Settings
 
-`kbmcp.yaml` at the collection root sets the defaults, `.env` and `KB_*` variables override it, and the flags
-`--config <path>` and `--role <role>` pick a collection and a role for the server. `--config` takes a `kbmcp.yaml` or the folder
+`bower.yaml` at the collection root sets the defaults, `.env` and `BOWERBIRD_*` variables override it, and the flags
+`--config <path>` and `--role <role>` pick a collection and a role for the server. `--config` takes a `bower.yaml` or the folder
 holding one, as a relative path, with `~`, or in full. [The guide](guide.md) lists every key.

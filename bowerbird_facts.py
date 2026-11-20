@@ -1,31 +1,60 @@
 """Fact blocks: a span of a document that says what it rests on, and the state of checking it.
 
-    [fact.url] https://example.com/page
+    [fact.url](https://example.com/page) The words copied from that page. [fact.end]
 
-    The words copied from that page.
-
-    [fact.end]
-
-    [fact.mcp] jira INFRA-27707 is open [fact.end]
+    [fact.mcp](jira INFRA-27707) is open [fact.end]
 
 `parse` finds the blocks (and what is wrong with the markup), `.facts.yaml` beside a document keeps the last check of each block,
 and `check_literal` / `page_text` / `call_mcp` do the checking. Self-contained, so the docs build hook can import it with only
 PyYAML installed; the MCP client and the network are touched only inside the functions that need them.
 """
+import dataclasses
 import hashlib
 import html
 import html.parser
 import json
 import re
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 from typing import NamedTuple
 
 import yaml
 
 STATE = ".facts.yaml"  # beside the documents: the last check of each of their fact blocks (commit it, like .waxseals.yaml)
-KINDS = ("url", "mcp")
-TAG = re.compile(r"\[fact\.([a-z]+)\]")  # [fact.<kind>] opens, [fact.end] closes
+TAG = re.compile(r"\[fact\.([a-z]+)\]")  # [fact.<kind>](<source>) opens, [fact.end] closes
+SOURCE = re.compile(r"\(([^)\n]*)\)")  # the source, right after an opening tag
+
+
+@dataclasses.dataclass(frozen=True)
+class FactType:
+    """A kind of fact, `[fact.<name>](<source>) ... [fact.end]`. valid says what is wrong with a source (None: nothing); sample is an
+    example one for messages. plan says what a check would do (shown before anything runs), and check does it: it takes the file, the
+    block, the value last recorded and what `facts:` in bower.yaml declares, and returns (status, method, value), or raises when it cannot
+    check. Both are attached by the code that has what a check needs (the network, an MCP client, the embedder)."""
+    name: str
+    sample: str
+    valid: Callable[[str], str | None]
+    plan: Callable | None = None
+    check: Callable | None = None
+
+
+FACT_TYPES: dict[str, FactType] = {}
+
+
+def register(name: str, sample: str, valid: Callable[[str], str | None], plan: Callable | None = None, check: Callable | None = None) -> FactType:
+    """Add a kind of fact (or replace one of that name). Everything that reads blocks, lint and the docs build included, then knows it."""
+    FACT_TYPES[name] = FactType(name, sample, valid, plan, check)
+    return FACT_TYPES[name]
+
+
+def attach(name: str, **fns) -> None:
+    """Give an already registered kind its plan and check."""
+    FACT_TYPES[name] = dataclasses.replace(FACT_TYPES[name], **fns)
+
+
+register("url", "https://example.com/page", lambda s: None if re.fullmatch(r"https?://\S+", s) else f"needs the page's address in the parentheses, got {s!r}")
+register("mcp", "jira INFRA-27707", lambda s: None if len(s.split()) == 2 else "needs a server and a key in the parentheses")
 CODE = re.compile(r"```.*?```|~~~.*?~~~|`[^`\n]*`", re.DOTALL)
 
 
@@ -54,45 +83,44 @@ def fact_id(kind: str, source: str, claim: str) -> str:
     return hashlib.sha256(f"{kind}\0{source}\0{norm(claim)}".encode()).hexdigest()[:12]
 
 
-def parse(text: str) -> tuple:
-    """(blocks, problems). problems are (line, kind, message): unclosed_fact, stray_fact_end, unknown_fact_kind, bad_fact."""
+def parse(text: str, strict: bool = True) -> tuple:
+    """(blocks, problems). problems are (line, kind, message): unclosed_fact, stray_fact_end, unknown_fact_kind, bad_fact.
+    A block is `[fact.<kind>](<source>) <the claim> [fact.end]`: the source in parentheses (it ends at the first `)`, so a `)` in an
+    address is written %29), then the words that are checked, up to `[fact.end]`. strict=False also takes a kind nobody registered (the docs
+    build shows a block by its recorded state without knowing the kind); `lint` is the strict one."""
     masked, blocks, problems, opened = mask(text), [], [], None
     line = lambda pos: text.count("\n", 0, pos) + 1
     for t in TAG.finditer(masked):
         name = t.group(1)
         if name != "end":
             if opened is not None:
-                problems.append((line(opened.start()), "unclosed_fact", f"[fact.{opened.group(1)}] has no [fact.end] before the next fact"))
-            if name not in KINDS:
-                problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {', '.join('fact.' + k for k in KINDS)}"))
-            opened = t
+                problems.append((line(opened[0].start()), "unclosed_fact", f"[fact.{opened[0].group(1)}] has no [fact.end] before the next fact"))
+            ft = FACT_TYPES.get(name)
+            if ft is None and strict:
+                problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {', '.join('fact.' + k for k in FACT_TYPES)}"))
+            src = SOURCE.match(masked, t.end())
+            if src is None and ft:
+                problems.append((line(t.start()), "bad_fact", f"[fact.{name}] needs its source in parentheses right after it | fix: [fact.{name}]({ft.sample}) the claim [fact.end]"))
+            opened = (t, src)
             continue
         if opened is None:
             problems.append((line(t.start()), "stray_fact_end", "[fact.end] closes no fact"))
             continue
-        o, opened = opened, None
-        if o.group(1) not in KINDS:
+        (o, src), opened = opened, None
+        ft = FACT_TYPES.get(o.group(1))
+        if (ft is None and strict) or src is None:
             continue
-        kind, body = o.group(1), text[o.end():t.start()].strip()
-        where = line(o.start())
-        if kind == "url":
-            m = re.match(r"(\S+)\s*(.*)", body, re.DOTALL)
-            source, claim = (m.group(1), m.group(2).strip()) if m else ("", "")
-            if not re.match(r"https?://\S+$", source):
-                problems.append((where, "bad_fact", f"[fact.url] needs the page's address after it, got {source!r} | fix: [fact.url] https://..."))
-                continue
-        else:
-            words = body.split()
-            if len(words) < 2:
-                problems.append((where, "bad_fact", "[fact.mcp] needs a server and a key, then the claim | fix: [fact.mcp] jira INFRA-27707 is open [fact.end]"))
-                continue
-            source, claim = f"{words[0]} {words[1]}", body
+        kind, source, where = o.group(1), " ".join(src.group(1).split()), line(o.start())
+        claim = text[src.end():t.start()].strip()
+        if ft and (bad := ft.valid(source)):
+            problems.append((where, "bad_fact", f"[fact.{kind}] {bad} | fix: [fact.{kind}]({ft.sample}) the claim [fact.end]"))
+            continue
         if not claim:
-            problems.append((where, "bad_fact", f"[fact.{kind}] has no words to check | fix: paste what the source says between the tags"))
+            problems.append((where, "bad_fact", f"[fact.{kind}] has no words to check | fix: put the claim between the source and [fact.end]"))
             continue
         blocks.append(Block(kind, source, claim, where, line(t.start()), fact_id(kind, source, claim), o.start(), t.end()))
     if opened is not None:
-        problems.append((line(opened.start()), "unclosed_fact", f"[fact.{opened.group(1)}] has no [fact.end] | fix: close it with [fact.end]"))
+        problems.append((line(opened[0].start()), "unclosed_fact", f"[fact.{opened[0].group(1)}] has no [fact.end] | fix: close it with [fact.end]"))
     return blocks, problems
 
 
@@ -229,5 +257,5 @@ def watched(text: str, path: str) -> str:
     try:
         value = dotted(json.loads(text), path) if path else text
     except (ValueError, KeyError, IndexError, TypeError):
-        raise ValueError(f"the result has nothing at {path!r} | fix: set `watch` in kbmcp.yaml to a path in the tool's result")
+        raise ValueError(f"the result has nothing at {path!r} | fix: set `watch` in bower.yaml to a path in the tool's result")
     return value if isinstance(value, str) else json.dumps(value, sort_keys=True, ensure_ascii=False)

@@ -21,5 +21,6 @@ build/
 dist/
 
 # per-person config and the passage index (derived, rebuilt by `reindex`)
-.kbmcp/
+.bower/
+.kbmcp/  # the cache folder before 2.2.0
 .env

@@ -28,7 +28,7 @@
 
 ## Pick the format that fits
 
-A `format:` line in `kbmcp.yaml` says what a folder holds. Each exists for a reason:
+A `format:` line in `bower.yaml` says what a folder holds. Each exists for a reason:
 
 - **Markdown**: notes, runbooks, wikis, docs. Nothing to write but Markdown.
 - **ADR**: decision records (ADR or MADR), with each record's status.

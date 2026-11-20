@@ -16,7 +16,7 @@ pip install 'bowerbird-mcp[serve]'
 uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve start
 ```
 
-Run it from inside a collection (the folder holding `kbmcp.yaml`, or below it):
+Run it from inside a collection (the folder holding `bower.yaml`, or below it):
 
 ```sh
 bowerbird-mcp serve start       # in the background, at http://127.0.0.1:26937/
@@ -26,7 +26,7 @@ bowerbird-mcp serve             # a bare `serve` prints the help: every verb and
 bowerbird-mcp serve status      # information only (exit 0 if running, 1 if not)
 bowerbird-mcp serve stop        # end it; nothing running is not an error
 bowerbird-mcp serve restart     # stop what is found, then start
-bowerbird-mcp --config ~/notes serve start   # another collection, from anywhere: a kbmcp.yaml or its folder (a relative path, ~ or
+bowerbird-mcp --config ~/notes serve start   # another collection, from anywhere: a bower.yaml or its folder (a relative path, ~ or
                                              # a full path). --config goes BEFORE `serve`; without it, run inside the collection
 ```
 
@@ -36,10 +36,10 @@ code files by their file name, in a light and a dark set that follow the theme. 
 `status` and `stop` take the port if it is not 26937. The port (26937) spells BOWER on a phone keypad.
 
 **A different repository.** Run it from there, or name its config from anywhere:
-`bowerbird-mcp --config /path/to/repo/kbmcp.yaml serve start`. With no install, use an absolute path and the `serve` extra:
+`bowerbird-mcp --config /path/to/repo/bower.yaml serve start`. With no install, use an absolute path and the `serve` extra:
 
 ```sh
-uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp --config /path/to/repo/kbmcp.yaml serve start
+uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp --config /path/to/repo/bower.yaml serve start
 ```
 
 To serve several at once, give each its own port (`serve start 8081`) and use the same port with `status` and `stop`.
@@ -52,7 +52,7 @@ another port.
 server, so you never have to hunt for the process.
 
 **Restarting.** Refresh the page to see changed files. Run `serve restart` after you change
-`kbmcp.yaml` or update Bowerbird, because both are read once at start.
+`bower.yaml` or update Bowerbird, because both are read once at start.
 
 ## What you see
 
@@ -79,7 +79,7 @@ The menu beside the search box chooses what kind of search to run, and remembers
 | --- | --- | --- |
 | Passages | Ranked sections of pages, by keyword | The same `passages` an agent gets. Each hit shows its file and line, its trust tier and whether it is stale. |
 | Concepts | Whole pages | The same as the `search` tool: a title match counts for more than a body match. |
-| Meaning | Passages, matched by meaning as well as keyword | Offered only when `kbmcp.yaml` sets `semantic: true` (it needs the `semantic` extra, `bowerbird-mcp[semantic]`). |
+| Meaning | Passages, matched by meaning as well as keyword | Offered only when `bower.yaml` sets `semantic: true` (it needs the `semantic` extra, `bowerbird-mcp[semantic]`). |
 | Tags | Pages with a tag containing your text | Click a tag on the Tags page to jump here. |
 
 Press **Enter** for a full results page, with the other types a click away.
@@ -130,7 +130,7 @@ no logins.
 - **`serve needs the markdown package`.** Install the extra: `pip install 'bowerbird-mcp[serve]'`.
 - **`port 26937: Address already in use`.** It is already running (`serve status`), or something else has the port. Use
   `serve stop`, or pick a port: `serve start 8080`.
-- **Meaning is not in the search menu.** `semantic` is off in `kbmcp.yaml`. Turn it on, then restart `serve`.
+- **Meaning is not in the search menu.** `semantic` is off in `bower.yaml`. Turn it on, then restart `serve`.
 - **A page you edited is not what you expected.** Check `git diff`. Edits are plain file writes, and Git has the history.
 - **Not in the tools here.** `provenance`, `create` and the rest of the tools are the command line's:
   `bowerbird-mcp help`.

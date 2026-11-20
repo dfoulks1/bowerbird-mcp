@@ -7,7 +7,7 @@ that, written as RDF (Turtle, RDF/XML, JSON-LD, N-Triples or N3).
 
 ```text
 glossary/
-  kbmcp.yaml             format: skos
+  bower.yaml             format: skos
   glossary.ttl
 ```
 

@@ -7,7 +7,7 @@ know which a person has checked.
 
 ```text
 manual/
-  kbmcp.yaml             format: asciidoc
+  bower.yaml             format: asciidoc
   rollback.adoc
   deploy.adoc
 ```

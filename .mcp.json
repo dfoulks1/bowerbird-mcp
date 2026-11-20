@@ -2,7 +2,7 @@
   "mcpServers": {
     "bowerbird": {
       "command": "uv",
-      "args": ["run", "bowerbird_mcp.py", "--config", "docs-src/kbmcp.yaml"]
+      "args": ["run", "bowerbird_mcp.py", "--config", "docs-src/bower.yaml"]
     }
   }
 }

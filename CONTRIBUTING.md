@@ -81,12 +81,12 @@ uv run docs_tools.py                          # docs-src/tools.md, from the tool
 uvx --with pymdown-extensions mkdocs build    # docs-src/ -> docs/
 ```
 
-`docs-src/` is also a collection (its own `kbmcp.yaml`): a person reviews each page and seals it, and the build draws each
+`docs-src/` is also a collection (its own `bower.yaml`): a person reviews each page and seals it, and the build draws each
 page's review badge from `docs-src/.waxseals.yaml` (`hooks/seal_banner.py`). So seal first, then build, then commit
 `docs/`: a build made before a seal is stale, and `tools/QA.sh` fails it. See what still needs a review with:
 
 ```sh
-uv run bowerbird_mcp.py seal check=true --config docs-src/kbmcp.yaml
+uv run bowerbird_mcp.py seal check=true --config docs-src/bower.yaml
 ```
 
 `tools.md` is built from the code and left out of the review policy (`/tools.md` in `seal.exempt`). `mkdocs serve`

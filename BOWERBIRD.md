@@ -7,7 +7,7 @@ description: "How an agent calls the bowerbird MCP tools: ask, write, cite, seal
 # BOWERBIRD.md: using the bowerbird tools
 
 Rules for an AI agent calling the `bowerbird` MCP server (`uvx bowerbird-mcp`) on this collection.
-Settings are in `kbmcp.yaml` at the collection root. `init` wrote this file; edit it to fit your project.
+Settings are in `bower.yaml` at the collection root. `create` wrote this file; edit it to fit your project.
 It is never overwritten.
 
 ## Call the MCP tools, not the CLI
@@ -27,17 +27,28 @@ only the tools its `--role` and the collection's `format` switch on.
 ## Writing a note
 
 1. `passages` or `search` first. Extend an existing note and link it. No duplicates.
-2. `create file=... type=... by=<tool>/<model>`. `by` records who wrote the body. Never invent it; ask for the exact string.
+2. `new file=... type=... by=<tool>/<model>`. `by` records who wrote the body. Never invent it; ask for the exact string.
 3. Frontmatter holds the provenance. Do not write "AI-generated" in the body.
 4. To move, rename, split or archive a file use `move`, `rename`, `split`, `archive`. They keep links and indexes right. Do not hand edit.
 5. Never edit between the generated markers of an `index.md`. `fix apply=true` rebuilds it.
 
 ## Citing a fact
 
-- `cite` records a `sources` entry. Pass `server`, `tool` and `args`: the exact call that produced the fact. That is the re-check recipe.
-- Put the footnote marker it returns after the claim.
-- `recheck_plan` lists the facts that are due and the calls to replay. Nothing runs for you. Read each `args`, run the call
-  yourself, fix any claim that drifted (append, do not erase), then `recheck_apply`.
+A fact is a claim with what it rests on, so it can be checked again. Two ways to write one:
+
+- In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, or `[fact.mcp](jira INFRA-1) is open [fact.end]`.
+  The kind, the source in parentheses, then the claim. `bower.yaml` may declare more kinds (`[fact.issue](INFRA-1)`); a kind it does not
+  declare is a `lint` error. Never invent a source or paste words the source does not say.
+- `fact` records a `sources` entry and returns the footnote marker to put after the claim. Pass `server`, `tool`, `args` (the exact call)
+  and `result` (what it returned): the call is the re-check recipe, and the result's `fact_sha256` is what a later result is compared with.
+
+Checking:
+
+- `factcheck` with no arguments lists the blocks and their state, and the facts due. It runs nothing.
+- Read each `args`, run the call yourself, then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it
+  breaks the human review of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with
+  `fact`, and tell the user the file needs review. The same result just records the check.
+- `factcheck fetch=true` is for a person at a terminal. You cannot run it.
 
 ## Review: `seal`
 
@@ -59,7 +70,7 @@ only the tools its `--role` and the collection's `format` switch on.
 
 - These tools edit Markdown in the working tree. Read `git diff` before you commit.
 - A write tool may add a line to `log.md`. Check the diff.
-- `reindex` rebuilds the search index. It matters only when `kbmcp.yaml` sets the build to manual.
+- `reindex` rebuilds the search index. It matters only when `bower.yaml` sets the build to manual.
 - Put no personal data in anything you pass in.
 
 ## Picking a tool
@@ -75,22 +86,22 @@ Unsure of an argument? Read the tool's schema. Do not guess.
 | Read a file I can name | `get` | `search` |
 | See the folders | `dirs` | |
 | List by type, tag, status, tier or stale | `list` | `search` |
-| See which tags and types exist (before `create` or `set`) | `vocab` | |
+| See which tags and types exist (before `new` or `set`) | `vocab` | |
 | See what links to or from a file (before `move` or `archive`) | `links` | |
 | See why a file changed | `log` | |
-| Start a note (OKF) | `create` | `new` |
-| Start a note from a template (Markdown, ADR) | `new` | `create` |
+| Start a note, filled in (OKF: with its type and by) | `new` | hand edit |
+| Start a note from a template (Markdown, ADR) | `new` | |
 | Change frontmatter | `set` | hand edit |
 | Log a change in `log.md` | `record` | hand edit |
 | Move or rename a file, same bundle | `move` | `migrate` |
 | Move a file to another bundle | `migrate` | `move` |
 | Retire a file or a whole bundle | `archive` | delete |
-| Record a source for a claim | `cite` | a footnote by hand |
-| Re-check old facts | `recheck_plan`, then `recheck_apply` | |
+| Record a source for a claim | `fact` (or a `[fact.*]` block) | a footnote by hand |
+| Re-check old facts | `factcheck` | |
 | Find files needing review | `seal check=true` | `seal` without `check` |
 | Fill a missing `generated:` | `provenance` | |
 | Check my work | `lint` | |
 | Repair a mechanical lint error | `fix` | hand edit |
 | Count the collection | `status` | |
 
-Rare, usually a human's call: `init`, `config`, `upgrade`, `baseline`, `heatmap`, `web`, `bundles`, `split`, `rename`, `ingest`, `unarchive`, `index`, `reindex`. Read the schema before use.
+Rare, usually a human's call: `create`, `config`, `upgrade`, `baseline`, `heatmap`, `web`, `bundles`, `split`, `rename`, `ingest`, `unarchive`, `index`, `reindex`. Read the schema before use.

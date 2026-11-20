@@ -1,4 +1,4 @@
-"""Seal extensions (`seal: {extensions: true}` in kbmcp.yaml; the `seal-extensions` extra): several people seal the same version of
+"""Seal extensions (`seal: {extensions: true}` in bower.yaml; the `seal-extensions` extra): several people seal the same version of
 a file, each with an optional comment, and `quorum` says how many different people a version needs.
 
 Plain functions over ledger entries. A ledger line for a file with several seals keeps them in one place:

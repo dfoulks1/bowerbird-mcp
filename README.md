@@ -15,7 +15,7 @@ as Markdown in a folder or repository. It works on collections in [Open Knowledg
 (OKF) v0.2: one Markdown file per *concept*, each starting with a small header of
 facts (its type, a description, where it came from, who checked it). A *bundle* is
 a folder of concepts; a collection is a bundle, or a folder of bundles.
-It is not tied to one format: one `format:` line in `kbmcp.yaml` points it at other
+It is not tied to one format: one `format:` line in `bower.yaml` points it at other
 formats too ([Formats](#formats)).
 
 It is an MCP server (MCP, the Model Context Protocol, is how AI assistants call
@@ -39,7 +39,7 @@ bowerbird-mcp passages 'how do we roll back' output=text     # the best passages
 bowerbird-mcp lint output=text                               # ends: bowerbird-mcp lint: ok: ...
 ```
 
-Run with no arguments at a terminal, `bowerbird-mcp` prints the help and, in a folder with no `kbmcp.yaml`, offers to make a
+Run with no arguments at a terminal, `bowerbird-mcp` prints the help and, in a folder with no `bower.yaml`, offers to make a
 knowledgebase there. `new` starts a document from a template (`okf`, `markdown` or `adr`, by what the folder holds):
 `bowerbird-mcp new notes/deploy -t markdown -T "Deploy"`.
 
@@ -69,7 +69,7 @@ uvx bowerbird-mcp status                        # what is in the collection
 uvx bowerbird-mcp passages 'how do we deploy'   # the best sections, with file and line to cite
 uvx bowerbird-mcp new notes/deploy              # a new document from a template
 uvx bowerbird-mcp seal check=true               # which files lack a human review
-uvx bowerbird-mcp --config ~/notes status    # a collection elsewhere: --config (before the command) takes a kbmcp.yaml or its folder
+uvx bowerbird-mcp --config ~/notes status    # a collection elsewhere: --config (before the command) takes a bower.yaml or its folder
 uv tool upgrade bowerbird-mcp                   # update an installed tool (uv tool uninstall bowerbird-mcp removes it)
 uvx bowerbird-mcp@2.2.0 --version               # pin a version
 ```
@@ -98,28 +98,49 @@ uv tool install 'bowerbird-mcp[serve,semantic]'                    # installed; 
 pip install 'bowerbird-mcp[serve]'                                 # pip
 ```
 
-In an MCP config, put the extra after `--from`: `"args": ["--from", "bowerbird-mcp[semantic]>=2,<3", "bowerbird-mcp"]`. A
-feature that needs an extra you did not ask for stops with a message that names it.
+**`--extra` and `--with` are different things.** An *extra* is a named bundle the package declares (`serve` is `markdown`, `semantic` is
+`fastembed`, and so on). `--with` adds any package you name yourself, at any version, whether or not Bowerbird lists it as an extra. Which
+flag you use depends on how you run the command:
+
+| How you run it | An extra | A package you name |
+|---|---|---|
+| `uv run`, in a checkout | `uv run --extra serve --extra semantic bowerbird_mcp.py status` | `uv run --with markdown --with fastembed bowerbird_mcp.py status` |
+| `uvx`, from PyPI | `uvx --from 'bowerbird-mcp[serve,semantic]' bowerbird-mcp status` | `uvx --from bowerbird-mcp --with markdown --with fastembed bowerbird-mcp status` |
+| installed once | `uv tool install 'bowerbird-mcp[serve,semantic]'` | `uv tool install bowerbird-mcp --with markdown --with fastembed` |
+
+- In `uvx`, `--from` says which package provides the command (and which of its extras), and `--with` adds more packages to the same
+  one-off environment. `uvx` has no `--extra` flag: the extra goes in brackets on `--from`.
+- `uv run --extra` reads the extras from a `pyproject.toml`, so it needs a checkout. `--with` works anywhere, including the bare script.
+- Prefer the extra: it is what Bowerbird says it needs, so it stays right if an extra's contents change. Use `--with` for something no
+  extra covers (a backend you bring yourself) or to pin a version (`--with 'markdown<4'`).
+- In an MCP config the two look like this: `"args": ["--from", "bowerbird-mcp[semantic]>=2,<3", "bowerbird-mcp"]`, or
+  `"args": ["--from", "bowerbird-mcp>=2,<3", "--with", "fastembed", "bowerbird-mcp"]`.
+
+A feature that needs an extra you did not ask for stops with a message that names it.
 
 In the examples below, `uv run bowerbird_mcp.py ...` means the same command run
 from a checkout of this repository (or beside a saved copy of that one file).
 To run the latest unreleased code instead of the PyPI release, give uv the repository:
 `uvx --from git+https://github.com/dfoulks1/bowerbird-mcp bowerbird-mcp help`.
 
-### Settings: kbmcp.yaml
+### Settings: bower.yaml
 
-A `kbmcp.yaml` is the collection's configuration. Commit it. The collection's root is the outermost one at or above
+*Renamed in 2.2.0.* The file was `kbmcp.yaml`, the variables began `KB_`, the lint skip file was `kbmcp.nolint`, and the index cache was
+`.kbmcp/`. The old names still work for now, with a one-line warning on stderr that names the new one (`git mv kbmcp.yaml bower.yaml`);
+where both exist, the new one wins. The cache is rebuilt on first use, so the old `.kbmcp/` folder can be deleted.
+
+A `bower.yaml` is the collection's configuration. Commit it. The collection's root is the outermost one at or above
 the current directory, inside the same git work tree (a repository inside another is its own collection), or you
 name one with `--config`, so a server needs no env block. `--config` takes the file or the folder holding it, from
-anywhere: a relative path, or `~`, not only a full path. A `kbmcp.yaml` in a folder below the root overrides the
+anywhere: a relative path, or `~`, not only a full path. A `bower.yaml` in a folder below the root overrides the
 root's for that folder and everything under it ([mixed formats](#mixed-formats-in-one-collection)).
 `create` writes a mostly filled-in one (see below); `config apply=true` writes the all-commented example, and
-neither overwrites a file. The old `KB_ROOT` variable is gone and is refused: the base is wherever `kbmcp.yaml` is.
+neither overwrites a file. The old `BOWERBIRD_ROOT` variable is gone and is refused: the base is wherever `bower.yaml` is.
 
 ```yaml
 about: Engineering runbooks.   # shown to the agent; tells collections apart
-user: your-id         # your id in confirmation prompts: personal, prefer KB_USER in .env
-ai_producers: [zed]   # extra AI names for the provenance check (KB_AI_PRODUCERS)
+user: your-id         # your id in confirmation prompts: personal, prefer BOWERBIRD_USER in .env
+ai_producers: [zed]   # extra AI names for the provenance check (BOWERBIRD_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
 format: okf           # okf | adr | markdown | skos | asciidoc | seal-only: what the folder holds (see Formats)
 hubs: true            # concepts many others link to rank a little higher
@@ -127,7 +148,7 @@ semantic: false       # also match by meaning (see Reading the collection)
 semantic_model: BAAI/bge-small-en-v1.5
 min_similarity: 0.6   # how close in meaning a passage must be
 vector_index: scan    # scan | sqlite-vec | hnsw: how semantic search finds neighbours
-index: .kbmcp/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
+index: .bower/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
 build: auto           # auto: passages keeps the index current; manual: only `reindex`
 roles: [read, write, structure, lifecycle, seal]   # roles the server may offer (see Register)
 seal: {exempt: [], exempt_status: [proposed, draft]}   # files seal check leaves out (see Sealing)
@@ -135,11 +156,11 @@ seal: {exempt: [], exempt_status: [proposed, draft]}   # files seal check leaves
 
 ### Overrides: .env and the environment
 
-`kbmcp.yaml` is shared, so what is yours alone does not go in it. [`env.example`](https://github.com/dfoulks1/bowerbird-mcp/blob/main/env.example)
-lists every override as a `KB_<KEY>` variable (`KB_USER`, `KB_ABOUT`, `KB_SEMANTIC`, `KB_VECTOR_INDEX`, `KB_BUILD`,
-and so on; lists are comma separated). Copy it to `.env` beside `kbmcp.yaml` and uncomment what you change: `.env` is
-not committed (`create` and `config` list it in `.gitignore`). Precedence, last wins: `kbmcp.yaml`, then `.env`, then
-real environment variables. `format` is the collection's own and no override touches it. `KB_ROLE` (singular)
+`bower.yaml` is shared, so what is yours alone does not go in it. [`env.example`](https://github.com/dfoulks1/bowerbird-mcp/blob/main/env.example)
+lists every override as a `BOWERBIRD_<KEY>` variable (`BOWERBIRD_USER`, `BOWERBIRD_ABOUT`, `BOWERBIRD_SEMANTIC`, `BOWERBIRD_VECTOR_INDEX`, `BOWERBIRD_BUILD`,
+and so on; lists are comma separated). Copy it to `.env` beside `bower.yaml` and uncomment what you change: `.env` is
+not committed (`create` and `config` list it in `.gitignore`). Precedence, last wins: `bower.yaml`, then `.env`, then
+real environment variables. `format` is the collection's own and no override touches it. `BOWERBIRD_ROLE` (singular)
 is the same as `--role`.
 
 `create` fills in what it can: `format` is guessed from the folder (thesaurus files mean `skos`, `.adoc` files mean
@@ -151,8 +172,8 @@ gets a first bundle.
 
 ### The index
 
-With no `kbmcp.yaml` the defaults apply. The index is a cache derived from
-the concepts: safe to delete, never committed (a new `.kbmcp/` folder ignores
+With no `bower.yaml` the defaults apply. The index is a cache derived from
+the concepts: safe to delete, never committed (a new `.bower/` folder ignores
 itself). To build it apart from the server, run `reindex` (incremental: only
 changed files are read) and set `build: manual`, so `passages` only reads it:
 
@@ -177,8 +198,8 @@ repos:
 
 ### Where tools look
 
-A collection is where its `kbmcp.yaml` is: the tool looks for one from the
-current directory up (or takes `--config path/to/kbmcp.yaml`) and treats that
+A collection is where its `bower.yaml` is: the tool looks for one from the
+current directory up (or takes `--config path/to/bower.yaml`) and treats that
 file's folder as the base. With none, it uses the current directory. In an `okf` collection it is one bundle at its root, or a set of sibling bundles (other formats are just the folder). A
 directory whose `index.md` declares `okf_version` is a bundle root; bundles do
 not nest. An `index.md` at the collection root lists its bundles (`index
@@ -219,7 +240,7 @@ arguments fill the required ones in order (`move a.md b.md`); on `set`, any
 other `key=value` is frontmatter (`set a.md status=deprecated tags=[x,y]`).
 Write tools that touch many files default to `apply=false` and show a diff.
 
-`--attest` records you, as `human:<KB_USER>` (else your git `user.email`), on
+`--attest` records you, as `human:<BOWERBIRD_USER>` (else your git `user.email`), on
 `new` and `provenance` (`generated`) and `seal`
 (`verified`). It exists
 only on the command line: no MCP call can pass it.
@@ -232,7 +253,7 @@ Exit codes: 0 ok, 1 findings, 2 usage error.
 ## Formats
 
 <!-- --8<-- [start:formats] -->
-Bowerbird is not tied to one format. `format` in `kbmcp.yaml` says what a folder holds, and the same
+Bowerbird is not tied to one format. `format` in `bower.yaml` says what a folder holds, and the same
 search, index and review tools work across them.
 
 - `okf` (the default): [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md) bundles. Every tool is available.
@@ -264,10 +285,10 @@ the format from the folder, and the agent's instructions follow it.
 
 > **OKF only, and not required.** Everything in this section (bundles, `index.md`, `log.md`, the archive) is how an `okf`
 > collection keeps its concepts in order. A `markdown`, `adr`, `skos`, `asciidoc` or `seal-only` folder needs only a
-> `kbmcp.yaml` and its files, in any layout you like.
+> `bower.yaml` and its files, in any layout you like.
 
 ```
-kb/                          the collection (kbmcp.yaml sits here)
+notes/                       the collection (bower.yaml sits here)
   index.md                   lists the bundles; no frontmatter
   .gitattributes             log.md and index.md merge=union
   eng/                       a bundle
@@ -292,13 +313,13 @@ per item:
 
 Hand-written text is kept.
 
-<!-- kb-index:start (generated by KnowledgeBaseMCP index; do not edit between the markers) -->
+<!-- bowerbird-index:start (generated by bowerbird-mcp index; do not edit between the markers) -->
 
 ### runbooks
 
 * [Deploy](./runbooks/deploy.md) - How we deploy.
 
-<!-- kb-index:end -->
+<!-- bowerbird-index:end -->
 ```
 
 - The tool owns what is between the markers and rebuilds it from frontmatter
@@ -358,16 +379,16 @@ bundle itself.
 ### Mixed formats in one collection
 
 One monorepo can hold several formats: an OKF bundle with a folder of ADRs, or a markdown collection with one. A
-`kbmcp.yaml` in a folder overrides the one above it for that folder and everything under it, key by key, the nearest one
+`bower.yaml` in a folder overrides the one above it for that folder and everything under it, key by key, the nearest one
 winning, like an inherited ACL: the whole tree is OKF, and that one part is ADR.
 
 ```yaml
-# kbmcp.yaml, at the root
+# bower.yaml, at the root
 format: okf
 ```
 
 ```yaml
-# adr/kbmcp.yaml
+# adr/bower.yaml
 format: adr
 seal: {exempt: ["drafts/*.md"], exempt_status: []}   # its globs start at this folder
 ```
@@ -377,22 +398,22 @@ A folder may override `format`, `seal`, `about`, `hubs` and `min_similarity`. Th
 ledger and one embedding model; a folder that sets one is refused, with the fix. Nested files are read once, at
 startup, and found with `git ls-files`, so `.gitignore` is respected; restart the server after adding one.
 
-**Bowers.** Instead of finding nested files by looking, the root can name them. Each folder with a `kbmcp.yaml` of its own
+**Bowers.** Instead of finding nested files by looking, the root can name them. Each folder with a `bower.yaml` of its own
 that belongs to the collection is a *bower* (not an OKF bundle):
 
 ```yaml
-# kbmcp.yaml, at the root
+# bower.yaml, at the root
 format: markdown
-bowers: [docs-src, adr/*]   # folders (globs are fine) that carry their own kbmcp.yaml
+bowers: [docs-src, adr/*]   # folders (globs are fine) that carry their own bower.yaml
 ```
 
-- Only the listed folders override the root, so a stray `kbmcp.yaml` is never picked up. A name that matches no folder
-  with a `kbmcp.yaml` stops with an error, which catches a typo.
-- A bower ships with its own `kbmcp.yaml`. Run on its own it is its own collection. Run inside the collection, the nearest
+- Only the listed folders override the root, so a stray `bower.yaml` is never picked up. A name that matches no folder
+  with a `bower.yaml` stops with an error, which catches a typo.
+- A bower ships with its own `bower.yaml`. Run on its own it is its own collection. Run inside the collection, the nearest
   folder above it whose `bowers` lists it is the root. A bower may set only `format`, `seal`, `about`, `hubs` and
   `min_similarity`; its other keys are ignored here (the root decides them), so one shipped alone can carry them.
-- Without a `bowers` key the older rule applies and every nested `kbmcp.yaml` is an override.
-- With no root `kbmcp.yaml` and no git repository, nothing below the folder is scanned.
+- Without a `bowers` key the older rule applies and every nested `bower.yaml` is an override.
+- With no root `bower.yaml` and no git repository, nothing below the folder is scanned.
 
 What each tool does with the ADR folder inside an OKF bundle: `passages`, `search`, `list`, `status`, `links`, `web`
 and `seal` include it, each file read in its own format (an ADR's status, its review in `.waxseals.yaml`). `lint`,
@@ -422,12 +443,12 @@ for Cursor. VS Code's `.vscode/mcp.json` takes the same entry under `"servers"`.
 }
 ```
 
-The server runs in the project folder, so it finds the `kbmcp.yaml` there (your
+The server runs in the project folder, so it finds the `bower.yaml` there (your
 id is `user:` in it). To point at one elsewhere, add `"--config",
-"/path/to/kb/kbmcp.yaml"` to `args`. Or, in Claude Code:
+"/path/to/collection/bower.yaml"` to `args`. Or, in Claude Code:
 
 ```sh
-claude mcp add bowerbird -- uvx bowerbird-mcp --config /path/to/kb/kbmcp.yaml
+claude mcp add bowerbird -- uvx bowerbird-mcp --config /path/to/collection/bower.yaml
 ```
 
 Several collections at once: one entry each, with its own `--config`. The
@@ -437,26 +458,33 @@ the agent what that collection holds. Each keeps its own index.
 The client loads the tool list at start. After editing the script, restart
 the client or reconnect the server (`/mcp` in Claude Code).
 
+### Files as resources
+
+A client that lists MCP resources sees each file of the collection at `bowerbird://{bower}/{path}`: the bower is the folder that holds the
+file's `bower.yaml` (the root is one, named by its folder), and the path is the file's path inside it, as the tools take it. Add
+`?lines=10-20` for only those lines. They need the `read` role, and a dotfile, a link or a path outside the collection is refused.
+`bowerbird://agent-rules` is the agent rules, and `okf://spec` the OKF specification (in a checkout).
+
 ### Roles: a smaller tool list per agent
 
-All 34 tools cost an agent about 4,200 tokens of schema (an estimate: each tool's name, description and argument
+All 34 tools cost an agent about 3,700 tokens of schema (an estimate: each tool's name, description and argument
 schema as the client receives them, in characters divided by four); the first four roles are each about a quarter of that, and `seal` is one tool. Register the same
-script more than once, each with a role (`--role`, or `KB_ROLE`; several with
+script more than once, each with a role (`--role`, or `BOWERBIRD_ROLE`; several with
 commas), and each server offers only that role's tools:
 
 | Role | Tools | Schema |
 |---|---|---|
-| `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~1,030 tokens |
-| `structure` | shape, repair and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~930 tokens |
-| `write` | write a concept and check it: `fact` `fix` `lint` `new` `record` `set` | 6, ~1,110 tokens |
-| `lifecycle` | keep it current: `baseline` `config` `create` `factcheck` `index` `provenance` `reindex` `upgrade` | 8, ~950 tokens |
+| `read` | find and read, nothing written: `dirs` `get` `heatmap` `links` `list` `log` `passages` `search` `status` `vocab` | 10, ~930 tokens |
+| `structure` | shape, repair and reorganization: `archive` `bundles` `dirs` `ingest` `migrate` `move` `rename` `split` `unarchive` `web` | 10, ~880 tokens |
+| `write` | write a concept and check it: `fact` `fix` `lint` `new` `record` `set` | 6, ~900 tokens |
+| `lifecycle` | keep it current: `baseline` `config` `create` `factcheck` `index` `provenance` `reindex` `upgrade` | 8, ~880 tokens |
 | `seal` | a human's review of a file, and the check for it: `seal` | 1, ~200 tokens |
 
 ```json
 {
   "mcpServers": {
-    "kb-read":  { "command": "uvx", "args": ["bowerbird-mcp", "--role", "read"] },
-    "kb-write": { "command": "uvx", "args": ["bowerbird-mcp", "--role", "write"] }
+    "bowerbird-read":  { "command": "uvx", "args": ["bowerbird-mcp", "--role", "read"] },
+    "bowerbird-write": { "command": "uvx", "args": ["bowerbird-mcp", "--role", "write"] }
   }
 }
 ```
@@ -464,7 +492,7 @@ commas), and each server offers only that role's tools:
 The `read` server is read-only, so a client can approve it without asking; the others
 change files (`seal` only writes a review: a ledger entry, or a concept's own `verified` key). A tool can belong to more than one role (`dirs` is in `read` and
 `structure`), and a server with no `--role` offers them all. With no `--role` the server offers every role that `roles:` in
-`kbmcp.yaml` leaves on; naming a role that is off refuses to start. Outside `okf` the format limits it further, to the tools
+`bower.yaml` leaves on; naming a role that is off refuses to start. Outside `okf` the format limits it further, to the tools
 that format uses (see Formats). The CLI always has every tool.
 
 <!-- --8<-- [end:register] -->
@@ -494,7 +522,7 @@ limits it to a pull request's files):
 - `unreadable`: a file is not UTF-8 text, so it cannot be reviewed here (leave it out with `seal.exempt`).
 - `orphan_signature`: a ledger entry for a file that is gone (a warning).
 
-The policy is the `seal` key in the committed `kbmcp.yaml` (nothing local can loosen it); every file
+The policy is the `seal` key in the committed `bower.yaml` (nothing local can loosen it); every file
 is checked, except those whose status is `proposed` or `draft`, and any file `exempt` names:
 
 ```yaml
@@ -517,7 +545,7 @@ repos:
 ```
 
 Limits: a hook can be skipped (`--no-verify`), so run the same command in CI. `seal` proves a ledger entry exists
-for these bytes, not who typed it: protect `.waxseals.yaml` and `kbmcp.yaml` with `CODEOWNERS` or branch
+for these bytes, not who typed it: protect `.waxseals.yaml` and `bower.yaml` with `CODEOWNERS` or branch
 protection so changes to them need a named reviewer. A SKOS file is sealed whole, not per concept.
 
 ## Before you push
@@ -560,14 +588,14 @@ run `lint baseline=.okf-baseline.json`, so only new findings fail. The
 snapshot sits at the collection root and matches from any directory. CI lints;
 it does not push fixes (fork PRs get a read-only token anyway).
 
-To skip files outright, list them in a `kbmcp.nolint` file. It works like
+To skip files outright, list them in a `bower.nolint` file. It works like
 `.gitignore`: it may sit in any directory, patterns are relative to it, the
 last match wins and `!` re-includes. At the collection root it covers every
 bundle. Skipped files are still read, so links to them resolve. One file can
-skip itself with the line `<!-- kbmcp-nolint -->`.
+skip itself with the line `<!-- bower-nolint -->`.
 
 ```gitignore
-# kbmcp.nolint: agent instructions are not concepts
+# bower.nolint: agent instructions are not concepts
 AGENTS*
 CLAUDE.md
 .kiro/
@@ -619,7 +647,7 @@ repos:
   (approximate, for 100K+; `pip install hnswlib`; it keeps the top 500 before the
   type, tag and dir filters). No hit
   returns `gap: true`: say the collection has nothing, don't guess. Passages
-  are indexed in one SQLite file (`index` in `kbmcp.yaml`), updated from the
+  are indexed in one SQLite file (`index` in `bower.yaml`), updated from the
   files that changed. `reindex` builds it ahead of time, for a hook, and with
   `build: manual` `passages` only reads it; `reindex info=true` reports what it
   holds and how far behind it is, `drop=true` deletes it. `passages: false` removes
@@ -680,7 +708,7 @@ uv run test_bowerbird_mcp.py
 
 ## Spec
 
-`SPEC.md` is OKF v0.2, copied unchanged from
+`docs-src/prompts/SPEC.md` is OKF v0.2, copied unchanged from
 [GoogleCloudPlatform/knowledge-catalog][okf] at commit `bad9bdb`,
 Apache-2.0.
 

@@ -20,19 +20,19 @@ Neither is read unprompted by every agent. To make one read them, put a line in 
 ## Where it comes from
 
 `create` (the command, the `create` tool, and the **New knowledgebase** button and setup modal in [`serve`](serve.md)) writes it
-at the collection root, beside `kbmcp.yaml`, with `env.example` and `.mcp.json`:
+at the collection root, beside `bower.yaml`, with `env.example` and `.mcp.json`:
 
 ```sh
 bowerbird-mcp create -t markdown -a "Team notes." --apply
 ```
 
 ```text
-config: {"files": ["kbmcp.yaml", ".env", "env.example", ".mcp.json", "BOWERBIRD.md"], ...}
+config: {"files": ["bower.yaml", ".env", "env.example", ".mcp.json", "BOWERBIRD.md"], ...}
 ```
 
 - **It is never overwritten.** If the file exists, `create` skips it. That holds for a folder that already has its
-  `kbmcp.yaml`: `create` adds only the files it lacks. Run it in a collection from before 2.2.0 and you get this file.
-- **Commit it.** It travels with the repository, like `kbmcp.yaml` and `.mcp.json`.
+  `bower.yaml`: `create` adds only the files it lacks. Run it in a collection from before 2.2.0 and you get this file.
+- **Commit it.** It travels with the repository, like `bower.yaml` and `.mcp.json`.
 - **Edit it.** The text is a starting point. Add your own rules (naming, who reviews what, which folders are off limits).
   Your edits are yours: nothing rewrites them on upgrade.
 - **It is for the agent, not the tools.** Bowerbird does not read it back or enforce it. Point your assistant at it: an
@@ -64,7 +64,7 @@ description: "How an agent calls the bowerbird MCP tools: ask, write, cite, seal
 # BOWERBIRD.md: using the bowerbird tools
 
 Rules for an AI agent calling the `bowerbird` MCP server (`uvx bowerbird-mcp`) on this collection.
-Settings are in `kbmcp.yaml` at the collection root. `create` wrote this file; edit it to fit your project.
+Settings are in `bower.yaml` at the collection root. `create` wrote this file; edit it to fit your project.
 It is never overwritten.
 
 ## Call the MCP tools, not the CLI
@@ -91,12 +91,21 @@ only the tools its `--role` and the collection's `format` switch on.
 
 ## Citing a fact
 
-- `fact` records a `sources` entry. A fact is a reproducible result: pass `server`, `tool`, `args` (the exact call) and `result` (what it returned). The call is the re-check recipe; the result's fact_sha256 is what a later result is compared with.
-- Put the footnote marker it returns after the claim.
-- `factcheck` lists the facts that are due and the calls to replay. Nothing runs for you. Read each `args` and run the call
-  yourself. Then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it breaks the human review
-  of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with `fact`, and tell the
-  user the file needs review. The same result just records the check.
+A fact is a claim with what it rests on, so it can be checked again. Two ways to write one:
+
+- In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, or `[fact.mcp](jira INFRA-1) is open [fact.end]`.
+  The kind, the source in parentheses, then the claim. `bower.yaml` may declare more kinds (`[fact.issue](INFRA-1)`); a kind it does not
+  declare is a `lint` error. Never invent a source or paste words the source does not say.
+- `fact` records a `sources` entry and returns the footnote marker to put after the claim. Pass `server`, `tool`, `args` (the exact call)
+  and `result` (what it returned): the call is the re-check recipe, and the result's `fact_sha256` is what a later result is compared with.
+
+Checking:
+
+- `factcheck` with no arguments lists the blocks and their state, and the facts due. It runs nothing.
+- Read each `args`, run the call yourself, then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it
+  breaks the human review of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with
+  `fact`, and tell the user the file needs review. The same result just records the check.
+- `factcheck fetch=true` is for a person at a terminal. You cannot run it.
 
 ## Review: `seal`
 
@@ -118,7 +127,7 @@ only the tools its `--role` and the collection's `format` switch on.
 
 - These tools edit Markdown in the working tree. Read `git diff` before you commit.
 - A write tool may add a line to `log.md`. Check the diff.
-- `reindex` rebuilds the search index. It matters only when `kbmcp.yaml` sets the build to manual.
+- `reindex` rebuilds the search index. It matters only when `bower.yaml` sets the build to manual.
 - Put no personal data in anything you pass in.
 
 ## Picking a tool
@@ -144,7 +153,7 @@ Unsure of an argument? Read the tool's schema. Do not guess.
 | Move or rename a file, same bundle | `move` | `migrate` |
 | Move a file to another bundle | `migrate` | `move` |
 | Retire a file or a whole bundle | `archive` | delete |
-| Record a source for a claim | `fact` | a footnote by hand |
+| Record a source for a claim | `fact` (or a `[fact.*]` block) | a footnote by hand |
 | Re-check old facts | `factcheck` | |
 | Find files needing review | `seal check=true` | `seal` without `check` |
 | Fill a missing `generated:` | `provenance` | |

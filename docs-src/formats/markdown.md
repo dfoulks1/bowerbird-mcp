@@ -7,14 +7,14 @@ checked. There is nothing to learn and nothing to convert.
 
 ```text
 notes/
-  kbmcp.yaml             format: markdown
+  bower.yaml             format: markdown
   deploy.md              plain Markdown, no header needed
   rollback.md
   .waxseals.yaml    appears when someone seals a note (commit it)
 ```
 
 ```yaml
-# kbmcp.yaml
+# bower.yaml
 format: markdown
 about: Team notes.
 ```
@@ -58,7 +58,7 @@ ships.
 
 ### Setup
 
-A `kbmcp.yaml` at the root of the content folder. This is the one this site uses:
+A `bower.yaml` at the root of the content folder. This is the one this site uses:
 
 ```yaml
 format: markdown      # or asciidoc
