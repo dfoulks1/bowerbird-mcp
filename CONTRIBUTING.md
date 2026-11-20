@@ -52,7 +52,7 @@ changes nothing in the working tree and stops at the first failure.
 ## Releasing
 
 1. Set `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), run `uv lock` (the
-   lockfile records the version), and add a section to `CHANGELOG.md`. For a new major version, also change the pin `init`
+   lockfile records the version), and add a section to `CHANGELOG.md`. For a new major version, also change the pin `create`
    writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1` example in
    `docs-src/formats/skos.md`. Then run `tools/QA.sh`.
 2. Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to `main`.
@@ -89,7 +89,7 @@ page's review badge from `docs-src/.waxseals.yaml` (`hooks/seal_banner.py`). So 
 uv run bowerbird_mcp.py seal check=true --config docs-src/kbmcp.yaml
 ```
 
-`tools.md` is built from the code and left out of the review policy (`!/tools.md` in `seal.require`). `mkdocs serve`
+`tools.md` is built from the code and left out of the review policy (`/tools.md` in `seal.exempt`). `mkdocs serve`
 loads `hooks/` once, so restart the preview after changing them.
 
 [asf-gt]: https://www.apache.org/legal/generative-tooling.html

@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -27,8 +28,8 @@ sys.path.insert(0, str(HERE))
 import bowerbird_mcp as k
 
 
-def init(**kw):
-    return asyncio.run(k.init(**kw))
+def create(**kw):
+    return asyncio.run(k.create(**kw))
 
 del sys.argv[1:]
 k.CFG_DIR = None  # the tests swap KB_ROOT around; keep each one's index inside its own root
@@ -60,10 +61,10 @@ def cli(*argv):
 
 
 # init: a new bundle is conformant and clean; a second init refuses.
-assert init()["would_edit"] == {".": ["index.md", "log.md"]}
-init(apply=True)
+assert create()["would_edit"] == {".": ["index.md", "log.md"]}
+create(apply=True)
 assert k.lint()["ok"] and k.lint()["conformant"], k.lint()
-raises(k.init, apply=True)
+raises(k.create, apply=True)
 
 # A bundle with only a concept lints (no index, no log, no layout).
 (kb / "bare").mkdir()
@@ -262,33 +263,51 @@ with contextlib.redirect_stderr(io.StringIO()):
     assert k.cli(["verify", "file=note.md", "--attest"]) == 2
 assert k.meta((kb / "note.md").read_text())[0]["verified"][-1]["by"] == "human:drew"
 k.CLI, k.ATTEST = False, ""
-assert "only a human" in raises(k.recheck_apply, file="note.md", id="x", by="human:drew")
+assert all(cli(n)[0] == 2 for n in ("recheck_apply", "recheck_plan", "cite"))  # renamed in 2.2.0, with no alias: each says where it went
 
-# cite / recheck: a recorded MCP call is the source and the re-check recipe.
+# fact / factcheck: a fact is a reproducible result: the recorded call, what it returned, and its fingerprint.
 (kb / ".mcp.json").write_text(json.dumps({"mcpServers": {"jira": {"command": "x", "env": {"TOKEN": "secret"}}}}))
-raises(k.cite, "note.md", server="nope", tool="get_issue")
-c = k.cite("note.md", server="jira", tool="get_issue", args={"issue_key": "INFRA-1"},
+raises(k.fact, "note.md", server="nope", tool="get_issue")
+c = k.fact("note.md", server="jira", tool="get_issue", args={"issue_key": "INFRA-1"}, result='{"status": "Open", "n": 1}',
            title="INFRA-1 status", stale_days=30)
 assert c["footnote"] == "[^infra-1]"
 (kb / "note.md").write_text((kb / "note.md").read_text().replace("Body.", "The ticket is open.[^infra-1]"))
 d = k.meta((kb / "note.md").read_text())[0]
 assert d["sources"][0]["resource"] == "mcp://jira/get_issue?issue_key=INFRA-1" and TS.fullmatch(d["stale_after"])
+assert d["sources"][0]["fact_sha256"] == k.fact_sha256('{"n":1,   "status":"Open"}') != k.fact_sha256('{"status": "Closed", "n": 1}')  # JSON: key order and spacing do not matter
+assert k.fact_sha256("a  b\n c") == k.fact_sha256("a b c")  # other text: whitespace collapses
 assert k.lint()["ok"], k.lint()
-plan = k.recheck_plan()
+plan = k.factcheck()  # no result: information only
 assert plan["calls"][0]["call"] == {"server": "jira", "tool": "get_issue", "args": {"issue_key": "INFRA-1"}}
-assert k.recheck_plan(older_than_days=1)["calls"] == []
+assert k.factcheck(older_than_days=1)["calls"] == [] and k.factcheck(file="note.md", id="nope")["calls"] == []
 assert "The ticket is open" in plan["calls"][0]["cites"][0]
-assert k.recheck_apply([{"file": "note.md", "id": "infra-1"}])[0]["checked"] == ["infra-1"]
-n = len(k.entries(k.meta((kb / "note.md").read_text())[0]["verified"]))
-assert k.recheck_apply(file="note.md", by="process:nightly")[0]["checked"] == ["infra-1"]  # no id: every source
-assert k.entries(k.meta((kb / "note.md").read_text())[0]["verified"])[-1]["by"] == "process:nightly"
-assert len(k.entries(k.meta((kb / "note.md").read_text())[0]["verified"])) == n + 1
-assert k.recheck_apply(file="note.md", id="nope")[0]["result"] == "no such source"
-assert cli("recheck_apply", "file=note.md", "--attest")[0] == 0  # a person: "I checked this concept's sources"
-assert k.entries(k.meta((kb / "note.md").read_text())[0]["verified"])[-1]["by"] == "human:drew"
-assert cli("cite", "file=note.md", "resource=https://x", "--attest")[0] == 2  # citing is not confirming
+assert k.meta((kb / "note.md").read_text())[0] == d  # and it wrote nothing
+live = lambda: k.trust_tier(k.signed(k.meta((kb / "note.md").read_text())[0], "note.md", {}))
+os.environ["KB_USER"] = "drew"
+k.at_terminal = lambda: True
+assert cli("verify", "file=note.md", "--attest")[0] == 0  # a human reviews the note with its fact
+assert live() == "human-reviewed"
+before = (kb / "note.md").read_bytes()
+same = k.factcheck(file="note.md", id="infra-1", result='{"n": 1, "status": "Open"}')  # the same fact: the check is recorded, nothing breaks
+assert same["drift"] is False and live() == "human-reviewed" and (kb / "note.md").read_bytes() == before  # the sealed file is not touched by a clean check
+assert "infra-1" in (kb / ".facts.yaml").read_text() and "drifted_at" not in (kb / ".facts.yaml").read_text()
+assert "one fact" in raises(k.factcheck, result="x") and "no fact" in raises(k.factcheck, file="note.md", id="nope", result="x")
+bad = k.factcheck(file="note.md", id="infra-1", result='{"status": "Closed", "n": 1}')  # drift: the reviews before it stop holding
+assert bad["drift"] is True and bad["was"] != bad["now"] and "The ticket is open" in bad["cites"][0], bad
+assert (kb / "note.md").read_bytes() == before and "drifted_at" in (kb / ".facts.yaml").read_text()  # noted beside the file, the file itself unchanged
+assert live() != "human-reviewed" and k.drift_of("note.md", {}) is not None
+k.CLI = True
+sk = k.signatures("")["findings"]
+assert any(f["kind"] == "stale_signature" and f["file"] == "note.md" and "fact drifted" in f["message"] for f in sk), sk
+time.sleep(1.1)  # `at` has one-second resolution: the new review is later than the drift
+assert cli("verify", "file=note.md", "--attest")[0] == 0  # a human reviews it again, after the drift: it holds
+assert live() == "human-reviewed" and not any(f["file"] == "note.md" for f in k.signatures("")["findings"])
+k.fact("note.md", resource="https://example.com/base", id="base", title="No result yet")  # no fact_sha256: the first result is the baseline
+assert k.factcheck(file="note.md", id="base", result="x")["drift"] is None
+assert k.factcheck(file="note.md", id="base", result="y")["drift"] is True
+assert cli("fact", "file=note.md", "resource=https://x", "--attest")[0] == 2  # recording a fact is not confirming it
 assert "secret" not in json.dumps(k.lint(limit=0))
-k.cite("note.md", resource="https://example.com/page", title="Page")
+k.fact("note.md", resource="https://example.com/page", title="Page")
 assert k.lint()["ok"]
 
 # Symlinks are never followed.
@@ -309,14 +328,14 @@ assert k.get("note.md", limit=1)["text"] == "---\n"
 assert [f["file"] for f in k.get(files=["note.md", "other.md"])["files"]] == ["note.md", "other.md"]
 
 # create, move, log, per-directory indexes.
-k.create("guides/howto", "Playbook", description="How to.", tags=["ops"], status="draft", body="Step one.",
+k.new("guides/howto", type="Playbook", description="How to.", tags=["ops"], status="draft", body="Step one.",
          by="claude-code/claude-opus-5-5")
 t = (kb / "guides/howto.md").read_text()
 d = k.meta(t)[0]
 assert d["type"] == "Playbook" and d["generated"]["by"] == "claude-code/claude-opus-5-5" and "# howto\n\nStep one." in t
-raises(k.create, "guides/howto", "Playbook")
-raises(k.create, "x", " ")
-raises(k.create, "index", "Note")
+raises(k.new, "guides/howto", type="Playbook")
+raises(k.new, "x", type=" ")
+raises(k.new, "index", type="Note")
 (kb / "guides/ref.md").write_text("---\ntype: Note\ndescription: r.\nexecutor: {resource: note.md}\n"
                                   "sources:\n  - id: h\n    resource: howto.md\n---\n"
                                   "See [how](howto.md#howto), [note](../note.md) and [abs](/note.md).\n")
@@ -357,7 +376,7 @@ assert "okf://spec" in {str(x.uri) for x in asyncio.run(k.mcp.list_resources())}
 assert k.spec().startswith("# Open Knowledge Format")
 
 # verify promote: only a human review moves draft to stable.
-k.create("promo", "Note", description="P.", status="draft")
+k.new("promo", type="Note", description="P.", status="draft")
 assert "only a human" in raises(k.verify, "promo.md", by="claude/x", promote=True)
 assert cli("verify", "file=promo.md", "--attest", "promote=true")[0] == 0
 assert k.meta((kb / "promo.md").read_text())[0]["status"] == "stable"
@@ -376,9 +395,9 @@ shutil.rmtree(kb / "tags")
 u, saved = kb.parent / "uses", k.KB_ROOT
 u.mkdir()
 k.KB_ROOT = kb.parent
-init(apply=True, bundle="uses")
-k.create("t/src.md", "Reference", description="s.", bundle="uses", resource="https://example.com/x")
-k.create("t/m.md", "Metric", description="m.", body="[later](/t/unwritten.md)", bundle="uses")
+create(apply=True, bundle="uses")
+k.new("t/src.md", type="Reference", description="s.", bundle="uses", resource="https://example.com/x")
+k.new("t/m.md", type="Metric", description="m.", body="[later](/t/unwritten.md)", bundle="uses")
 (u / "t/m.md").write_text((u / "t/m.md").read_text().replace("type: Metric", "type: Metric\nsources: [{id: s, resource: /t/src.md}]"))
 L = k.lint(bundle="uses", limit=0)
 assert L["ok"] and "dead_link" in L["counts"] and ("t/src.md", "orphan") not in {(f["file"], f["kind"]) for f in L["findings"]}
@@ -389,7 +408,7 @@ assert "* [src](./t/src.md) - s." in (u / "index.md").read_text()
 g = k.get("t/index.md", bundle="uses")
 assert g["synthesized"] and "* [m](m.md) - m." in g["text"] and not (u / "t/index.md").exists()
 (u / "t/log.md").write_text("# Log\n")
-k.cite("t/m.md", resource="https://example.com/doc", author="team:docs", usage_count=0,
+k.fact("t/m.md", resource="https://example.com/doc", author="team:docs", usage_count=0,
        last_modified="2026-05-30T00:00:00Z", bundle="uses")
 e = k.meta((u / "t/m.md").read_text())[0]["sources"][-1]
 assert e["author"] == "team:docs" and e["usage_count"] == 0 and "Cited" in (u / "t/log.md").read_text()
@@ -403,7 +422,7 @@ assert len(k.log(bundle="uses")["entries"]) > len(L["entries"])
 assert "Hand note" in (u / "t/log.md").read_text() and "Hand note" not in (u / "log.md").read_text()
 assert "usage_window" in raises(k.set_, {"usage_window": {"from": "x"}}, file="t/m.md", bundle="uses")
 asyncio.run(k.verify("t/m.md", by="process:nightly", bundle="uses"))
-k.create("t/d.md", "Note", description="d.", status="draft", by="claude-code/x", bundle="uses")
+k.new("t/d.md", type="Note", description="d.", status="draft", by="claude-code/x", bundle="uses")
 k.set_({"stale_after": k.now(10)}, file="t/m.md", bundle="uses", apply=True)
 st = k.status(bundle="uses")
 assert st["review"]["oldest"] == [{"file": "t/m.md", "days": 0}] and st["drafts"] == {"count": 1, "oldest": [{"file": "t/d.md", "days": 0}]}
@@ -433,8 +452,8 @@ k.KB_ROOT = saved
 one = Path(tempfile.mkdtemp()) / "solo"
 one.mkdir()
 k.KB_ROOT = one
-init(apply=True)
-k.create("x.md", "Note", description="x.", bundle=".")
+create(apply=True)
+k.new("x.md", type="Note", description="x.", bundle=".")
 k.archive("x.md", bundle=".", apply=True)
 assert (one / "archive/solo/x.md").exists() and "nested_bundle" not in kinds() and not (one / "x.md").exists()
 k.unarchive("solo/x.md", apply=True)
@@ -445,8 +464,8 @@ k.KB_ROOT = saved
 saved, cwd, ws = k.KB_ROOT, os.getcwd(), (kb.parent / "ws").resolve()
 ws.mkdir()
 k.KB_ROOT = ws
-init(apply=True, bundle="a")
-init(apply=True, bundle="b")
+create(apply=True, bundle="a")
+create(apply=True, bundle="b")
 assert (ws / ".gitattributes").read_text() == "log.md merge=union\nindex.md merge=union\n"
 (ws / "a/sub").mkdir()
 (ws / "a/sub/c.md").write_text("---\ntype: x\ndescription: c.\nsources: [{id: n, resource: /n.md}]\n---\n[n](/n.md)\n")
@@ -484,7 +503,7 @@ assert (ws / "b/sub/c.md").exists() and not (ws / "a/sub/c.md").exists()
 assert "[c](../b/sub/c.md)" in (ws / "a/n.md").read_text() and "[n](../../a/n.md)" in (ws / "b/sub/c.md").read_text()
 assert k.meta((ws / "b/sub/c.md").read_text())[0]["sources"][0]["resource"] == "../../a/n.md"
 assert "Migrated" in (ws / "a/log.md").read_text() and "Migrated" in (ws / "b/log.md").read_text()
-assert "nest" in raises(k.init, bundle="a/inner", apply=True)
+assert "nest" in raises(k.create, bundle="a/inner", apply=True)
 (ws / "a/inner").mkdir()
 (ws / "a/inner/index.md").write_text('---\nokf_version: "0.2"\n---\n# Inner\n')
 assert "nested_bundle" in kinds(bundle="a")
@@ -531,7 +550,7 @@ assert k.upgrade()["would_edit"] == {} and not k.declares(ws / "index.md")  # th
 assert (ws / "index.md").read_text().count("* [") == 3 and "* [b](b/)" in (ws / "index.md").read_text()
 assert k.collection(ws / "a/sub") == ws and k.collection(ws) == ws
 (ws / "c").mkdir()
-init(apply=True, bundle="c")
+create(apply=True, bundle="c")
 assert "index_stale" in kinds() and k.fix(apply=True)["remaining"]["ok"] and "* [c](c/)" in (ws / "index.md").read_text()
 os.chdir(cwd)
 k.KB_ROOT = saved
@@ -567,7 +586,7 @@ assert k.flags_to_words("seal", k.REG["seal"], ["-cp"]) == ["promote=true", "che
 for n, m in k.SHORTS.items():  # pinned letters: real arguments, none repeated, none of the reserved -h -F -O
     ps = {p for p in k.inspect.signature(k.REG[n]).parameters} - {"ctx"}
     assert set(m) <= ps and len(set(m.values())) == len(m) and not set(m.values()) & {"h", "F", "O"}, n
-assert sorted(k.flags_to_words("init", k.REG["init"], ["-t", "markdown", "-a", "Docs", "--apply"])) == ["about=Docs", "apply=true", "holds=markdown"]
+assert sorted(k.flags_to_words("create", k.REG["create"], ["-t", "markdown", "-a", "Docs", "--apply"])) == ["about=Docs", "apply=true", "holds=markdown"]
 assert cli("bundles", "-O", "text")[1] == cli("bundles", "-F", "text")[1] == cli("bundles", "output=text")[1] and cli("lint", "--nope")[0] == 2
 assert cli("lint", "--sca", "all")[0] == 2  # no abbreviations
 (kb / "bare.md").write_text("---\ntype: x\n---\n")
@@ -580,6 +599,7 @@ assert set(k.EXAMPLES) == set(k.REG)  # every tool has an example
 code, out = cli("help", "move")
 assert code == 0 and "-t, --to TO" in out and "str, required" in out and cli("move", "--help")[1] == out
 import shlex  # every example, typed as flags, means what its name=value form means; `-a` is a bare switch, not `-a VALUE`
+
 for n, exs in k.EXAMPLES.items():
     for e in exs:
         fl = [w for w in shlex.split(k.flag_example(n, e))[1:] if w != "--attest"]
@@ -707,13 +727,16 @@ g("remote", "set-url", "origin", "ssh://git@host.example:2222/o/r.git")
 assert k.permalink(src, src.resolve())(src / "bot.md", "abc") == "https://host.example/o/r/blob/abc/bot.md"
 g("remote", "set-url", "origin", "git@github.com:o/r.git")
 assert k.permalink(src, src.resolve())(src / "bot.md", "abc") == "https://github.com/o/r/blob/abc/bot.md"
+assert k.web_base(src) == "https://github.com/o/r"  # the repository's address, for the link in `serve`
+g("remote", "set-url", "origin", "https://user:secret@host.example:8443/o/mygit.git")
+assert k.web_base(src) == "https://host.example/o/mygit" and "secret" not in k.web_base(src)  # no credentials or port; only a trailing .git goes
 g("remote", "set-url", "origin", f"file://{src}")
-assert k.permalink(src, src.resolve()) is None
+assert k.permalink(src, src.resolve()) is None and k.web_base(src) is None
 
 # Ranked search, dirs, vocab, demand; new lint kinds and only/ignore.
 saved, rk = k.KB_ROOT, Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = rk
-init(apply=True)
+create(apply=True)
 long = "Plenty of words here, comfortably past the stub threshold for body text."
 (rk / "ops").mkdir()
 (rk / "ops/deploy.md").write_text(f"---\ntype: Playbook\ntitle: Deploy\ndescription: How we ship.\ntags: [ops]\n---\n"
@@ -733,8 +756,8 @@ assert [x["file"] for x in k.search("deploy", fields=["title"])["hits"]] == ["fa
 assert k.search("deploy", tag="nope")["total"] == 0
 raises(k.search, "")
 raises(k.search, "x", fields=["nope"])
-assert {(d["dir"], d["concepts"]) for d in k.dirs()["dirs"]} == {(".", 3), ("ops", 2)}
-assert k.vocab() == {"tags": {"ops": 2}, "types": {"Note": 3, "Playbook": 2}}
+assert {(d["dir"], d["concepts"]) for d in k.dirs()["dirs"]} == {(".", 4), ("ops", 2)}
+assert k.vocab() == {"tags": {"ops": 2}, "types": {"Note": 3, "guide": 1, "Playbook": 2}}
 st = k.status()
 assert st["wanted"] == [{"file": "ops/wanted.md", "links": 2}] and {"file": "ops/rollback.md", "links": 1} in st["hubs"]
 kinds_of = lambda **kw: {(f["file"], f["kind"]) for f in k.lint(limit=0, **kw)["findings"]}
@@ -791,7 +814,7 @@ try:
 except SystemExit as e:
     assert "unknown key bogus" in str(e)
 # flat passage settings: types and values are checked.
-for bad, msg in (("semantic: 3", "semantic must be a bool"), ("seal: {nope: 1}", "seal takes require and exempt_status"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, adr, skos"), ("build: sometimes", "must be auto or manual"),
+for bad, msg in (("semantic: 3", "semantic must be a bool"), ("seal: {nope: 1}", "seal takes exempt and exempt_status"), ("vector_index: faiss", "vector_index must be"), ("format: rst", "format must be okf, markdown, adr, skos"), ("build: sometimes", "must be auto or manual"),
                  ("min_similarity: high", "must be a float"), ("index: {path: x}", "index must be a str"), ("nope: 1", "unknown key nope")):
     (cfg / "kbmcp.yaml").write_text(bad + "\n")
     try:
@@ -846,7 +869,7 @@ assert want and want[0][0] == "sem.md", want
 for mode, mod in (("sqlite-vec", "sqlite_vec"), ("hnsw", "hnswlib")):
     try:
         __import__(mod)
-        k.sqlite3.connect(":memory:").enable_load_extension
+        assert k.sqlite3.connect(":memory:").enable_load_extension
     except (ImportError, AttributeError):
         print(f"skipped vector_index={mode}: {mod} not usable")
         continue
@@ -925,7 +948,7 @@ assert where(base / "eng").stdout.splitlines()[0] == str(base / "eng")
 r = where(base / "other", "--config", str(base / "eng/kbmcp.yaml"))  # --config wins over where we are
 assert r.stdout.splitlines()[0] == str(base / "eng") and "Engineering runbooks" in r.stdout, r
 r = where(base / "other", "--config", str(base / "nope.yaml"))
-assert r.returncode and "--config takes the path" in r.stderr, r
+assert r.returncode and "--config takes either" in r.stderr, r
 r = where(base / "other", KB_ROOT=str(base))
 assert r.returncode and "KB_ROOT is no longer read" in r.stderr, r
 # config: writes the commented example once, never over a file; the example tracks the real keys and defaults.
@@ -951,10 +974,10 @@ gr = Path(tempfile.mkdtemp()).resolve()
 subprocess.run(["git", "init", "-q", str(gr)], check=True)
 (gr / ".gitignore").write_text("build/")  # no trailing newline: kept
 k.KB_ROOT = gr
-P = init()
+P = create()
 assert P["config"]["files"][0] == "kbmcp.yaml" and {"env.example", ".mcp.json"} <= set(P["config"]["files"]) and P["config"]["gitignore"] == ".gitignore gets .env", P  # .env too if a user id is known
 assert "about" in P["config"]["missing"] and not (gr / "kbmcp.yaml").exists(), P  # apply=false writes nothing
-P = init(apply=True)
+P = create(apply=True)
 assert (gr / ".gitignore").read_text() == "build/\n.env\n" and (gr / "env.example").read_text() == k.ENV_EXAMPLE
 got = k.load_config(gr)[1]
 assert got == {"format": "okf", "passages": True, "hubs": True, "semantic": False, "semantic_model": k.DEFAULTS["semantic_model"],
@@ -967,17 +990,32 @@ assert mj == k.MCP_JSON and mj["mcpServers"]["bowerbird"]["command"] == "uvx" an
 ex = Path(tempfile.mkdtemp()).resolve()
 (ex / "kbmcp.yaml").write_text("format: adr\n")
 k.KB_ROOT = ex
-P = init(apply=True, holds="adr")
-assert "kbmcp.yaml" not in P["config"]["files"] and {"env.example", ".mcp.json"} <= set(P["config"]["files"]), P
+P = create(apply=True, holds="adr")
+assert "kbmcp.yaml" not in P["config"]["files"] and {"env.example", ".mcp.json", "BOWERBIRD.md"} <= set(P["config"]["files"]), P
 assert (ex / "kbmcp.yaml").read_text() == "format: adr\n" and json.loads((ex / ".mcp.json").read_text()) == k.MCP_JSON
+# init writes BOWERBIRD.md (agent rules), names only tools that exist, never overwrites it, and the docs page carries the same text.
+assert (ex / "BOWERBIRD.md").read_text() == k.AGENTS_MD
+_pick = [ln for ln in k.AGENTS_MD.split("## Picking a tool")[1].splitlines() if ln.startswith(("|", "Rare"))]
+_use = [ln.strip("|").split("|")[1] if ln.startswith("|") else ln for ln in _pick]  # the Use column and the rare list name tools; the prose and the Not column name settings and arguments too
+assert len(_use) > 20
+for t in re.findall(r"`([a-z_]+)`", "\n".join(_use)):
+    assert t in k.REG, t
+(ex / "BOWERBIRD.md").write_text("mine\n")
+assert "BOWERBIRD.md" not in create(apply=True, holds="adr").get("config", {}).get("files", [])
+assert (ex / "BOWERBIRD.md").read_text() == "mine\n"
+assert k.AGENTS_MD in (Path(k.__file__).parent / "docs-src" / "agents.md").read_text(), "docs-src/agents.md drifted from AGENTS_MD"
+# the rules also reach an agent with no file: a resource and a prompt serve the same text
+assert [str(r.uri) for r in asyncio.run(k.mcp.list_resources())].count("bowerbird://agent-rules") == 1
+assert asyncio.run(k.mcp.read_resource("bowerbird://agent-rules"))[0].content == k.AGENTS_MD
+assert asyncio.run(k.mcp.get_prompt("rules")).messages[0].content.text == k.AGENTS_MD
 k.KB_ROOT = gr
 # given values fill it in; markdown and skos start no bundle; nothing is overwritten.
 md = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = md
-P = init(apply=True, about="Decisions.", holds="markdown", user="dfoulks")
+P = create(apply=True, about="Decisions.", holds="markdown", user="dfoulks")
 assert k.load_config(md)[1]["about"] == "Decisions." and k.load_config(md)[1]["format"] == "markdown", P
 assert (md / ".env").read_text() == "KB_USER=dfoulks\n" and not (md / "index.md").exists() and P["config"]["missing"] == []
-raises(init, holds="rst")
+raises(create, holds="rst")
 # guessing: thesaurus files mean skos, markdown without OKF types means markdown, an empty folder means okf.
 g = Path(tempfile.mkdtemp()).resolve()
 assert k.detect_holds(g) == "okf"
@@ -1001,16 +1039,16 @@ class Ask:
 
     async def elicit(self, message, schema):
         self.asked.append(message)
-        return SimpleNamespace(action=self.action, data=schema(**{**{"about": "", "holds": "markdown", "user": ""}, **self.data}))
+        return SimpleNamespace(action=self.action, data=schema(**{"about": "", "holds": "markdown", "user": "", **self.data}))
 a1 = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = a1
 ask = Ask(about="Ops notes.", holds="markdown", user="me")
-asyncio.run(k.init(apply=True, ctx=ask))
+asyncio.run(k.create(apply=True, ctx=ask))
 assert len(ask.asked) == 1 and "about" in ask.asked[0]
 assert k.load_config(a1)[1]["about"] == "Ops notes." and (a1 / ".env").read_text() == "KB_USER=me\n"
 a2 = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = a2
-assert asyncio.run(k.init(apply=True, ctx=Ask("decline")))["config"]["missing"]  # no answer: written with what it has
+assert asyncio.run(k.create(apply=True, ctx=Ask("decline")))["config"]["missing"]  # no answer: written with what it has
 assert "about" not in k.load_config(a2)[1]
 # a folder holding its own kbmcp.yaml overrides the one above it: the parent's lint still sees inside it.
 k.KB_ROOT = gr
@@ -1046,12 +1084,12 @@ assert [h["match"] for h in k.passages("zorblax nothingelse")["hits"]] in ([], [
 (rk / "solo.md").write_text("---\ntype: Note\ndescription: x\n---\nA lone ocelot sentence.\n")
 assert [h["match"] for h in k.passages("ocelot")["hits"]] == [100]
 (rk / "solo.md").unlink()
-assert "next" not in k.create("hintless", type="Note")  # rk is not a git work tree
+assert "next" not in k.new("hintless", type="Note")  # rk is not a git work tree
 (rk / "hintless.md").unlink()
 gr2 = Path(tempfile.mkdtemp()).resolve()
 subprocess.run(["git", "init", "-q", str(gr2)], check=True)
 k.KB_ROOT = gr2
-assert "next" in init(apply=True)  # a git work tree: there is a diff to review
+assert "next" in create(apply=True)  # a git work tree: there is a diff to review
 k.KB_ROOT = rk
 # format: markdown indexes ADRs and MADR records with no OKF frontmatter, and offers only passages and reindex.
 ar, was = Path(tempfile.mkdtemp()).resolve(), (k.KB_ROOT, dict(k.OPTS))
@@ -1071,7 +1109,7 @@ assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-
     == ["Accepted", "superseded by ADR-0005", "proposed"], got
 assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
 assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
-assert k.offered() == k.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "init", "config"}
+assert k.offered() == k.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new"}
 for f, want in (("adr", k.MARKDOWN | {"move"}), ("skos", k.BASE), ("asciidoc", k.ADOC), ("seal-only", {"seal"})):  # the tiers
     k.OPTS["format"] = f
     assert k.offered() == want, (f, k.offered())
@@ -1119,7 +1157,7 @@ k.move(k9, "docs/0009-linked", apply=True)  # its own relative link had to chang
 assert set(k.ledger_by_file()) == {k0, k9} and {c["file"]: c["tier"] for c in k.list_(limit=0)["concepts"]}["docs/0009-linked.md"] == "unverified"
 (ar / "docs/0009-linked.md").unlink()
 (ar / ".waxseals.yaml").unlink()
-# format: seal-only: nothing is indexed, one tool; the seal.require globs pick the files (any text file, code included).
+# format: seal-only: nothing is indexed, one tool; every text file is checked except what seal.exempt leaves out (code included).
 prev = (k.KB_ROOT, k.OPTS["format"], dict(k.OPTS["seal"]))
 so = Path(tempfile.mkdtemp()).resolve()
 (so / "src").mkdir()
@@ -1127,16 +1165,16 @@ so = Path(tempfile.mkdtemp()).resolve()
 (so / "src/util.py").write_text("X = 1\n")
 (so / "src/blob.py").write_bytes(b"\xff\xfe\x00")
 (so / "docs.md").write_text("# not in the policy\n")
-k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = so, "seal-only", {"require": ["src/**/*.py"], "exempt_status": []}
+k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = so, "seal-only", {"exempt": ["docs.md"], "exempt_status": []}
 assert k.offered() == {"seal"} and k.passages("add")["gap"]
 C = k.signatures()
 assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/util.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 2, C
 code, out = cli("seal", "check=true")  # CI contract: unsigned files exit 1, and the output is JSON
 assert code == 1 and json.loads(out)["findings"], (code, out)
-k.OPTS["seal"] = {"require": ["src/**/*.py", "!src/util.py"], "exempt_status": []}  # a leading ! takes a file back out
+k.OPTS["seal"] = {"exempt": ["docs.md", "src/util.py"], "exempt_status": []}  # an exempt file is left out
 C = k.signatures()
 assert {(f["file"], f["kind"]) for f in C["findings"]} == {("src/app.py", "unsigned"), ("src/blob.py", "unreadable")} and C["files_checked"] == 1, C
-k.OPTS["seal"] = {"require": ["src/**/*.py"], "exempt_status": []}
+k.OPTS["seal"] = {"exempt": ["docs.md"], "exempt_status": []}
 class AnyFile(Ctx):
     async def elicit(self, message, schema):
         assert "src/app.py" in message and "sha256" in message
@@ -1150,20 +1188,26 @@ assert ("src/app.py", "stale_signature") in {(f["file"], f["kind"]) for f in k.s
 asyncio.run(k.seal("src/util.py", by="process:ci"))
 (so / "src/util.py").unlink()
 assert [f["file"] for f in k.signatures()["findings"] if f["kind"] == "orphan_signature"] == ["src/util.py"]
-k.OPTS["seal"] = {"require": [], "exempt_status": []}
-assert "seal.require" in raises(k.signatures)  # seal-only must say which files
+k.OPTS["seal"] = {"exempt": [], "exempt_status": []}  # no list at all: every text file is checked, and a binary one is reported
+(so / "src/util.py").write_text("X = 1\n")
+C = k.signatures()
+assert {(f["file"], f["kind"]) for f in C["findings"] if f["kind"] != "orphan_signature"} == {
+    ("src/app.py", "stale_signature"), ("src/util.py", "unsigned"), ("src/blob.py", "unreadable"), ("docs.md", "unsigned")}, C
+k.OPTS["seal"] = {"exempt": ["docs.md", "src/blob.py", "src/util.py"], "exempt_status": []}  # exemptions are the only list
+C = k.signatures()
+assert {(f["file"], f["kind"]) for f in C["findings"] if f["kind"] != "orphan_signature"} == {("src/app.py", "stale_signature")}, C
 k.OPTS["format"] = "markdown"  # in any format, a file sealed by path outside it is checked for edits and is not an orphan
-k.OPTS["seal"] = {"require": ["**"], "exempt_status": []}
+k.OPTS["seal"] = {"exempt": [], "exempt_status": []}
 assert not any(f["kind"] == "orphan_signature" and f["file"] == "src/app.py" for f in k.signatures()["findings"])
 assert ("src/app.py", "stale_signature") in {(f["file"], f["kind"]) for f in k.signatures()["findings"]}
 d1 = Path(tempfile.mkdtemp()).resolve()
 k.KB_ROOT = d1
-P = init(apply=True, holds="seal-only", about="Reviewed code.", user="you")
-assert k.load_config(d1)[1]["format"] == "seal-only" and k.load_config(d1)[1]["seal"] == {"require": [], "exempt_status": []}, P
+P = create(apply=True, holds="seal-only", about="Reviewed code.", user="you")
+assert k.load_config(d1)[1]["format"] == "seal-only" and not any(l.startswith("seal:") for l in (d1 / "kbmcp.yaml").read_text().splitlines()), P  # no list to fill in
 k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = prev
 
 # seal, in markdown mode: the ledger binds a review to exact bytes; `check` finds what lacks one; a decision is the status.
-k.OPTS["seal"] = {"require": ["docs/adr/*.md"], "exempt_status": ["proposed"]}
+k.OPTS["seal"] = {"exempt": ["docs/index.md"], "exempt_status": ["proposed"]}
 adr1 = "docs/adr/0001-record-decisions.md"
 C = k.signatures()
 assert not C["ok"] and C["files_checked"] == 4 and {(f["file"], f["kind"]) for f in C["findings"]} == {
@@ -1206,7 +1250,7 @@ k.OPTS.update(was[1])
 
 # format: skos indexes a thesaurus: one passage per concept, headed by its broader chain.
 try:
-    import rdflib
+    import rdflib  # noqa: F401 (is it installed?)
 except ImportError:
     print("skipped format=skos: rdflib not installed")
 else:
@@ -1228,7 +1272,7 @@ else:
     assert [x["file"] for x in P["hits"]] == ["animals.ttl"] and h["heading"] == "Animals > Animal > Dog", P
     assert h["type"] == "skos" and h["title"] == "Animals" and h["tier"] == "unverified" and h["line"] == 6, h
     assert "Broader: Animal" in h["text"] and "Related: Wolf" in h["text"] and "carnivore" in h["text"], h["text"]
-    assert [x["heading"] for x in k.passages("animal")["hits"]][0].endswith("Animal")  # narrower links back to broader
+    assert next(x["heading"] for x in k.passages("animal")["hits"]).endswith("Animal")  # narrower links back to broader
     assert k.passages("turtle")["gap"] and k.offered() == {"passages", "reindex", "seal"}
     k.KB_ROOT = was[0]
     k.OPTS.update(was[1])
@@ -1303,6 +1347,14 @@ k.KB_ROOT = saved
 _tl = {t.name: t for t in asyncio.run(k.mcp.list_tools())}
 _cost = lambda names: sum(len(json.dumps({"name": n, "description": _tl[n].description, "inputSchema": _tl[n].inputSchema}))
                           for n in names if n in _tl) // 4
+_pp = (HERE / "pyproject.toml").read_text()  # semantic search (fastembed) is an add-on: not a base dependency, and an extra of its own
+assert 'dependencies = ["mcp>=1.10,<2", "pyyaml"]' in _pp and 'semantic = ["fastembed"]' in _pp
+assert set(k.MCP_TEXT) == set(k.REG), set(k.MCP_TEXT) ^ set(k.REG)  # every tool has its short MCP text; the docstring stays whole for help and the docs
+for _n, _t in _tl.items():
+    assert _t.description.startswith(k.MCP_TEXT[_n]) and len(_t.description) < 600, _n
+    assert ("apply=true" in _t.description) == ("apply" in k.inspect.signature(k.REG[_n]).parameters) or _n in k.MCP_TEXT and "apply=true" in k.MCP_TEXT[_n], _n
+assert "never pass human:<id>" in _tl["seal"].description and "gap=true" in _tl["passages"].description  # the rules an agent must not lose
+assert len(k.REG["seal"].__doc__) > 1500 and "Never pass human:<id> yourself" in " ".join(k.REG["seal"].__doc__.split())  # the full text lives on for help, the CLI and the docs
 _rm = (HERE / "README.md").read_text()
 _close = lambda doc, real: abs(doc - real) <= real * 0.1
 assert f"All {len(_tl)} tools" in _rm and _close(int(re.search(r"about ([\d,]+) tokens of schema", _rm).group(1).replace(",", "")), _cost(_tl)), _cost(_tl)
@@ -1313,7 +1365,7 @@ for _role, _names in k.ROLES.items():
 # a result whose `findings` is a count (baseline's) prints as text, not as a list of lint findings.
 assert k.render({"findings": 3, "path": ".okf-baseline.json", "written": True}, "text") == "findings: 3\npath: .okf-baseline.json\nwritten: true"
 # --version: the running Bowerbird says what it is, including whether it is a development build.
-assert k.VERSION == re.search(r'^version = "(.*)"', (HERE / "pyproject.toml").read_text(), re.M).group(1)  # one number, two files
+assert k.VERSION == re.search(r'^version = "(.*)"', (HERE / "pyproject.toml").read_text(), re.MULTILINE).group(1)  # one number, two files
 ds = k.describe_source
 assert ds(None, True, None, False) == ("release", "")  # installed from an index such as PyPI
 assert ds('{"url": "https://github.com/x/y", "vcs_info": {"vcs": "git", "commit_id": "0123456789abcdef"}}', True, None, False) == ("development", "git 0123456")
@@ -1341,12 +1393,12 @@ assert k.mcp._mcp_server.create_initialization_options().server_version.startswi
 # folder, and an OKF collection with an ADR folder.
 saved_root, saved_fmt, saved_cfg = k.KB_ROOT, k.OPTS["format"], k.CFG_DIR
 ADR = "# Use Vault\n\n## Status\n\nAccepted\n\n## Context\n\nWe need one place for secrets, said plainly here.\n"
-adr_cfg = "format: adr\nseal: {require: ['*.md'], exempt_status: []}\n"  # its globs start at its own folder
+adr_cfg = "format: adr\nseal: {exempt: [], exempt_status: []}\n"  # its globs start at its own folder
 
 
 def mixed(root_format, files):
     d = Path(tempfile.mkdtemp()).resolve()
-    for n, x in files.items():
+    for n, x in {"kbmcp.yaml": f"format: {root_format}\n", **files}.items():  # a collection has a root kbmcp.yaml; what lies below it overrides
         (d / n).parent.mkdir(parents=True, exist_ok=True)
         (d / n).write_text(x)
     k.KB_ROOT, k.CFG_DIR = d, None
@@ -1417,11 +1469,13 @@ k._POLICY.clear()
 
 # serve: a human's front end. Real HTTP against a throwaway okf collection.
 try:
-    import markdown  # noqa: F401
     import http.client
     import socket
     import threading
     import urllib.parse
+
+    import markdown
+
     import bowerbird_serve
 except ImportError:
     print("skipped serve: markdown not installed")
@@ -1511,7 +1565,8 @@ else:
     assert (sv / "moved.md").exists() and not (sv / "made.md").exists()
     put_("/_tool/move", file="moved.md", to="made.md", _apply="1")
     assert all(x not in "".join(p.read_text() for p in sv.rglob("*.md")) for x in ("generated:",))  # nothing here stamps `generated`
-    assert hit("GET", "/_tool/init")[0] == 200 and "New knowledgebase" in hit("GET", "/")[1]  # the one tool every other surface had
+    assert "class=repo" not in hit("GET", "/")[1]  # no web remote here: no repository link
+    assert hit("GET", "/_tool/create")[0] == 200 and "New knowledgebase" in hit("GET", "/")[1]  # the one tool every other surface had
     assert hit("GET", "/_tool/move")[0] == 200 and hit("GET", "/_tool/archive")[0] == 200 and hit("GET", "/_tool/unarchive")[0] == 200 and "Unarchive" in hit("GET", "/")[1]
     assert all(put_(f"/_tool/{n}", file="made.md")[0] == 400 for n in ("seal", "by", "create", "set", "provenance"))  # the CLI's, not offered
     assert hit("GET", "/_tools")[0] == 400  # the page is gone
@@ -1538,7 +1593,7 @@ else:
 
     # seal: the modal, with the MCP prompt's own words; nothing is recorded unless the box is ticked, and the text has not moved
     dlg = hit("GET", "/a.md")[1]
-    assert "I reviewed this concept and confirm it is accurate" in dlg and "Seal a.md" in dlg
+    assert "I reviewed this concept and confirm it is accurate" in dlg and "Confirm seal: a.md" in dlg
     shaw = re.search(r'name=sha value="([^"]+)"', dlg).group(1)
     assert put_("/_seal", file="a.md", sha=shaw, reviewer="me")[0] == 303 and "verified" not in (sv / "a.md").read_text()  # not confirmed
     assert put_("/_seal", file="a.md", sha="0" * 64, reviewer="me", confirm="on")[0] == 400  # changed while open
@@ -1581,8 +1636,10 @@ else:
     # the verbs: stop with nothing there is not an error; start refuses a port something else holds, and leaves it alone
     with contextlib.redirect_stdout(io.StringIO()) as out_:
         assert bowerbird_serve.stop(port) == 0 and k.cli(["serve", "stop", str(port)]) == 0
-        assert k.cli(["serve", str(port)]) == 1 and k.cli(["serve", "status", str(port)]) == 1  # a bare port (or none) only reports
-    assert "nothing running" in out_.getvalue() and "not running" in out_.getvalue()
+        assert k.cli(["serve", "status", str(port)]) == 1
+        assert k.cli(["serve"]) == 0 and k.cli(["serve", str(port)]) == 0  # bare: help, and nothing is started
+    assert "nothing running" in out_.getvalue() and "not running" in out_.getvalue() and "serve start|stop|restart|status [port]" in out_.getvalue() and "--config" in out_.getvalue()
+    assert not bowerbird_serve.listening(port)
     with socket.socket() as other_:
         other_.bind(("127.0.0.1", 0))
         other_.listen(1)
@@ -1598,14 +1655,15 @@ else:
 
     # serve over a seal-only collection: hidden files and links are 404 (GET and HEAD), and `/` is a shell without an index.md
     prev_ = (k.KB_ROOT, k.OPTS["format"], dict(k.OPTS["seal"]))
-    so_ = mixed("seal-only", {"kbmcp.yaml": 'format: seal-only\nseal: {require: ["src/**/*.py", "docs/*.md", "!docs/gen.md", "!src/gen_*.py"]}\n', ".env": "SECRET=1\n",
+    so_ = mixed("seal-only", {"kbmcp.yaml": 'format: seal-only\nseal: {exempt: ["docs/gen.md", "src/gen_*.py"]}\n', ".env": "SECRET=1\n",
                               "docs/gen.md": "# Generated\n\nBuilt from the code.\n", "docs/hand.md": "# Hand\n\nWritten by a person.\n",
                               ".waxseals.yaml": "[]\n", "sub/.hidden": "x\n", "sub/ok.txt": "fine\n", "src/app.py": "def add(a, b):\n    return a + b\n"})
-    k.OPTS["seal"] = {"require": ["src/**/*.py", "docs/*.md", "!docs/gen.md", "!src/gen_*.py"], "exempt_status": []}
+    k.OPTS["seal"] = {"exempt": ["docs/gen.md", "src/gen_*.py"], "exempt_status": []}
     (so_ / "src/blob.py").write_bytes(b"\xff\xfe\x00")
     (so_ / "src/big.py").write_text("x = 1\n" * 100_000)  # over the 512 KB cap
     (so_ / "link.py").symlink_to(so_ / "src/app.py")
     (so_ / "linkdir").symlink_to(so_ / "src", target_is_directory=True)
+    assert k.mark_derived(so_ / "docs/gen.md", "gen.py") and not k.mark_derived(so_ / "docs/gen.md", "gen.py")  # a generator records it, once
     with socket.socket() as so2:
         so2.bind(("127.0.0.1", 0))
         port = so2.getsockname()[1]
@@ -1626,18 +1684,25 @@ else:
     home_ = hit("GET", "/")[1]
     assert "app.py" in home_ and 'data-seal="unsealed"' in home_ and "blob.py" not in home_ and "big.py" not in home_
     st_, pg_, _ = hit("GET", "/src/app.py")
-    assert st_ == 200 and "<dialog id=seal>" in pg_ and "Seal src/app.py" in pg_ and "unsealed" in pg_ and "✎" not in pg_  # no editor for code
+    assert st_ == 200 and "<dialog id=seal>" in pg_ and "Confirm seal: src/app.py" in pg_ and "unsealed" in pg_ and "✎" not in pg_  # no editor for code
     assert hit("GET", "/src/blob.py")[0] == 404 and hit("GET", "/src/big.py")[0] == 404  # not shown; the CLI still covers them
-    # derived from the code (a `!` glob in seal.require): a fourth state, with nothing to seal
+    # derived from the code (a generator's ledger line): a fourth state, with nothing to seal; `seal.exempt` alone says nothing about who made a file
     assert k.derived(so_ / "docs/gen.md") and not k.derived(so_ / "docs/hand.md") and not k.derived(so_ / "src/app.py")
     assert 'data-seal="derived"' in home_ and 'data-seal="unsealed"' in home_
     gen_ = hit("GET", "/docs/gen.md")[1]
     assert "derived from the code" in gen_ and "<dialog id=seal>" not in gen_ and "Seal…" not in gen_
     assert "<dialog id=seal>" in hit("GET", "/docs/hand.md")[1]  # a page the policy requires still has its modal
     (so_ / "src/gen_tbl.py").write_text("T = {}\n")  # a non-markdown file built from the code: shown, marked, never sealed
+    (so_ / "src/gen_other.py").write_text("U = {}\n")  # exempt too, but no generator recorded it: not derived, not listed
+    assert not k.derived(so_ / "src/gen_tbl.py") and k.mark_derived(so_ / "src/gen_tbl.py", "gen.py") and not k.derived(so_ / "src/gen_other.py")
     st_, gp_, _ = hit("GET", "/src/gen_tbl.py")
     assert k.derived(so_ / "src/gen_tbl.py") and st_ == 200 and "derived from the code" in gp_ and "<dialog id=seal>" not in gp_ and "Seal…" not in gp_
     assert "gen_tbl.py" not in [p.name for p in k.sealonly_files()] and "gen_tbl.py" in [p.name for p in k.derived_files()]
+    assert "gen_other.py" not in [p.name for p in k.sealonly_files() + k.derived_files()]
+    assert [e["derived"] for e in k.ledger_by_file()["src/gen_tbl.py"]] == ["gen.py"] and not k.reviews({}, "src/gen_tbl.py", "T = {}\n", k.ledger_by_file())[0]  # a generator's line is no review
+    (so_ / "src/gen_tbl.py").write_text("T = {'edited': 1}\n")  # edited by hand: the line no longer matches
+    assert not k.derived(so_ / "src/gen_tbl.py")
+    (so_ / "src/gen_tbl.py").write_text("T = {}\n")
     tok_ = re.search(r'name=_t value="([^"]+)"', home_).group(1)
     st_, body_, _ = hit("POST", "/_seal", {"_t": tok_, "file": "docs/gen.md", "confirm": "on", "reviewer": "you", "sha": "x"})
     assert st_ == 400 and "derived from the code" in body_  # refused: no seal is recorded for it
@@ -1659,5 +1724,389 @@ else:
     assert hit("POST", "/_stop", {"_t": re.search(r'name=_t value="([^"]+)"', hit("GET", "/")[1]).group(1)})[0] == 200
     os.chdir(here_)
     k.KB_ROOT, k.OPTS["format"], k.OPTS["seal"] = prev_
+
+# bowers: the root lists the folders that carry their own kbmcp.yaml, and only those are its overrides. A bower run on its own is
+# its own collection; one run inside the collection finds the root that lists it. --config takes a folder, a relative path and `~`.
+def tree(files):
+    d = Path(tempfile.mkdtemp()).resolve()
+    for n, x in files.items():
+        (d / n).parent.mkdir(parents=True, exist_ok=True)
+        (d / n).write_text(x)
+    return d
+
+
+bw_saved = (k.KB_ROOT, k.CFG_DIR, k.OPTS["format"], os.getcwd(), os.environ.get("HOME"))
+bw = tree({"kbmcp.yaml": "format: markdown\nbowers: [docs, adr/*]\n", "docs/kbmcp.yaml": "format: okf\nroles: [read]\n", "docs/a.md": "# A\n",
+           "adr/one/kbmcp.yaml": "format: adr\n", "adr/two/x.md": "# no config\n", "stray/kbmcp.yaml": "format: skos\n", "stray/b.md": "# B\n"})
+assert k.load_config(bw / "docs")[0] == bw and k.load_config(bw / "adr/one")[0] == bw  # a listed bower finds the root that lists it
+assert k.load_config(bw / "stray")[0] == bw / "stray"  # an unlisted one is its own collection
+k.KB_ROOT, k.CFG_DIR, k.OPTS["format"] = bw, bw, "markdown"
+k._SCOPES.clear()
+assert {d for d, _ in k.scopes()} == {bw / "docs", bw / "adr/one"} and "roles" not in dict(k.scopes())[bw / "docs"]  # the root decides roles
+assert (k.fmt_of(bw / "docs/a.md"), k.fmt_of(bw / "adr/one/y.md"), k.fmt_of(bw / "stray/b.md")) == ("okf", "adr", "markdown")
+(bw / "kbmcp.yaml").write_text("format: markdown\nbowers: [docs, nope]\n")
+k._SCOPES.clear()
+try:
+    k.scopes()
+    raise AssertionError("a bowers entry that names nothing must stop")
+except SystemExit as e_:
+    assert "bowers entry 'nope'" in str(e_)
+(bw / "kbmcp.yaml").write_text("format: markdown\n")  # no bowers key: the older rule, every kbmcp.yaml below is an override
+k._SCOPES.clear()
+try:
+    k.scopes()  # the older rule still refuses a whole-collection key in a nested file (docs/kbmcp.yaml sets roles)
+    raise AssertionError("roles in a nested kbmcp.yaml must stop the older rule")
+except SystemExit as e_:
+    assert "belongs to the whole collection" in str(e_)
+k._SCOPES.clear()
+(bw / "docs/kbmcp.yaml").write_text("format: okf\n")
+assert {d for d, _ in k.scopes()} == {bw / "docs", bw / "adr/one", bw / "stray"}
+for given in (str(bw), str(bw / "kbmcp.yaml")):
+    assert k.load_config(Path("/"), given)[0] == bw
+os.chdir(bw.parent)
+os.environ["HOME"] = str(bw.parent)
+assert k.load_config(Path("/"), bw.name)[0] == bw and k.load_config(Path("/"), f"~/{bw.name}")[0] == bw  # relative, and ~
+os.chdir(bw_saved[3])
+if bw_saved[4] is None:
+    del os.environ["HOME"]
+else:
+    os.environ["HOME"] = bw_saved[4]
+k.KB_ROOT, k.CFG_DIR, k.OPTS["format"] = bw_saved[:3]
+k._SCOPES.clear()
+k._POLICY.clear()
+# with no root file and no repository, what lies below is not ours: nothing is scanned
+lone = tree({"deep/kbmcp.yaml": "format: skos\n", "deep/c.md": "# C\n"})
+k.KB_ROOT = lone
+k._SCOPES.clear()
+assert k.scopes() == []
+k.KB_ROOT = bw_saved[0]
+k._SCOPES.clear()
+
+# new: a document from a template. The folder's kbmcp.yaml picks it, template= overrides, and an existing file is refused.
+nw_saved = (k.KB_ROOT, k.CFG_DIR, k.OPTS["format"])
+nw = mixed("markdown", {"decisions/kbmcp.yaml": "format: adr\n", "notes/a.md": "# A\n"})
+R = k.new("notes/b")
+assert R["template"] == "markdown" and R["file"] == "notes/b.md" and (nw / "notes/b.md").read_text() == "---\ntitle: b\ntags: []\n---\n\n# b\n", R
+R = k.new("decisions/0002-use-x", title="Use X")
+t_ = (nw / "decisions/0002-use-x.md").read_text()
+assert R["template"] == "adr" and "# Use X" in t_ and "## Context and Problem Statement" in t_ and "status: proposed" in t_ and "{today}" not in t_, t_
+assert "type: Reference" in (nw / "notes/c.md").read_text() if k.new("notes/c", template="okf")["template"] == "okf" else False
+assert "exists" in raises(k.new, "notes/b") and "template 'rst'" in raises(k.new, "notes/z", template="rst")
+with contextlib.redirect_stdout(io.StringIO()):
+    assert k.cli(["new", "notes/d", "-t", "adr", "-T", "Dee"]) == 0  # the short flags: -t template, -T title
+assert "# Dee" in (nw / "notes/d.md").read_text() and "decision-makers" in (nw / "notes/d.md").read_text()
+k.KB_ROOT, k.CFG_DIR, k.OPTS["format"] = nw_saved
+k._SCOPES.clear()
+k._POLICY.clear()
+
+# A bare `bowerbird-mcp` at a terminal: the help, then an offer to make a knowledgebase where there is none; "n" writes nothing.
+class Tty(io.StringIO):
+    def isatty(self):
+        return True
+
+
+wz_saved = (k.KB_ROOT, k.CFG_DIR, k.OPTS["format"], sys.stdin, k.out_terminal, k.kb_user)
+wz = Path(tempfile.mkdtemp()).resolve()
+(wz / "a.md").write_text("# A\n\nHello there.\n")
+k.KB_ROOT, k.CFG_DIR, k.OPTS["format"], k.out_terminal, k.kb_user = wz, None, "markdown", (lambda: True), (lambda: "tester")
+k._SCOPES.clear()
+k._POLICY.clear()
+sys.stdin = Tty("n\n")
+with contextlib.redirect_stdout(io.StringIO()) as wo:
+    assert k.welcome() == 0
+assert "not a knowledgebase yet" in wo.getvalue() and "Knowledge" in wo.getvalue() and not (wz / "kbmcp.yaml").exists()
+sys.stdin = Tty("y\nTest notes.\nmarkdown\n")  # create it: about, then the format (the folder's guess is offered)
+with contextlib.redirect_stdout(io.StringIO()) as wo:
+    assert k.welcome() == 0
+wc = (wz / "kbmcp.yaml").read_text()
+assert "about: Test notes." in wc and "format: markdown" in wc and (wz / ".mcp.json").is_file() and "Done." in wo.getvalue(), wo.getvalue()
+k.CFG_DIR = wz  # now it is a collection: the help only, no offer
+with contextlib.redirect_stdout(io.StringIO()) as wo:
+    assert k.welcome() == 0
+assert "not a knowledgebase yet" not in wo.getvalue()
+k.KB_ROOT, k.CFG_DIR, k.OPTS["format"], sys.stdin, k.out_terminal, k.kb_user = wz_saved
+k._SCOPES.clear()
+k._POLICY.clear()
+
+
+# fact blocks: [fact.url] and [fact.mcp] spans in a document, the state of checking them in .facts.yaml beside it, a drift ending
+# the reviews before it, and `factcheck --fetch` fetching a page and calling a declared MCP tool for a fresh result.
+import builtins
+import functools
+import http.server
+import threading
+
+import bowerbird_facts as F
+
+fb, fp = F.parse("[fact.url] https://x.test/p\n\nWords  here.\n\n[fact.end] and [fact.mcp] jira K-1 is open [fact.end]\n```\n[fact.url] hidden\n```\n")
+assert [(b.kind, b.source) for b in fb] == [("url", "https://x.test/p"), ("mcp", "jira K-1")] and fp == []
+assert fb[0].claim == "Words  here." and (fb[0].line, fb[0].end_line) == (1, 5) and fb[1].claim == "jira K-1 is open" or fb[1].claim.startswith("jira K-1")
+for bad, why in (("[fact.url] https://x\nwords", "unclosed_fact"), ("words [fact.end]", "stray_fact_end"), ("[fact.zip] a b c [fact.end]", "unknown_fact_kind"),
+                 ("[fact.url] nope\n\nw\n\n[fact.end]", "bad_fact"), ("[fact.url] https://x\n[fact.end]", "bad_fact"), ("[fact.mcp] jira [fact.end]", "bad_fact"),
+                 ("[fact.url] https://x\nw\n[fact.url] https://y\nv\n[fact.end]", "unclosed_fact")):
+    assert why in {p[1] for p in F.parse(bad)[1]}, (bad, F.parse(bad)[1])
+assert F.norm("`A`  b\n**C**") == "a b c" and F.fact_id("url", "u", "A  b") == F.fact_id("url", "u", "a b") != F.fact_id("url", "u", "a c")
+assert F.check_literal("One.\n\nTwo.", "x ONE. y") == (1, 2) and F.check_literal("`one`", "One") == (1, 1)
+lk, lk_saved = Path(tempfile.mkdtemp()).resolve(), k.KB_ROOT
+k.KB_ROOT = lk
+create(apply=True, holds="okf", about="facts", user="u")
+(lk / "a.md").write_text("---\ntype: Note\ndescription: d\n---\n# A\n\n[fact.url] https://x.test/p\n\nwords\n")  # never closed
+assert any(f["kind"] == "unclosed_fact" and f["severity"] == "error" for f in k.lint(bundle=".", limit=0)["findings"])
+(lk / "a.md").write_text("---\ntype: Note\ndescription: d\n---\n# A\n\n[fact.url] https://x.test/p\n\nwords\n\n[fact.end]\n\n[fact.mcp] jira K-1 is open [fact.end]\n")
+undeclared = [f for f in k.lint(bundle=".", limit=0)["findings"] if f["file"] == "a.md" and f["kind"] == "undeclared_fact_source"]
+assert undeclared and undeclared[0]["severity"] == "warning" and "jira" in undeclared[0]["message"]
+assert not any(f["kind"].endswith("_fact") or f["kind"].startswith(("unclosed", "stray")) for f in k.lint(bundle=".", limit=0)["findings"])
+k.KB_ROOT = lk_saved
+
+fk = Path(tempfile.mkdtemp()).resolve()
+site = fk / "site"
+site.mkdir()
+(site / "page.html").write_text("<html><style>x{}</style><body><p>(jenkins_url)/safeRestart - Allows all   running jobs to complete.</p>"
+                                "<p>(jenkins_url)/restart - Forces a restart without waiting for builds to complete.</p></body></html>")
+srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(site)))
+threading.Thread(target=srv.serve_forever, daemon=True).start()
+(fk / "status.txt").write_text("Open\n")
+(fk / "fakejira.py").write_text("import json, os\nfrom mcp.server.fastmcp import FastMCP\nm = FastMCP('fakejira')\n@m.tool()\n"
+                                "def get_issue(issue_key: str) -> str:\n    n = open(os.environ['STATUS_FILE']).read().strip()\n"
+                                "    return json.dumps({'key': issue_key, 'fields': {'status': {'name': n}, 'updated': os.urandom(4).hex()}})\nm.run()\n")
+(fk / ".mcp.json").write_text(json.dumps({"mcpServers": {"jira": {"command": sys.executable, "args": [str(fk / "fakejira.py")],
+                                                                  "env": {"STATUS_FILE": str(fk / "status.txt")}}}}))
+(fk / "kbmcp.yaml").write_text("format: markdown\n")
+doc = (f"# Jenkins\n\n[fact.url] http://127.0.0.1:{srv.server_address[1]}/page.html\n\n`(jenkins_url)/safeRestart` - Allows all running jobs to complete.\n\n"
+       "(jenkins_url)/restart - Forces a restart without waiting for builds to complete.\n\n[fact.end]\n\nThe ticket: [fact.mcp] jira INFRA-1 is open [fact.end]\n")
+(fk / "notes.md").write_text(doc)
+saved = (k.KB_ROOT, k.CFG, k.CLI, k.at_terminal, builtins.input, dict(k.OPTS))
+k.KB_ROOT, k.CLI, k.OPTS["format"] = fk, True, "markdown"
+k.CFG = {"facts": {"mcp": {"jira": {"tool": "get_issue", "arg": "issue_key", "watch": "fields.status.name"}}}}
+try:
+    assert [(r["line"], r["kind"], r["status"]) for r in k.factcheck()["blocks"]] == [(3, "url", "unchecked"), (11, "mcp", "unchecked")]  # information only
+    assert not (fk / ".facts.yaml").exists()
+    k.at_terminal = lambda: False
+    assert "terminal-only" in raises(k.factcheck, fetch=True)  # a pipe, a script or an agent cannot run it
+    k.at_terminal, builtins.input = (lambda: True), (lambda *a: "n")
+    assert k.factcheck(fetch=True)["note"] == "nothing run" and not (fk / ".facts.yaml").exists()  # shown, asked, declined
+    builtins.input = lambda *a: "y"
+    r = k.factcheck(fetch=True)
+    assert [(x["kind"], x["status"], x["method"]) for x in r["checked"]] == [("url", "checked", "same words"), ("mcp", "checked", "baseline recorded")] and r["drifted"] == 0, r
+    assert [x["status"] for x in k.factcheck()["blocks"]] == ["checked", "checked"] and "value: Open" in (fk / ".facts.yaml").read_text()
+    assert [x["method"] for x in k.factcheck(fetch=True)["checked"]] == ["same words", "same value"]  # the result's other fields (updated) are not watched
+    # a seal on the file, then a drift: the seal stops holding; one made after the drift holds
+    text = (fk / "notes.md").read_text()
+    sealed = {"file": "notes.md", "sha256": k.content_hash(text, False), "by": "human:t", "at": k.now(), "bowerbird": k.VERSION}
+    k.ledger_put("notes.md", sealed)
+    assert len(k.reviews({}, "notes.md", text, k.ledger_by_file())[1]) == 1
+    (fk / "status.txt").write_text("Closed\n")
+    r = k.factcheck(fetch=True)
+    assert [(x["kind"], x["status"]) for x in r["checked"]] == [("url", "checked"), ("mcp", "drifted")] and r["drifted"] == 1 and "Closed" in r["checked"][1]["method"], r
+    assert k.REG["factcheck"].exit(r) == 1 and k.REG["factcheck"].exit({"drifted": 0}) == 0
+    assert k.reviews({}, "notes.md", text, k.ledger_by_file())[1] == [] and k.drift_of("notes.md", {}) is not None
+    assert any(f["kind"] == "stale_signature" and "fact drifted" in f["message"] for f in k.signatures("")["findings"])
+    time.sleep(1.1)
+    k.ledger_put("notes.md", {**sealed, "at": k.now()})  # a human reviews it again, after the drift
+    assert len(k.reviews({}, "notes.md", text, k.ledger_by_file())[1]) == 1
+    # the page changes: the block drifts, and the same check by meaning needs the extra and `semantic: true`
+    (site / "page.html").write_text((site / "page.html").read_text().replace("Forces a restart without waiting", "Does something else"))
+    assert k.factcheck(fetch=True)["checked"][0]["status"] == "drifted"
+    k.EMBEDDERS["facts-test"] = lambda texts: [[1.0, 0.0] if "restart" in t.lower() or "complete" in t.lower() else [0.0, 1.0] for t in texts]
+    k.OPTS.update(semantic=True, semantic_model="facts-test", min_similarity=0.6)
+    r = k.factcheck(fetch=True)["checked"][0]
+    assert (r["status"], r["method"]) == ("checked", "similar meaning"), r
+    (fk / "notes.md").write_text(doc.replace("is open", "is closed"))  # editing the words makes a new fact: unchecked until it is checked
+    assert [x["status"] for x in k.factcheck()["blocks"]] == ["checked", "unchecked"]
+    k.CFG = {"facts": {}}
+    assert [x["status"] for x in k.factcheck(fetch=True)["checked"]][1] == "skipped"  # not declared in kbmcp.yaml: never called
+finally:
+    k.KB_ROOT, k.CFG, k.CLI, k.at_terminal, builtins.input = saved[:5]
+    k.OPTS.clear()
+    k.OPTS.update(saved[5])
+    srv.shutdown()
+
+
+# seals carry a comment by default; the seal extensions (seal.extensions, seal.quorum) let several people seal one version.
+sk = Path(tempfile.mkdtemp()).resolve()
+(sk / "kbmcp.yaml").write_text("format: markdown\n")
+(sk / "a.md").write_text("# A\n\nbody\n")
+seal_saved = (k.KB_ROOT, k.CLI, k.ATTEST, dict(k.OPTS))
+k.KB_ROOT, k.CLI, k.OPTS["format"] = sk, True, "markdown"
+k.OPTS["seal"] = {"exempt": [], "exempt_status": [], "extensions": False, "quorum": 1}
+k._SCOPES.clear()
+k._POLICY.clear()
+human = lambda who, **kw: (setattr(k, "ATTEST", f"human:{who}"), asyncio.run(k.seal(file="a.md", **kw)), setattr(k, "ATTEST", ""))[1]
+try:
+    out = human("ann", comment="  checked   the steps\n")  # a default seal: a comment, no extension needed
+    led = (sk / ".waxseals.yaml").read_text()
+    assert "comment: checked the steps" in led and "by: 'human:ann'" in led and "seals:" not in led and out["tier"] == "human-reviewed", led
+    assert k.ledger_by_file()["a.md"][0]["comment"] == "checked the steps"
+    assert "280" in raises(human, "ann", comment="x" * 281)
+    human("bo")  # without the extension a second seal replaces the first: one line, the latest
+    assert len(k.ledger_by_file()["a.md"]) == 1 and k.ledger_by_file()["a.md"][0]["by"] == "human:bo" and "comment" not in (sk / ".waxseals.yaml").read_text()
+    # the extensions on, quorum 2, on a new version of the file (the earlier seals bound the old bytes)
+    (sk / "a.md").write_text("# A\n\nbody, second version\n")
+    k.OPTS["seal"] = {"exempt": [], "exempt_status": [], "extensions": True, "quorum": 2}
+    k._POLICY.clear()
+    out = human("ann", comment="steps match the runbook")
+    assert out["tier"] == "unverified" and out["quorum"] == "1 of 2", out  # one person is short of two
+    short = [f for f in k.signatures("")["findings"] if f["file"] == "a.md"]
+    assert [f["kind"] for f in short] == ["short_of_quorum"] and "1 of 2" in short[0]["message"], short
+    assert k.trust_tier(k.signed({}, "a.md", k.ledger_by_file())) == "unverified"
+    human("ann", comment="again")  # the same person replaces their own seal, they do not count twice
+    assert len(k.ledger_by_file()["a.md"]) == 1
+    asyncio.run(k.seal(file="a.md", by="process:ci"))  # a machine check is not a signer
+    assert [f["kind"] for f in k.signatures("")["findings"] if f["file"] == "a.md"] == ["short_of_quorum"]
+    out = human("bo", comment="agreed")
+    assert out["tier"] == "human-reviewed" and "quorum" not in out, out
+    line = [ln for ln in (sk / ".waxseals.yaml").read_text().splitlines() if "a.md" in ln]
+    assert len(line) == 1 and line[0].count("by:") == 3 and "comment: again" in line[0] and "comment: agreed" in line[0], line  # one line for the file, every seal on it
+    assert not [f for f in k.signatures("")["findings"] if f["file"] == "a.md"]
+    assert k.trust_tier(k.signed({}, "a.md", k.ledger_by_file())) == "human-reviewed"
+    (sk / "a.md").write_text("# A\n\nbody, edited\n")  # an edit ends every seal of the old version
+    assert [f["kind"] for f in k.signatures("")["findings"] if f["file"] == "a.md"] == ["stale_signature"]
+    human("cy")
+    assert [e["by"] for e in k.ledger_by_file()["a.md"]] == ["human:cy"]  # the old version's seals are not carried over
+    k.OPTS["seal"] = {"exempt": [], "exempt_status": [], "extensions": False, "quorum": 1}  # off again: the line still reads, the latest counts
+    k._POLICY.clear()
+    assert [e["by"] for e in k.ledger_by_file()["a.md"]] == ["human:cy"]
+    for bad, why in (("seal: {quorum: 2}\n", "needs extensions"), ("seal: {extensions: true, quorum: 0}\n", "whole number"), ("seal: {extensions: 1}\n", "true or false")):
+        (sk / "kbmcp.yaml").write_text(bad)
+        try:
+            k.load_config(sk)
+            raise AssertionError(bad)
+        except SystemExit as e:
+            assert why in str(e), (bad, str(e))
+    (sk / "kbmcp.yaml").write_text("format: markdown\nseal: {extensions: true, quorum: 3}\n")
+    assert k.load_config(sk)[1]["seal"] == {"extensions": True, "quorum": 3}
+finally:
+    k.KB_ROOT, k.CLI, k.ATTEST = seal_saved[:3]
+    k.OPTS.clear()
+    k.OPTS.update(seal_saved[3])
+    k._SCOPES.clear()
+    k._POLICY.clear()
+
+
+# create: a collection, or a bower of one; --mcp and --env as steps; .mcp.json merged, not replaced; settings it ignores are said.
+assert k.with_bower("# c\nbowers: [a]\nx: 1\n", "b") == "# c\nbowers: [a, b]\nx: 1\n" and k.with_bower("bowers: []\n", "b") == "bowers: [b]\n"
+assert k.with_bower("bowers:\n  - a\nx: 1\n", "b") == "bowers:\n  - a\n  - b\nx: 1\n" and k.with_bower("bowers: [a]\n", "a") == "bowers: [a]\n"
+assert k.with_bower("format: markdown\n", "b") is None and "comment" in raises(k.with_bower, "bowers: [a]  # why\n", "b") + "comment"
+cr, cr_saved = Path(tempfile.mkdtemp()).resolve(), k.KB_ROOT
+(cr / "kbmcp.yaml").write_text("# the root\nformat: markdown\nbowers: [docs]\n")
+(cr / "docs").mkdir()
+(cr / "docs/kbmcp.yaml").write_text("format: markdown\n")
+k.KB_ROOT = cr
+try:
+    P = create(path=str(cr / "notes"), holds="markdown", about="Notes.", user="u")  # a preview writes nothing
+    assert not (cr / "notes").exists() and P["bower"]["listed"] == "notes" and "would_edit" in P
+    P = create(path=str(cr / "notes"), holds="markdown", about="Notes.", user="u", apply=True)  # inside a collection with a list: a bower
+    assert (cr / "kbmcp.yaml").read_text() == "# the root\nformat: markdown\nbowers: [docs, notes]\n", (cr / "kbmcp.yaml").read_text()
+    bt = (cr / "notes/kbmcp.yaml").read_text()  # a bower gets the whole commented template, with only the answers uncommented
+    assert bt == k.filled_config({"about": "Notes.", "format": "markdown"}).replace("\n\n", "\n# This is a bower of kbmcp.yaml: only format, seal, about, hubs and min_similarity are read here.\n# The rest are the root's to decide; they are listed below for reference.\n\n", 1), bt
+    assert len(bt.splitlines()) > 60 and k.yaml.safe_load(bt) == {"about": "Notes.", "format": "markdown"} and sorted(p.name for p in (cr / "notes").iterdir()) == ["kbmcp.yaml"]
+    assert k.load_config(cr)[1]["bowers"] == ["docs", "notes"]  # and the root still reads it as a bower, not as a second root
+    assert "is a bower" in raises(create, path=str(cr / "notes"))
+    P = create(path=str(cr / "more"), holds="adr", about="a", user="u", mcp=True, apply=True)  # a bower shares the root's files
+    assert "mcp and env were not used" in P["ignored"][0] and not (cr / "more/.mcp.json").exists()
+    assert k.load_config(cr)[1]["bowers"] == ["docs", "notes", "more"]
+    nr = Path(tempfile.mkdtemp()).resolve()  # a new root, with only the assistant's part
+    P = create(path=str(nr), holds="markdown", about="A.", user="u", mcp=True, apply=True)
+    assert sorted(p.name for p in nr.iterdir()) == [".mcp.json", "BOWERBIRD.md", "kbmcp.yaml"] and P["mcp"] == "written" and P["agent"] == {"file": os.path.relpath(nr / "BOWERBIRD.md", cr), "state": "written"}
+    P = create(path=str(nr), mcp=True)
+    assert P["mcp"] == "up to date" and P["agent"]["state"] == "exists"
+    (nr / ".mcp.json").write_text(json.dumps({"mcpServers": {"x": {"command": "y"}}}))  # another server: kept; bowerbird added
+    assert "bowerbird added" in create(path=str(nr), mcp=True, apply=True)["mcp"]
+    assert set(json.loads((nr / ".mcp.json").read_text())["mcpServers"]) == {"x", "bowerbird"}
+    (nr / ".mcp.json").write_text(json.dumps({"mcpServers": {"bowerbird": {"command": "mine"}}}))  # one the person set up: left alone
+    assert "left alone" in create(path=str(nr), mcp=True, apply=True)["mcp"] and json.loads((nr / ".mcp.json").read_text())["mcpServers"]["bowerbird"] == {"command": "mine"}
+    (nr / ".mcp.json").write_text("{nope")
+    assert "valid JSON" in raises(create, path=str(nr), mcp=True, apply=True)
+    (nr / ".mcp.json").unlink()
+    P = create(path=str(nr), about="zzz", holds="adr")  # settings for a folder that has its kbmcp.yaml are not used, and it says so
+    assert "were not used" in P["ignored"][0] and "format: markdown" in (nr / "kbmcp.yaml").read_text()
+    er = Path(tempfile.mkdtemp()).resolve()  # the other step
+    create(path=str(er), holds="markdown", about="E.", user="u", env=True, apply=True)
+    assert sorted(p.name for p in er.iterdir()) == [".env", "env.example", "kbmcp.yaml"] and (er / ".env").read_text() == "KB_USER=u\n"
+    assert all(cli(n)[0] == 2 for n in ("init", "cite", "recheck_plan"))  # renamed in 2.2.0: each says where it went
+    assert cli("create", "file=x.md", "type=Note")[0] == 2  # a document is `new`
+finally:
+    k.KB_ROOT = cr_saved
+
+
+# the docs hook reads only the ledger: a person's seal, an edit, a generator's line, and nothing
+import importlib.util
+
+hk_spec = importlib.util.spec_from_file_location("seal_banner", HERE / "hooks" / "seal_banner.py")
+hk = importlib.util.module_from_spec(hk_spec)
+hk_spec.loader.exec_module(hk)
+hd = Path(tempfile.mkdtemp()).resolve()
+(hd / "docs").mkdir()
+pages = {n: (hd / "docs" / n) for n in ("sealed.md", "edited.md", "made.md", "none.md", "exempt.md")}
+for n, p in pages.items():
+    p.write_text(f"# {n}\r\nbody\r\n")  # CRLF on disk: the tool hashes it as LF, and so does the hook
+sha = lambda n: k.content_hash(pages[n].read_text(), False)
+(hd / ".waxseals.yaml").write_text("\n".join([
+    f"- {{file: docs/sealed.md, sha256: {sha('sealed.md')}, by: 'human:ann', at: '2026-11-20T10:00:00Z'}}",
+    "- {file: docs/edited.md, sha256: 0000, by: 'human:ann', at: '2026-11-19T10:00:00Z'}",
+    f"- {{file: docs/made.md, sha256: {sha('made.md')}, derived: gen.py, at: '2026-11-20T10:00:00Z'}}",
+    f"- {{file: docs/exempt.md, sha256: {sha('exempt.md')}, seals: [{{by: 'human:ann', at: '2026-11-18T10:00:00Z'}}, {{by: 'human:bo', at: '2026-11-20T11:00:00Z'}}]}}"]) + "\n")
+(hd / "docs" / "kbmcp.yaml").write_text("seal: {exempt: ['/exempt.md', '/none.md']}\n")  # a policy the hook does not read
+hk_cwd = os.getcwd()
+os.chdir(hd)
+try:
+    state = lambda n: re.search(r'data-state="(\w+)"', hk.banner(pages[n], n, hd / "docs", "", False)).group(1)
+    assert [state(n) for n in ("sealed.md", "edited.md", "made.md", "none.md", "exempt.md")] == ["reviewed", "edited", "derived", "unreviewed", "reviewed"]
+    assert "2026-11-20T11:00:00Z" in hk.banner(pages["exempt.md"], "exempt.md", hd / "docs", "", False)  # several seals on a line: the latest
+    pages["made.md"].write_text("# made by hand\n")
+    assert state("made.md") == "unreviewed"  # edited since the generator wrote it: no longer derived
+finally:
+    os.chdir(hk_cwd)
+
+
+# `serve restart`, as a person runs it: a new process each time, the pid file under XDG_CACHE_HOME, and always a running server after.
+try:
+    import markdown  # noqa: F401 (serve needs it)
+except ImportError:
+    print("skipped serve restart: markdown not installed")
+else:
+    import urllib.request
+
+    rs = Path(tempfile.mkdtemp()).resolve()
+    (rs / "kbmcp.yaml").write_text("format: markdown\n")
+    (rs / "a.md").write_text("# A\n\nbody\n")
+    with socket.socket() as so3:
+        so3.bind(("127.0.0.1", 0))
+        rport = so3.getsockname()[1]
+    renv = {**os.environ, "XDG_CACHE_HOME": str(rs / "cache"), "PYTHONPATH": str(HERE)}
+    pf3 = rs / "cache" / "bowerbird-mcp" / f"serve-{rport}.pid"
+    serve_cmd = lambda *a: subprocess.run([sys.executable, str(HERE / "bowerbird_mcp.py"), "serve", *a, str(rport)], cwd=rs, env=renv,
+                                          capture_output=True, text=True, timeout=90, check=False)
+    page = lambda: urllib.request.urlopen(f"http://127.0.0.1:{rport}/", timeout=10).status
+    alive = lambda pid: (os.kill(pid, 0), True)[1] if Path(f"/proc/{pid}").exists() else False
+    try:
+        r = serve_cmd("status")
+        assert r.returncode == 1 and "not running" in r.stdout, r
+        r = serve_cmd("restart")  # nothing to stop: it just starts
+        assert r.returncode == 0 and "in the background" in r.stdout, r
+        pid1 = int(pf3.read_text())
+        assert page() == 200 and serve_cmd("status").returncode == 0 and alive(pid1)
+        r = serve_cmd("restart")  # stops the one it finds, waits for the port, starts a new one
+        assert r.returncode == 0 and "stopped the server" in r.stdout and "in the background" in r.stdout, r
+        pid2 = int(pf3.read_text())
+        assert pid2 != pid1 and page() == 200 and serve_cmd("status").returncode == 0
+        for _ in range(50):
+            if not alive(pid1):
+                break
+            time.sleep(0.1)
+        assert not alive(pid1) and alive(pid2)  # the old process is gone, the new one answers
+        r = serve_cmd("stop")
+        assert r.returncode == 0 and "stopped the server" in r.stdout and not pf3.exists(), r
+        assert serve_cmd("status").returncode == 1 and serve_cmd("stop").returncode == 0  # nothing running is not an error
+        # something else on the port: restart refuses, and never touches it
+        with socket.socket() as foreign:
+            foreign.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            foreign.bind(("127.0.0.1", rport))
+            foreign.listen()
+            r = serve_cmd("restart")
+            assert r.returncode == 1 and "in use by something else" in r.stdout, r
+            assert not pf3.exists()
+    finally:
+        serve_cmd("stop")
 
 print("ok")

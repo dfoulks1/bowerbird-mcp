@@ -48,10 +48,9 @@ wheels = [
 
 [[package]]
 name = "bowerbird-mcp"
-version = "2.1.4"
+version = "2.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "fastembed" },
     { name = "mcp" },
     { name = "pyyaml" },
 ]
@@ -59,6 +58,9 @@ dependencies = [
 [package.optional-dependencies]
 hnsw = [
     { name = "hnswlib" },
+]
+semantic = [
+    { name = "fastembed" },
 ]
 serve = [
     { name = "markdown", version = "3.10.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -81,7 +83,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastembed" },
+    { name = "fastembed", marker = "extra == 'semantic'" },
     { name = "hnswlib", marker = "extra == 'hnsw'" },
     { name = "markdown", marker = "extra == 'serve'" },
     { name = "mcp", specifier = ">=1.10,<2" },
@@ -90,7 +92,7 @@ requires-dist = [
     { name = "rdflib", marker = "extra == 'skos'" },
     { name = "sqlite-vec", marker = "extra == 'sqlite-vec'" },
 ]
-provides-extras = ["sqlite-vec", "hnsw", "skos", "serve", "syntax"]
+provides-extras = ["semantic", "sqlite-vec", "hnsw", "skos", "seal-extensions", "serve", "syntax"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "ruff" }]

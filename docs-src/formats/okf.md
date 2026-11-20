@@ -5,7 +5,7 @@
 **Use it when** the knowledge needs to say where it came from, who checked it and when it expires, especially when
 agents write part of it. [Open Knowledge Format](#what-okf-is) is a Markdown convention for exactly that: each
 note (a *concept*) starts with a small header of facts, and the tools check that the whole folder is well formed.
-It is the only format with the full toolset: `lint`, `fix`, `cite`, `provenance`, `status`, `move`, `rename` and the rest.
+It is the only format with the full toolset: `lint`, `fix`, `fact`, `factcheck`, `provenance`, `status`, `move`, `rename` and the rest.
 
 ## What OKF is
 
@@ -134,6 +134,65 @@ sentence around it says how. A broken link is allowed by the format: it may simp
 (`status` lists the pages that links ask for and nobody has written). A citation is different: the claim in the text points
 at its entry in `sources` with a Markdown footnote (`[^pg]`). Links are for navigation, citations are for lineage.
 
+### Facts: what a claim rests on, and drift
+
+A **fact** is a claim together with where it came from, written so it can be checked again. Put the source and the words you
+relied on in a block, in any Markdown document (it works in every format, not only OKF):
+
+```markdown
+[fact.url] https://stackoverflow.com/questions/8072700/how-to-restart-jenkins-manually
+
+(jenkins_url)/safeRestart - Allows all running jobs to complete. New jobs will remain in the queue to run after the restart is complete.
+
+(jenkins_url)/restart - Forces a restart without waiting for builds to complete.
+
+[fact.end]
+
+The ticket: [fact.mcp] jira INFRA-27707 is open [fact.end]
+```
+
+- **`[fact.url] <address>`** starts the block; the words after it, up to `[fact.end]`, are what is checked: paste them from the page.
+  A block holds one source and any number of claims.
+- **`[fact.mcp] <server> <key> <claim> [fact.end]`** is the one-line form for a fact that comes from an MCP tool. Which tool to call,
+  with what, and which part of the result to watch is declared once in `kbmcp.yaml`, under `facts` (see below).
+- A block with no `[fact.end]`, an end with no start, or an unknown kind is a `lint` error. Blocks inside code are ignored, so
+  examples like the one above are safe.
+
+**Checking.** `factcheck` with no arguments lists every block and its state: *unchecked*, *checked* (with the date and how), or
+*drifted*. It runs nothing. `factcheck --fetch`, run by a person at a terminal, shows what it will fetch or call, asks, and
+then compares each block with a fresh result:
+
+- a **page** must still hold the block's words. Whitespace, case, backticks and emphasis are ignored: it is the content that is
+  compared, not the shape. With `semantic: true` and the `semantic` extra, a page that no longer says it word for word but still
+  means it counts too, scored against `min_similarity` (the same settings as semantic search), and the result says "similar meaning"
+  instead of "same words";
+- an **MCP call** (only one declared under `facts`) must still return the value it did. The first check records that value.
+
+```yaml
+# kbmcp.yaml, at the collection root: the only calls factcheck may make
+facts:
+  mcp:
+    jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
+```
+
+The document supplies only the key (`INFRA-27707`), never the tool, so a page cannot make `factcheck` call something it was not
+told to. The server itself comes from `.mcp.json`. `--fetch` is a person's command: over MCP it is refused.
+
+**State is kept beside the document**, in a `.facts.yaml` (commit it, as you do `.waxseals.yaml`). It holds the last check of each
+block. The document is never changed by a check, so a check that finds nothing wrong does not disturb a human's review of it.
+Edit the words of a block and it is a new fact, unchecked until it is checked.
+
+**Drift breaks the seal.** A block that has drifted ends every [review](../sealing.md) of that file made before it, and `seal check`
+reports `a cited fact drifted after it was reviewed`. Correct the claim and have a person review the file again: a review made after
+the drift holds. A check that passes does not undo a drift.
+
+**The docs build** shows each block as a quotation with its source and its state (not yet checked, checked on a date, or drifted).
+
+**For an agent**, `fact` records a fact as a `sources` entry in the frontmatter (a call as `via: {server, tool, args}`, and
+`result`, what it returned, as a `fact_sha256`), prints the footnote marker for the claim, and `factcheck file=... id=... result=...`
+compares a result an agent got by replaying the call with it. Same result: the check is noted in `.facts.yaml`. A different one is a
+drift. An agent runs no `--fetch`.
+
 ### Bundles, `index.md` and `log.md`
 
 A **bundle** is a folder of concepts, with subfolders as you like. Two filenames are reserved at any level:
@@ -153,14 +212,14 @@ folder of bundles, that Bowerbird manages together.
 In an empty folder:
 
 ```sh
-kb init holds=okf about="Team runbooks." apply=true
-kb create deploy type=Playbook title="Deploy" description="How we ship a release." \
+bowerbird-mcp create holds=okf about="Team runbooks." apply=true
+bowerbird-mcp create deploy type=Playbook title="Deploy" description="How we ship a release." \
    body='Run the deploy script, then check the dashboard.' output=text
-kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
-kb lint output=text
+bowerbird-mcp fact deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
+bowerbird-mcp lint output=text
 ```
 
-`create` writes a file with its header, `cite` records a source and prints the footnote tag (`[^runbook]`) to put next to
+`new` starts a file from the OKF template (`bowerbird-mcp new deploy -t okf`), or, given its `type` and a few fields, writes one with its header filled in, `fact` records a source and prints the footnote tag (`[^runbook]`) to put next to
 the claim it backs, and `lint` checks the whole collection:
 
 ```text
@@ -168,11 +227,11 @@ bowerbird-mcp lint: ok: 1 concept(s) in 1 bundle(s) checked, 0 finding(s), confo
 ```
 
 A file with no header, a broken link or a fact with no source is a finding, each naming the file, what is wrong and how to
-fix it, and `kb fix apply=true` repairs the mechanical ones.
+fix it, and `bowerbird-mcp fix apply=true` repairs the mechanical ones.
 
 ## Reviewing
 
-`kb seal` writes a `verified` entry into the concept itself, with a `sha256` of the note. The trust tier
+`bowerbird-mcp seal` writes a `verified` entry into the concept itself, with a `sha256` of the note. The trust tier
 comes only from who verified: nobody means *unverified*, a script or agent means *machine-confirmed*, and a person
 means *human-reviewed*. Hits show the tier and whether the note has gone stale. See The tiers are explained [above](#trust-tiers).
 

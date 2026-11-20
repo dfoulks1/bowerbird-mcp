@@ -20,8 +20,8 @@ about: Team notes.
 ```
 
 ```sh
-kb init holds=markdown about="Team notes." apply=true
-kb passages 'how do I roll back' output=text
+bowerbird-mcp create holds=markdown about="Team notes." apply=true
+bowerbird-mcp passages 'how do I roll back' output=text
 ```
 
 A hit is a section of a note, with its file and line:
@@ -34,7 +34,7 @@ text: To roll back, redeploy the previous tag and confirm the dashboard is green
 Every hit says `tier: unverified` until a human has sealed that file. `links` counts the notes that link to it
 (`deploy.md` links to `rollback.md`, so it is 1). Files named `index.md` and `log.md` are ordinary notes here.
 
-**Reviewing.** At a terminal, `kb seal deploy.md --attest` records you; over MCP a prompt asks you instead. The review
+**Reviewing.** At a terminal, `bowerbird-mcp seal deploy.md --attest` records you; over MCP a prompt asks you instead. The review
 goes into `.waxseals.yaml`, never into the note:
 
 ```yaml
@@ -44,7 +44,10 @@ goes into `.waxseals.yaml`, never into the note:
 One line per file; sealing it again replaces the line, and git keeps the earlier ones.
 
 Edit the note afterwards and the `sha256` no longer matches: the review is broken, and the hit shows `unverified` and
-`stale`. `kb seal check=true` lists what has no review (for a pre-commit hook or CI).
+`stale`. `bowerbird-mcp seal check=true` lists what has no review (for a pre-commit hook or CI).
+
+**Starting a page.** `bowerbird-mcp new notes/deploy -T "Deploy"` writes `notes/deploy.md` from the markdown template (a title and
+`tags`, then a heading) and refuses a file that exists. `-t okf` or `-t adr` picks another template.
 
 ## Use case: content for a generated website
 
@@ -60,19 +63,19 @@ A `kbmcp.yaml` at the root of the content folder. This is the one this site uses
 ```yaml
 format: markdown      # or asciidoc
 about: Bowerbird's documentation pages (the site source). Each page needs a human review.
-seal: {require: ["/*.md", "/formats/*.md"], exempt_status: []}
+seal: {exempt: ["/tools.md", "/prompts/**"], exempt_status: []}
 ```
 
-`seal.require` lists the pages that need a review. A leading `/` anchors a pattern at the content folder's root.
+Every page needs a review except the ones `seal.exempt` lists. A leading `/` anchors a pattern at the content folder's root.
 
 ### The loop
 
 1. People and agents write and edit pages. An agent can search them with `passages`, which returns the section, file and
    line to cite, and whether a person has reviewed it.
-2. `kb seal check=true` lists the pages without a review of their current text. It changes nothing and exits 1 on findings:
+2. `bowerbird-mcp seal check=true` lists the pages without a review of their current text. It changes nothing and exits 1 on findings:
 
    ```text
-   $ kb seal check=true
+   $ bowerbird-mcp seal check=true
    files_checked: 16, total: 12
    unsigned  contributing.md
    unsigned  formats/adr.md
@@ -82,7 +85,7 @@ seal: {require: ["/*.md", "/formats/*.md"], exempt_status: []}
 
 3. A person reads a page and seals it, in the confirmation prompt or at a terminal with `--attest`. An agent never
    seals for them.
-4. In CI, `kb seal check=true since=origin/main` fails a pull request that changes a page without a review of the new
+4. In CI, `bowerbird-mcp seal check=true since=origin/main` fails a pull request that changes a page without a review of the new
    version. Any edit after a seal makes it stale (`stale_signature`), so a reviewed page cannot change silently.
 5. The generator builds the site.
 
@@ -105,7 +108,7 @@ ledger, then renders one of four badges:
 - **Reviewed:** "AI Generated, Human Reviewed at: *date-time*", when a person's seal matches this exact text.
 - **Edited since its last human review:** the page has a seal, but the text has changed since.
 - **Not yet human reviewed:** no person has sealed it.
-- **Derived from the code:** the page is built from the code (the tool list, from its docstrings), so `seal.require` leaves it out with a `!` glob and it needs no review.
+- **Derived from the code:** the page is built from the code (the tool list, from its docstrings), so `seal.exempt` leaves it out and it needs no review.
 
 The badge is built from the ledger, so it cannot go stale and the source never changes. A page that includes text from
 elsewhere (as the Guide includes the README) is marked as not covered for that text.

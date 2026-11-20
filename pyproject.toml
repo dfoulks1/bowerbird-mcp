@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bowerbird-mcp"
-version = "2.1.4"
+version = "2.2.0"
 description = "Manage knowledge, retrieve it, and verify it: keyword and semantic search over Markdown, ADR and MADR, OKF, SKOS and AsciiDoc (ADOC), and a human review (seal) bound to the exact text. An MCP server and CLI."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,12 +24,14 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Text Processing :: Markup :: Markdown",
 ]
-dependencies = ["mcp>=1.10,<2", "pyyaml", "fastembed"]  # fastembed: semantic search, off until `semantic: true`; not in the script's own header, so `uv run bowerbird_mcp.py` stays light
+dependencies = ["mcp>=1.10,<2", "pyyaml"]  # light on purpose: semantic search (fastembed, about 150 MB) is the `semantic` extra
 
 [project.optional-dependencies]  # vector_index in kbmcp.yaml: sqlite-vec (exact, in C) or hnsw (approximate); scan needs neither
+semantic = ["fastembed"]  # `semantic: true` in kbmcp.yaml: match passages by meaning (the model, ~65 MB, downloads once)
 sqlite-vec = ["sqlite-vec"]
 hnsw = ["hnswlib"]
 skos = ["rdflib"]  # format: skos
+seal-extensions = []  # `seal: {extensions: true, quorum: 2}`: several people seal one version; no dependency, the name is the switch
 serve = ["markdown"]  # `bowerbird-mcp serve`
 syntax = ["pygments"]  # `bowerbird-mcp[serve,syntax]`: serve highlights code files
 
@@ -45,13 +47,20 @@ bowerbird-mcp = "bowerbird_mcp:main"
 bowerbird = "bowerbird_mcp:main"  # a shorter command for the same tool
 
 [tool.setuptools]
-py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo"]
+py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo", "bowerbird_facts", "bowerbird_seal"]
 
 # The file still runs as a PEP 723 script (`uv run bowerbird_mcp.py`); the table above
 # makes it installable too: `uvx --from git+<repo> bowerbird-mcp`.
 
 [dependency-groups]
 dev = ["ruff"]
+
+[tool.mypy]
+python_version = "3.10"  # the oldest Python the package supports
+
+[[tool.mypy.overrides]]  # optional backends, installed by their extras: absent here is fine
+module = ["rdflib", "rdflib.*", "sqlite_vec", "hnswlib", "fastembed"]
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 120

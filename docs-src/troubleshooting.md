@@ -5,20 +5,20 @@
 ## Searching
 
 - **`passages` says `gap: true` for something you know is there.** It matches by words and has no stemming, so "rolling"
-  does not match "roll". Try the file's own words. `kb search roll` matches by substring, so it finds `rollback`, and
-  semantic search (`semantic: true`) matches by meaning. [Getting started](getting-started.md#4-search-it) covers all three.
+  does not match "roll". Try the file's own words. `bowerbird-mcp search roll` matches by substring, so it finds `rollback`, and
+  semantic search (`semantic: true`) matches by meaning. [Getting started](getting-started.md#5-searching) covers all three.
 - **A search from the wrong folder finds nothing, and says only `gap: true`.** Bowerbird looks for a `kbmcp.yaml` in the
   current folder and then in the folders above it, never below. From a folder that is not a collection, or from the parent
   of several, there is nothing to search. Run it inside the collection, or name the file:
-  `kb --config path/to/kbmcp.yaml passages ...`.
+  `bowerbird-mcp --config path/to/kbmcp.yaml passages ...`.
 - **A hit says `stale`.** The file changed after its review. Read it again and seal it again.
 
 ## Settings
 
-- **`init holds=adr` did not change the format.** `holds` only applies when there is no `kbmcp.yaml` yet. On an existing
-  collection, edit the `format:` line in `kbmcp.yaml` and run `kb reindex`.
-- **`seal-only needs seal.require`.** In a `seal-only` collection the policy must name the files that need a review:
-  `seal: {require: ["src/**/*.py"]}` in `kbmcp.yaml`.
+- **`create holds=adr` did not change the format.** `holds` only applies when there is no `kbmcp.yaml` yet. On an existing
+  collection, edit the `format:` line in `kbmcp.yaml` and run `bowerbird-mcp reindex`.
+- **`seal takes exempt and exempt_status`.** `seal.require` is gone. Every file is checked, so `kbmcp.yaml` lists only the
+  ones to leave out: `seal: {exempt: ["src/gen_*.py"]}`.
 - **My MCP server does not offer `seal`.** If `roles:` in `kbmcp.yaml` spells the roles out, `seal` has to be in the list.
   A file with no `roles:` line gets all five. Asking for a role that is left out (`--role seal`) refuses to start, with
   "role seal is off in kbmcp.yaml".
@@ -40,6 +40,6 @@ More in [Serve](serve.md).
 
 - **`rdflib is missing`** (a `skos` collection). Install the extra: `pip install rdflib`, or with `uvx`, ask for it:
   `uvx --from "bowerbird-mcp[skos]" bowerbird-mcp`.
-- **Semantic search does not start with the bare script.** `uvx bowerbird-mcp` carries `fastembed`; the one-file script
-  needs `uv run --with fastembed bowerbird_mcp.py`.
+- **Semantic search does not start (`needs the semantic extra`).** It is an add-on: `uv tool install 'bowerbird-mcp[semantic]'`,
+  or `uvx --from 'bowerbird-mcp[semantic]' bowerbird-mcp`; the one-file script needs `uv run --with fastembed bowerbird_mcp.py`.
 - **`uvx` runs an old build while you test local changes.** Add `--no-cache`.

@@ -26,7 +26,7 @@ Each format exists for a reason. Pick whichever fits what you keep; you can chan
 
 ## Changing your mind
 
-Change the `format` line and run `kb reindex`; nothing else moves. Reviews are not converted between formats: an OKF
+Change the `format` line and run `bowerbird-mcp reindex`; nothing else moves. Reviews are not converted between formats: an OKF
 concept keeps its `verified` entries in its own frontmatter, while the other formats keep theirs in
 `.waxseals.yaml`, so after a switch the notes may need sealing again.
 
@@ -62,10 +62,11 @@ Which tools a server offers, by role. The role is what `roles:` in `kbmcp.yaml` 
 
 | | [**Markdown**](formats/markdown.md) | [**ADR**](formats/adr.md) | [**OKF**](formats/okf.md) | [**SKOS**](formats/skos.md) | [**AsciiDoc**](formats/asciidoc.md) | [**Seal-only**](sealing.md#seal-only) |
 |---|---|---|---|---|---|---|
-| **[`cite`](tools.md#cite)** | CLI | CLI | ✓ | CLI | CLI | CLI |
-| **[`create`](tools.md#create)** | CLI | CLI | ✓ | CLI | CLI | CLI |
+| **[`fact`](tools.md#fact)** | CLI | CLI | ✓ | CLI | CLI | CLI |
+| **[`factcheck`](tools.md#factcheck)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`fix`](tools.md#fix)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`lint`](tools.md#lint)** | CLI | CLI | ✓ | CLI | CLI | CLI |
+| **[`new`](tools.md#new)** | ✓ | ✓ | ✓ | CLI | CLI | CLI |
 | **[`record`](tools.md#record)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`set`](tools.md#set)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 
@@ -91,15 +92,13 @@ Which tools a server offers, by role. The role is what `roles:` in `kbmcp.yaml` 
 | **[`baseline`](tools.md#baseline)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`config`](tools.md#config)** | ✓ | ✓ | ✓ | CLI | CLI | CLI |
 | **[`index`](tools.md#index)** | CLI | CLI | ✓ | CLI | CLI | CLI |
-| **[`init`](tools.md#init)** | ✓ | ✓ | ✓ | CLI | CLI | CLI |
+| **[`create`](tools.md#create)** | ✓ | ✓ | ✓ | CLI | CLI | CLI |
 | **[`provenance`](tools.md#provenance)** | CLI | CLI | ✓ | CLI | CLI | CLI |
-| **[`recheck_apply`](tools.md#recheck_apply)** | CLI | CLI | ✓ | CLI | CLI | CLI |
-| **[`recheck_plan`](tools.md#recheck_plan)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`reindex`](tools.md#reindex)** | ✓ | ✓ | ✓ | ✓ | ✓ | — |
 | **[`upgrade`](tools.md#upgrade)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 
 | | [**Markdown**](formats/markdown.md) | [**ADR**](formats/adr.md) | [**OKF**](formats/okf.md) | [**SKOS**](formats/skos.md) | [**AsciiDoc**](formats/asciidoc.md) | [**Seal-only**](sealing.md#seal-only) |
 |---|---|---|---|---|---|---|
-| **Tools offered** | 12 | 13 | 35 | 3 | 4 | 1 |
+| **Tools offered** | 13 | 14 | 34 | 3 | 4 | 1 |
 
-(`dirs` sits in both `read` and `structure`, so it counts once. The 35 are all of [Tools](tools.md).)
+(`dirs` sits in both `read` and `structure`, so it counts once. The 34 are all of [Tools](tools.md).)

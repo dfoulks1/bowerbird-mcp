@@ -1,5 +1,98 @@
 # Changelog
 
+## 2.2.0 (unreleased)
+
+### Added
+- **`bowers:`**, a root `kbmcp.yaml` key listing the folders (globs allowed) that carry their own `kbmcp.yaml`. Only those
+  override the root, a stray `kbmcp.yaml` is never picked up, and a bower run inside the collection finds the root that
+  lists it. A bower run alone is its own collection, and its whole-collection keys are ignored here, so it can ship with
+  them. A name that matches no folder stops with an error. A root with no `bowers` key keeps the older rule, where every
+  nested `kbmcp.yaml` is an override.
+- The agent rules without a file: an MCP resource `bowerbird://agent-rules` and a prompt `rules` serve the text `create` writes as
+  `BOWERBIRD.md`, from the installed package.
+- **Seal comments, and the `seal-extensions` extra.** Every seal can carry a one-line `comment` (`seal --comment "..."`, a Comment field in the
+  MCP prompt and the `serve` dialog; up to 280 characters; kept on the review). With `seal: {extensions: true, quorum: N}` in `kbmcp.yaml`
+  (the `seal-extensions` extra, which has no dependency) different people can seal the same version of a file, kept together on its one
+  `.waxseals.yaml` line as `seals: [...]`, and `seal check` reports `short_of_quorum` until N different people have (a machine check never
+  counts; the file is `unverified` until then). Off, nothing changes: one latest review per file.
+- **"Derived from the code" is recorded, not guessed.** A generator writes a `derived: <generator>` line, with the file's `sha256`, into
+  `.waxseals.yaml` (`mark_derived(path, generator)`; `docs_tools.py` does it for `docs-src/tools.md`). `serve` and the docs build badge a
+  file derived only while that line matches its bytes; `seal.exempt` no longer implies it (it only leaves a file out of `seal check`), so a
+  page that is exempt but hand-written is no longer badged as built from the code. `hooks/seal_banner.py` now reads only the ledger: no
+  `kbmcp.yaml`, no globs, the same hash the tool uses, and several seals on one line. A derived line is not a review.
+- `serve` shows a link to the repository (from `origin`, when it has a web address) beside the theme and stop buttons. New docs page,
+  [Status badges](https://bowerbird.voltpop.com/badges/): the site's review and fact badges, doing the same in another site generator, and a
+  script that makes a README badge from `seal check`.
+- **Facts, and `factcheck`.** A fact is a claim and what it rests on, written in a document as a block: `[fact.url] <address>` ...
+  `[fact.end]` (the words pasted from the page), or the one-liner `[fact.mcp] jira INFRA-27707 is open [fact.end]`. It works in every
+  format. `factcheck` lists the blocks and their state (unchecked, checked, drifted). `factcheck --fetch`, for a person at a terminal,
+  shows what it will fetch or call, asks, and compares each block with a fresh result: a page must still hold the words (shape ignored:
+  whitespace, case, ticks; with `semantic: true` and the extra, a similar meaning also counts), an MCP call declared under `facts` in
+  `kbmcp.yaml` (tool, arg, watch; the only calls it may make) must return the value it did. State is kept in a `.facts.yaml` beside
+  the document, which a check never changes. A drift ends every review of the file made before it (`seal check`: "a cited fact
+  drifted after it was reviewed"). `lint` errors on an unclosed or stray tag. The docs build shows each block with its state.
+  For agents, `fact` (was `cite`) takes `result` and keeps its `fact_sha256`; `factcheck file= id= result=` compares.
+- `--config` takes the folder holding a `kbmcp.yaml` as well as the file, and a relative path, `~` or `$VARS`.
+- **`new`**, a tool (MCP and CLI) that starts a document from a template: `new notes/deploy -t markdown -T "Deploy"`. `template`
+  (`-t`) is `okf`, `markdown` or `adr` and defaults to what the folder holds, from `kbmcp.yaml`; `title` (`-T`) defaults to the
+  file name. It refuses a file that exists. It joins the `write` role (now 7 tools) and every format but seal-only, skos and
+  asciidoc. All tools are now 36.
+- **A bare `bowerbird-mcp` at a terminal** prints the help and, in a folder with no `kbmcp.yaml`, offers to make a
+  knowledgebase there (it runs `create`, which asks for the format, what the folder holds and your id). An MCP host starts the
+  server with piped stdio, so it is unaffected. `create`'s prompts now say what each answer is.
+- `create` writes `BOWERBIRD.md` at the collection root: rules for an AI agent using the tools, ending in a "Picking a tool"
+  table (the job, the tool to use, and the one not to). It never overwrites a file, so a folder that already has one keeps it,
+  and an older collection gets the file the next time you run `create`. The text is `AGENTS_MD` in `bowerbird_mcp.py`.
+  `serve`'s setup modal and **New knowledgebase** run `create`, so they write it too.
+- New docs page, [Agent rules](https://bowerbird.voltpop.com/agents/): what the file is, when `create` writes it, how to
+  edit it and point an assistant at it, and its full text (a test keeps the page equal to `AGENTS_MD`).
+
+### Changed
+- **`init` is now `create`, and the old `create` is part of `new`.** `create` makes a collection, and also a bower: inside a collection
+  with a `bowers:` list, `create docs` writes `docs/kbmcp.yaml` (the whole commented template, with only your answers uncommented) and adds the folder to the root's list (comments kept); the root's
+  `.mcp.json`, `.env` and `BOWERBIRD.md` serve it. `create [path] [--mcp] [--env] [--apply]`: no flag runs every step; `--mcp` writes
+  `BOWERBIRD.md` (and prints its path) and adds bowerbird to `.mcp.json`, keeping the other servers and leaving a different bowerbird
+  entry alone; `--env` writes `env.example` and the `.gitignore` line. Settings passed for a folder that already has a `kbmcp.yaml` are
+  reported as ignored. `new` writes a document and takes what the old `create` did (`type`, `description`, `resource`, `tags`, `status`,
+  `body`, `by`): bare, it is the template; with those, it is written filled in. The old names print where they went (`init` says
+  `create`; `create file=... type=...` says `new`). The web UI's New knowledgebase runs `create`.
+- **Renamed:** `cite` is `fact`, and `recheck_plan` is `factcheck` (the old names print where they went). **Removed:**
+  `recheck_apply`. A check is recorded by `factcheck` with a result, and only when the result is the evidence. It no longer
+  adds a `verified` entry; `seal` is how a human confirms a file. The MCP tool list is now 34 tools (about 4,200 tokens).
+- **Semantic search is an add-on.** `fastembed` (about 150 MB with its dependencies) moved from the package's dependencies to the
+  `semantic` extra, so the base install is small and `uvx` starts faster. To keep meaning search, ask for the extra:
+  `uvx --from 'bowerbird-mcp[semantic]' bowerbird-mcp`, or `uv tool install 'bowerbird-mcp[semantic]'`, and in a project's
+  `.mcp.json` write `"bowerbird-mcp[semantic]>=2,<3"` after `--from`. A collection with `semantic: true` and no extra stops with
+  a message that says so; nothing else changes.
+- **The MCP tool list is about 45% smaller.** What the server sends an agent for each tool is now a dense one- or two-line
+  description (`MCP_TEXT`), with a preview note added for tools that take `apply`. All 34 tools cost about 4,200 tokens, down
+  from about 7,250 for the 35 of 2.1.4 (descriptions went from about 4,600 to 1,350; the argument schemas, about 2,340, are
+  unchanged). With the new `BOWERBIRD.md` (about 1,260 tokens), an agent's tool overhead is about 5,400 tokens, down from about
+  7,400. The full docstrings stay for `help <tool>`, the command line, the docs and the browser. The safety rules stay in the
+  short text: `seal` never takes `human:<id>`, `passages` says to report a gap, and tools that write preview first.
+- **`seal check` scans everything except what is exempt.** `seal.require` is gone, replaced by `seal.exempt`, a list of
+  globs to leave out; every other file is checked, in every format. A `kbmcp.yaml` that still has `seal.require` stops with
+  an error that says so: list the files to leave out instead (a `!` glob in `require` becomes a plain entry in `exempt`). In
+  seal-only there is no list to fill in, and `create holds=seal-only` writes no `seal` line. `unreadable` now points at
+  `seal.exempt`.
+- A bare `serve` prints its usage (every verb and option, `--config` included) and exits 0 instead of reporting status;
+  `serve status` still does that.
+- **The seal confirmation reads as facts.** Over MCP it opens "Confirm seal: path/file.md", and `serve`'s modal has the same
+  heading, then title, word count, the full sha256, status and decision. The excerpt of the file's raw text is gone: you are
+  reading the page, and over MCP the agent is told to show it first.
+- `serve` docs: `--config` with `serve start` and `uvx --from 'bowerbird-mcp[serve]'`, and a note that `serve start` does
+  nothing while a server already holds the port (run `serve stop` or `restart`, or pick another port).
+
+### Docs
+- The README's **Run** section (and the guide, which includes it) now says how to run Bowerbird: on the fly with `uvx`, installed
+  with `uv tool install`, the basic commands, updating and pinning, and a table of the extras (`serve`, `syntax`, `semantic`,
+  `skos`, `sqlite-vec`, `hnsw`) with how to ask for one on the fly, installed, with pip and in an MCP config.
+- `new` is in the format pages and the format tool matrix, and `--config` is described in the command-line page.
+
+### Fixed
+- Outside a git work tree and with no root `kbmcp.yaml`, nothing below the folder is scanned for nested `kbmcp.yaml` files
+  (a stray one in a temp folder could break `serve status` from `/tmp`).
+
 ## 2.1.4 (2026-11-19)
 
 All of the `serve` changes need the `serve` extra (`bowerbird-mcp[serve]`).

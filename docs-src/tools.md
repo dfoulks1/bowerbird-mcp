@@ -52,31 +52,6 @@ bowerbird-mcp bundles -O text
 |---|---|---|---|
 | `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
 
-## cite
-
-Role: `write`. Offered by a server for: OKF.
-
-Record where a fact came from as a §5.1 `sources` entry, with `retrieved_at` (when). When an MCP tool produced it, pass server, tool and args, the exact call (`via`, how): it is the re-check recipe for recheck_plan. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.
-
-```sh
-bowerbird-mcp cite db.md --resource https://www.postgresql.org/docs/release/ --title 'PostgreSQL releases' --bundle eng
-```
-
-| Argument | Flag | Type | Default |
-|---|---|---|---|
-| `file` | `-f, --file FILE` | `str` | required |
-| `resource` | `-r, --resource RESOURCE` | `str` | `''` |
-| `id` | `-i, --id ID` | `str` | `''` |
-| `title` | `-t, --title TITLE` | `str` | `''` |
-| `server` | `-s, --server SERVER` | `str` | `''` |
-| `tool` | `-T, --tool TOOL` | `str` | `''` |
-| `args` | `-a, --args ARGS` | `json object` | unset |
-| `stale_days` | `-S, --stale-days STALE_DAYS` | `int` | `0` |
-| `author` | `-A, --author AUTHOR` | `str` | `''` |
-| `usage_count` | `-u, --usage-count USAGE_COUNT` | `int` | unset |
-| `last_modified` | `-l, --last-modified LAST_MODIFIED` | `str` | `''` |
-| `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
-
 ## config
 
 Role: `lifecycle`. Offered by a server for: OKF, Markdown, ADR.
@@ -94,26 +69,26 @@ bowerbird-mcp config --apply
 
 ## create
 
-Role: `write`. Offered by a server for: OKF.
+Role: `lifecycle`. Offered by a server for: OKF, Markdown, ADR.
 
-Create a concept with valid OKF frontmatter (§4.1): type, title, description, resource, tags, status, and `generated` {by, at} when by (your actor) is given. body is markdown; a `# title` heading is added unless the body starts with one. Refuses an existing file or a reserved name (index.md, log.md).
+Create a collection: a folder with a kbmcp.yaml (about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; `holds` is okf, markdown, adr, skos, asciidoc or seal-only, guessed from the folder). path is the folder (default: this collection's root); it is made if absent. Previews unless apply=true. Never overwrites. Inside a collection whose kbmcp.yaml has a `bowers:` list, the folder is a bower: its kbmcp.yaml is written and the root lists it (the root's .mcp.json, .env and BOWERBIRD.md serve it). A root without a `bowers:` key finds it by the nested-folder rule. Otherwise the folder is a new root, and these steps follow (no flag: all; flags: only the ones named, kbmcp.yaml always): mcp=true writes BOWERBIRD.md (the rules for an agent; the result names its path) and adds bowerbird to .mcp.json, keeping the other servers, and leaving a bowerbird entry that differs alone; env=true writes env.example, puts .env in .gitignore, and keeps your id in .env. For okf, a bundle (a root index.md declaring okf_version "0.2", and a §9 log.md) is started too, named by bundle.
 
 ```sh
-bowerbird-mcp create runbooks/deploy --type Playbook --description 'How we deploy.' --bundle eng
+bowerbird-mcp create docs --holds markdown --about 'the site pages'
+bowerbird-mcp create docs --holds markdown --about 'the site pages' --apply
+bowerbird-mcp create --mcp --apply
 ```
 
 | Argument | Flag | Type | Default |
 |---|---|---|---|
-| `file` | `-f, --file FILE` | `str` | required |
-| `type` | `-t, --type TYPE` | `str` | required |
-| `title` | `-T, --title TITLE` | `str` | `''` |
-| `description` | `-d, --description DESCRIPTION` | `str` | `''` |
-| `resource` | `-r, --resource RESOURCE` | `str` | `''` |
-| `tags` | `--tags TAGS` | `list (a,b)` | unset |
-| `status` | `-s, --status STATUS` | `str` | `''` |
-| `body` | `-b, --body BODY` | `str` | `''` |
-| `by` | `-B, --by BY` | `str` | `''` |
-| `bundle` | `--bundle BUNDLE` | `str` | `''` |
+| `path` | `-p, --path PATH` | `str` | `''` |
+| `apply` | `-A, --apply` | `bool` | `False` |
+| `mcp` | `-m, --mcp` | `bool` | `False` |
+| `env` | `-e, --env` | `bool` | `False` |
+| `bundle` | `-B, --bundle BUNDLE` | `str` | `''` |
+| `about` | `-a, --about ABOUT` | `str` | `''` |
+| `holds` | `-t, --holds HOLDS` | `str` | `''` |
+| `user` | `-u, --user USER` | `str` | `''` |
 
 ## dirs
 
@@ -127,6 +102,55 @@ bowerbird-mcp dirs -O text
 
 | Argument | Flag | Type | Default |
 |---|---|---|---|
+| `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
+
+## fact
+
+Role: `write`. Offered by a server for: OKF.
+
+Record a fact: where a claim came from, as a §5.1 `sources` entry with `retrieved_at` (when). A fact is a reproducible result. When an MCP tool produced it, pass server, tool and args, the exact call (`via`, how): that is the recipe `factcheck` replays. Pass result, what the call returned, and its `fact_sha256` (sha256 of the result, JSON canonicalized, other text with whitespace collapsed) is kept: it is what `factcheck` compares a later result with, to find drift. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.
+
+```sh
+bowerbird-mcp fact db.md --resource https://www.postgresql.org/docs/release/ --title 'PostgreSQL releases' --bundle eng
+bowerbird-mcp fact db.md --server jira --tool get_issue --args '{issue_key:INFRA-1}' --result Open --bundle eng
+```
+
+| Argument | Flag | Type | Default |
+|---|---|---|---|
+| `file` | `-f, --file FILE` | `str` | required |
+| `resource` | `-r, --resource RESOURCE` | `str` | `''` |
+| `id` | `-i, --id ID` | `str` | `''` |
+| `title` | `-t, --title TITLE` | `str` | `''` |
+| `server` | `-s, --server SERVER` | `str` | `''` |
+| `tool` | `-T, --tool TOOL` | `str` | `''` |
+| `args` | `-a, --args ARGS` | `json object` | unset |
+| `result` | `-R, --result RESULT` | `str` | `''` |
+| `stale_days` | `-S, --stale-days STALE_DAYS` | `int` | `0` |
+| `author` | `-A, --author AUTHOR` | `str` | `''` |
+| `usage_count` | `-u, --usage-count USAGE_COUNT` | `int` | unset |
+| `last_modified` | `-l, --last-modified LAST_MODIFIED` | `str` | `''` |
+| `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
+
+## factcheck
+
+Role: `lifecycle`. Offered by a server for: OKF.
+
+Check facts for drift. Without result it only lists the facts due (sources retrieved at least older_than_days ago, or on a concept past stale_after; file and id narrow it), each with `cites`, the lines whose claims rest on it. `calls` replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). `manual` ones need opening. Nothing is executed here. With result (what the replayed call returned now), for one fact (file and id) it compares fact_sha256s with the one `fact` recorded. Same: the check is recorded in `.facts.yaml` beside the file (the document itself is not changed, so no review of it is disturbed). Different: the fact has drifted, so that is recorded too and every review before that moment stops holding (`seal check` flags the file; a human reviews it again after the claim is corrected and the new result recorded with `fact`). A fact with no fact_sha256 yet has nothing to compare: the result becomes its baseline. The fact blocks in the documents (`[fact.url] <address>` ... `[fact.end]`, `[fact.mcp] <server> <key> <claim> [fact.end]`) are listed under `blocks` with their last check (unchecked, checked, drifted; kept in `.facts.yaml` beside the document). fetch=true, for a person at a terminal, shows what it will fetch or call, asks, then checks each block against a fresh result: a page must still hold the block's words (same words, else similar meaning with `semantic: true`), an MCP call (only those declared under `facts.mcp` in kbmcp.yaml) must still return the value it did. A drift ends the reviews of that file made before it, and the command exits 1.
+
+```sh
+bowerbird-mcp factcheck -O text
+bowerbird-mcp factcheck --fetch
+bowerbird-mcp factcheck --older-than-days 90 -O text
+bowerbird-mcp factcheck --file db.md --id infra-1 --result Closed --bundle eng
+```
+
+| Argument | Flag | Type | Default |
+|---|---|---|---|
+| `file` | `-f, --file FILE` | `str` | `''` |
+| `id` | `-i, --id ID` | `str` | `''` |
+| `result` | `-r, --result RESULT` | `str` | `''` |
+| `older_than_days` | `-o, --older-than-days OLDER_THAN_DAYS` | `int` | `0` |
+| `fetch` | `--fetch` | `bool` | `False` |
 | `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
 
 ## fix
@@ -220,24 +244,6 @@ bowerbird-mcp ingest '~/old-wiki' --bundle wiki --apply
 | `limit` | `-l, --limit LIMIT` | `int` | `50` |
 | `offset` | `-o, --offset OFFSET` | `int` | `0` |
 | `max_bytes` | `-m, --max-bytes MAX_BYTES` | `int` | `1000000` |
-
-## init
-
-Role: `lifecycle`. Offered by a server for: OKF, Markdown, ADR.
-
-Start a collection: a kbmcp.yaml at its root, mostly filled in (commit it; about, holds, user are what it could not know: pass them, or a human is asked in a prompt, or at a terminal; `holds` is okf, markdown, adr, skos, asciidoc or seal-only, guessed from the folder), an env.example, a .mcp.json (commit it: whoever clones the repository gets the tools, after Claude Code asks once to approve the project's server), your id in .env (not committed), and, for okf, a bundle: a root index.md declaring okf_version "0.2" with a generated document list, and a §9 log.md. Never overwrites a file; refuses only if the bundle's index.md exists. Then add concepts (any .md with `type:` frontmatter) and lint.
-
-```sh
-bowerbird-mcp init --bundle eng --apply
-```
-
-| Argument | Flag | Type | Default |
-|---|---|---|---|
-| `apply` | `-A, --apply` | `bool` | `False` |
-| `bundle` | `-B, --bundle BUNDLE` | `str` | `''` |
-| `about` | `-a, --about ABOUT` | `str` | `''` |
-| `holds` | `-t, --holds HOLDS` | `str` | `''` |
-| `user` | `-u, --user USER` | `str` | `''` |
 
 ## links
 
@@ -353,6 +359,32 @@ bowerbird-mcp move runbooks/deploy.md runbooks/ship.md --bundle eng --apply
 | `apply` | `-a, --apply` | `bool` | `False` |
 | `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
 
+## new
+
+Role: `write`. Offered by a server for: OKF, Markdown, ADR.
+
+Write a new document (.md is added; refuses a file that exists and the reserved names index.md and log.md). template is okf (frontmatter with type, title, description, status), markdown (title, tags) or adr (MADR, dated today); it defaults to the format the folder holds, from kbmcp.yaml. title defaults to the file name. With none of the fields below, the file is the bare template, to fill in by hand. Pass any of them and it is written filled in, in one call: description, tags, status (draft, stable or deprecated), body (markdown; a `# title` heading is added unless it starts with one), and for okf (OKF §4.1) type (required: Reference, Playbook, ...), resource and by=&lt;tool&gt;/&lt;model&gt;, who wrote the body (provenance: never invent it; `generated` {by, at} records it). adr takes the template alone. To make a collection or a bower, see `create`.
+
+```sh
+bowerbird-mcp new notes/deploy
+bowerbird-mcp new decisions/0004-use-vault --template adr --title 'Use Vault'
+bowerbird-mcp new runbooks/deploy --type Playbook --description 'How we deploy.' --bundle eng
+```
+
+| Argument | Flag | Type | Default |
+|---|---|---|---|
+| `file` | `-f, --file FILE` | `str` | required |
+| `template` | `-t, --template TEMPLATE` | `str` | `''` |
+| `title` | `-T, --title TITLE` | `str` | `''` |
+| `description` | `-d, --description DESCRIPTION` | `str` | `''` |
+| `tags` | `--tags TAGS` | `list (a,b)` | unset |
+| `status` | `-s, --status STATUS` | `str` | `''` |
+| `body` | `-b, --body BODY` | `str` | `''` |
+| `type` | `--type TYPE` | `str` | `''` |
+| `resource` | `-r, --resource RESOURCE` | `str` | `''` |
+| `by` | `--by BY` | `str` | `''` |
+| `bundle` | `-B, --bundle BUNDLE` | `str` | `''` |
+
 ## passages
 
 Role: `read`. Offered by a server for: OKF, Markdown, ADR, SKOS, AsciiDoc.
@@ -389,40 +421,6 @@ bowerbird-mcp provenance --apply --attest
 |---|---|---|---|
 | `apply` | `-a, --apply` | `bool` | `False` |
 | `skip` | `-s, --skip SKIP` | `list (a,b)` | unset |
-| `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
-
-## recheck_apply
-
-Role: `lifecycle`. Offered by a server for: OKF.
-
-Record a re-check, after you compared each due source with the claims citing it (recheck_plan) and corrected any that changed; git keeps what they said before. Each result is {bundle?, file, id?}, or one as file= and id=; no id = every source on that concept. retrieved_at moves to now. by (at the terminal, --attest) also adds a §5.2 `verified` entry: the concept was confirmed against its sources. stale_days&gt;0 also moves stale_after forward.
-
-```sh
-bowerbird-mcp recheck_apply db.md --bundle eng --attest
-```
-
-| Argument | Flag | Type | Default |
-|---|---|---|---|
-| `results` | `-r, --results RESULTS` | `list (a,b)` | unset |
-| `by` | `-b, --by BY` | `str` | `''` |
-| `stale_days` | `-s, --stale-days STALE_DAYS` | `int` | `0` |
-| `bundle` | `-B, --bundle BUNDLE` | `str` | `''` |
-| `file` | `-f, --file FILE` | `str` | `''` |
-| `id` | `-i, --id ID` | `str` | `''` |
-
-## recheck_plan
-
-Role: `lifecycle`. Offered by a server for: OKF.
-
-Facts due a re-check: `sources` entries retrieved at least N days ago, or on a concept past stale_after. Each lists `cites`, the lines whose claims rest on it. `calls` replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). Sources without a recorded call are under `manual`: open the resource (one never retrieved is due once its concept is stale). Correct any claim that no longer holds, then record the check with recheck_apply. Nothing is executed here.
-
-```sh
-bowerbird-mcp recheck_plan --older-than-days 90 -O text
-```
-
-| Argument | Flag | Type | Default |
-|---|---|---|---|
-| `older_than_days` | `-o, --older-than-days OLDER_THAN_DAYS` | `int` | `0` |
 | `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
 
 ## record
@@ -481,10 +479,11 @@ bowerbird-mcp rename marketing --bundle mkt --apply
 
 Role: `seal`. Offered by a server for: OKF, Markdown, ADR, SKOS, AsciiDoc, Seal-only.
 
-Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the `seal` policy in kbmcp.yaml covers has one. The one function for every format; `verify` (okf), and `ratify` or `accepted` (ADRs), are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit `by`; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 `verified` entry {by, at, sha256} into the concept; markdown, adr, skos and asciidoc keep the latest, one dense line per file (with `bowerbird`: the version that wrote it), in .waxseals.yaml (commit it), replacing the one before. The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; `seal.require` and `seal.exempt_status` in kbmcp.yaml say what it covers.
+Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the `seal` policy in kbmcp.yaml covers has one. The one function for every format; `verify` (okf), and `ratify` or `accepted` (ADRs), are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit `by`; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 `verified` entry {by, at, sha256} into the concept; markdown, adr, skos and asciidoc keep the latest, one dense line per file (with `bowerbird`: the version that wrote it), in .waxseals.yaml (commit it), replacing the one before. The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). comment="..." leaves a one-line note (up to 280 characters) with the seal: any seal can carry one, and it is kept with the review. With `seal.extensions: true` in kbmcp.yaml (the `seal-extensions` extra) several people can seal the same version, each with their own comment, kept together in one ledger line, and `seal.quorum: N` makes `seal check` fail (short_of_quorum) until N different people have; a machine check is never a signer. format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), short_of_quorum (fewer different people than seal.quorum), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; `seal.exempt` and `seal.exempt_status` in kbmcp.yaml say what it leaves out.
 
 ```sh
 bowerbird-mcp seal db.md --bundle eng --promote --attest
+bowerbird-mcp seal db.md --bundle eng --comment 'Checked against the runbook' --attest
 ```
 
 | Argument | Flag | Type | Default |
@@ -495,6 +494,7 @@ bowerbird-mcp seal db.md --bundle eng --promote --attest
 | `decision` | `-d, --decision DECISION` | `str` | `''` |
 | `check` | `-c, --check` | `bool` | `False` |
 | `since` | `-s, --since SINCE` | `str` | `''` |
+| `comment` | `-C, --comment COMMENT` | `str` | `''` |
 | `bundle` | `-B, --bundle BUNDLE` | `str` | `''` |
 
 ## search
@@ -523,7 +523,7 @@ bowerbird-mcp search deploy rollback --type Playbook --dir runbooks -O text
 
 Role: `write`. Offered by a server for: OKF.
 
-Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, seal, cite). apply=False shows the diff.
+Edit frontmatter on one or many concepts by text; every other key stays byte for byte (§4.1). fields: {key: value}; null drops a key. Checks type, status (§5.4), stale_after (§5.5, ISO with a UTC offset) and tags (a list). generated, verified and sources have their own tools (provenance, seal, fact). apply=False shows the diff.
 
 ```sh
 bowerbird-mcp set db.md status=deprecated 'tags=[db,ops]' --bundle eng --apply

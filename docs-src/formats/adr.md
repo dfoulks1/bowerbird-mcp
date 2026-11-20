@@ -18,7 +18,7 @@ platform/
 # kbmcp.yaml
 format: adr
 about: Platform decisions.
-seal: {require: ["docs/adr/*.md"], exempt_status: [proposed, draft]}
+seal: {exempt: [], exempt_status: [proposed, draft]}
 ```
 
 Every Markdown file is a record (except `README.md` and `index.md`), whatever its name or folder. Bowerbird reads each
@@ -59,30 +59,33 @@ file: docs/adr/0001-use-a-managed-queue.md, heading: 1. Use a managed queue > De
 file: docs/adr/0002-use-postgresql.md, heading: Use PostgreSQL > Context and Problem Statement, type: adr, status: proposed, tier: unverified
 ```
 
-**Ratifying.** A record that says "Accepted" has only said so about itself. `kb ratify` (the same function as `seal`,
+**Starting a record.** `bowerbird-mcp new docs/adr/0003-use-vault.md -T "Use Vault"` writes the MADR template: status `proposed`,
+today's date, and the Context, Options, Decision and Consequences headings. A folder that holds ADRs gets it by default.
+
+**Ratifying.** A record that says "Accepted" has only said so about itself. `bowerbird-mcp ratify` (the same function as `seal`,
 under the word ADRs use) records that a person reviewed it and what they decided:
 
 ```sh
-kb ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest
+bowerbird-mcp ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest
 ```
 
 The `decision` goes into `.waxseals.yaml`, and from then on it is the hit's `status`, with `tier: human-reviewed`.
-`kb seal check=true` fails a commit when a record that needs a review lacks one: `unsigned` for a required record,
+`bowerbird-mcp seal check=true` fails a commit when a record that needs a review lacks one: `unsigned` for a required record,
 `claims_accepted` for one whose own status says accepted but no person reviewed it, and `stale_signature` for one
 edited after its review. A `proposed` or `draft` record is exempt, so you can commit a proposal before it is reviewed.
 
-**Seeing where the records stand.** `kb status` and `kb list` report a record as `stable` (proposed or accepted),
+**Seeing where the records stand.** `bowerbird-mcp status` and `bowerbird-mcp list` report a record as `stable` (proposed or accepted),
 `superseded`, `rejected` or `deprecated`; a superseded record stays superseded. A person's seal is what makes a stable
 record **accepted**; without one it is **proposed**, whatever the file says about itself. `accepted` is another command-line name for
 `seal`, like `ratify`. With two records that both write "Accepted" and no seal yet:
 
 ```text
-$ kb status
+$ bowerbird-mcp status
 concepts: 2, by_status: {stable: 2}, by_state: {proposed: 2}, by_tier: {unverified: 2}, stale: 0
-$ kb list status=proposed
+$ bowerbird-mcp list status=proposed
 adr/0001-use-postgres.md   status: stable, state: proposed, tier: unverified
 adr/0002-use-redis.md      status: stable, state: proposed, tier: unverified
 ```
 
-`kb list status=proposed` is the worklist of decisions nobody has reviewed. `stale` counts the records edited after a
+`bowerbird-mcp list status=proposed` is the worklist of decisions nobody has reviewed. `stale` counts the records edited after a
 review.

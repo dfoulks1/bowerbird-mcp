@@ -8,11 +8,11 @@ Confirm). A human seals from a modal that asks what the MCP prompt asks. Nothing
 Needs `markdown` (pip install 'bowerbird-mcp[serve]').
 """
 import asyncio
+import datetime as dt
 import hashlib
 import html
 import inspect
 import io
-import datetime as dt
 import json
 import os
 import re
@@ -54,6 +54,7 @@ aside h4{margin:.8rem 0 .2rem;color:var(--mut);text-transform:uppercase;font-siz
 input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}
 #top{position:sticky;top:0;z-index:5;display:flex;gap:.5rem;align-items:center;height:3rem;padding:0 1rem;background:var(--bg);border-bottom:1px solid var(--line)}
 #top a.brand{display:flex;align-items:center}.logo{height:1.35rem;width:auto;flex:none}.logo path{fill:var(--logo)}
+#top a.repo{display:flex;align-items:center;color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:.2rem .45rem}#top a.repo svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:1.6}#top a.repo:hover{border-color:var(--acc)}
 #top button{background:none;border:1px solid var(--line);color:var(--fg);border-radius:4px;padding:.15rem .5rem;cursor:pointer}
 #crumbs{color:var(--mut);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}#crumbs a{color:var(--mut)}
 #sw{position:relative;width:24rem;display:flex;gap:.3rem}#sw select{width:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}#res{display:none;position:absolute;top:2.2rem;left:0;right:0;z-index:7;background:var(--bg);border:1px solid var(--line);border-radius:6px;max-height:70vh;overflow:auto;box-shadow:0 6px 20px #0004}
@@ -66,7 +67,7 @@ aside .bar{margin-top:0}aside .menu div{position:static;box-shadow:none;margin-t
 .bar{display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
 .bar a.cur{background:var(--acc);color:#fff}.bar a,button.go{border:1px solid var(--line);border-radius:4px;padding:.15rem .6rem;text-decoration:none;background:none;color:var(--fg);cursor:pointer;font:inherit}button.go.hot{background:var(--acc);color:#fff;border-color:var(--acc)}
 textarea{width:100%;min-height:60vh;font:13px/1.45 ui-monospace,monospace;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}
-label{display:block;margin:.4rem 0}label small{color:var(--mut)}.err{border:1px solid var(--bad);color:var(--bad);border-radius:6px;padding:.4rem .7rem}dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;max-width:38rem}
+pre.facts{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,monospace;margin:.6rem 0;padding:0;background:none;border:0}label{display:block;margin:.4rem 0}label small{color:var(--mut)}.err{border:1px solid var(--bad);color:var(--bad);border-radius:6px;padding:.4rem .7rem}dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;max-width:38rem}
 .hit{margin:.8rem 0}.hit small{color:var(--mut)}@media(max-width:60rem){.wrap{display:block}nav,aside{position:static;max-height:none}}
 """
 JS = r"""
@@ -171,7 +172,9 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         print("error: serve needs the markdown package | fix: pip install 'bowerbird-mcp[serve]' (or uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve)")
         return 2
     ROOT = kb.KB_ROOT
-    SKIP, MAXSIZE = [set()], 512 * 1024  # seal-only files not shown (binary or oversized); the size cap in bytes
+    REPO = kb.web_base(ROOT)  # the repository's web address, when the collection is in a git work tree with a web remote
+    SKIP: list = [set()]
+    MAXSIZE = 512 * 1024  # seal-only files not shown (binary or oversized); the size cap in bytes
     os.chdir(ROOT)  # tools default to the bundle around the working directory: serve means the whole collection, wherever it was started
     href = lambda rel: "/" + urllib.parse.quote(rel)
     esc = html.escape
@@ -195,7 +198,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             es, valid = kb.reviews(d, key, text, ledger)
             last = (valid or es or [{}])[-1]
             docs[key] = {"title": kb.title_of(d, text, p), "meta": d, "fm": kb.meta(text)[0] is not None, "body": kb.split(text)[1],
-                         "state": "derived" if kb.derived(p) else "unsealed" if not es else "sealed" if valid else "broken-seal",
+                         "state": "derived" if kb.derived(p, ledger) else "unsealed" if not es else "sealed" if valid else "broken-seal",
                          "by": last.get("by", ""), "at": last.get("at", "")}
         for p, made in [(q, False) for q in kb.sealonly_files()] + [(q, True) for q in kb.derived_files()]:  # seal-only files: a page each, read-only; derived ones are marked, not sealed
             rel = p.relative_to(ROOT)
@@ -285,10 +288,10 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 else:
                     out.append(f'<a href="{href(v)}"><span class="dot none"></span>{esc(k)}</a>')
             return "".join(out)
-        return f"<details open><summary>{esc(ROOT.name)}/</summary>{walk(tree)}{newlink('')}<a class=new href=/_lint>Lint all</a><a class=new href=/_tags>Tags</a><a class=new href=/_tool/unarchive>Unarchive</a><a class=new href=/_tool/init>New knowledgebase</a></details>"
+        return f"<details open><summary>{esc(ROOT.name)}/</summary>{walk(tree)}{newlink('')}<a class=new href=/_lint>Lint all</a><a class=new href=/_tags>Tags</a><a class=new href=/_tool/unarchive>Unarchive</a><a class=new href=/_tool/create>New knowledgebase</a></details>"
 
     def setup_dialog():
-        """No kbmcp.yaml here: ask the three things init cannot know (about, holds, user), as init's own prompt does."""
+        """No kbmcp.yaml here: ask the three things create cannot know (about, holds, user), as create's own prompt does."""
         if kb.CFG_DIR or (kb.KB_ROOT / kb.CONFIG).exists():
             return ""
         opts = "".join(f"<option{' selected' if f == kb.detect_holds(kb.KB_ROOT) else ''}>{f}" for f in kb.FORMATS)
@@ -305,8 +308,10 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         crumbs = [f'<a href="/">{esc(ROOT.name)}</a>'] + [
             f'<a href="{href("/".join(parts[:i + 1]))}">{esc(x)}</a>' if i < len(parts) - 1 and (ROOT / "/".join(parts[:i + 1]) / "index.md").exists() else esc(x)
             for i, x in enumerate(parts)]
+        repo = (f'<a class=repo href="{esc(REPO)}" target=_blank rel=noopener title="the repository: {esc(REPO.removeprefix("https://"))}" aria-label="the repository">'
+                '<svg viewBox="0 0 16 16"><circle cx=4 cy=3.5 r=1.7 /><circle cx=4 cy=12.5 r=1.7 /><circle cx=12 cy=6 r=1.7 /><path d="M4 5.2v5.6M12 7.7c0 2.6-3.2 2.4-6.6 4.2"/></svg></a>') if REPO else ""
         top = (f'<div id=top><a class=brand href="/" title="bowerbird {kb.VERSION}">{LOGO}</a><button id=back title="back ([)">◀</button><button id=fwd title="forward (])">▶</button>'
-               f'<span id=crumbs>{" / ".join(crumbs)}</span><div id=sw><select id=mode title="what to search: passages (ranked sections), concepts (whole pages), meaning (passages matched by meaning), tags">{"".join(f"<option value={m}>{n}" for m, n in modes())}</select><input id=q placeholder="search ( / )" autocomplete=off><div id=res></div></div><form method=post action=/_stop onsubmit="return confirm(&quot;Stop the bowerbird server? Reopen it with: bowerbird-mcp serve&quot;)" style=margin:0><input type=hidden name=_t value="{TOKEN}"><button title="stop this server" aria-label="stop this server">⏻</button></form><button id=theme title="theme (t)">◐</button></div>')
+               f'<span id=crumbs>{" / ".join(crumbs)}</span><div id=sw><select id=mode title="what to search: passages (ranked sections), concepts (whole pages), meaning (passages matched by meaning), tags">{"".join(f"<option value={m}>{n}" for m, n in modes())}</select><input id=q placeholder="search ( / )" autocomplete=off><div id=res></div></div><form method=post action=/_stop onsubmit="return confirm(&quot;Stop the bowerbird server? Reopen it with: bowerbird-mcp serve&quot;)" style=margin:0><input type=hidden name=_t value="{TOKEN}"><button title="stop this server" aria-label="stop this server">⏻</button></form>{repo}<button id=theme title="theme (t)">◐</button></div>')
         hint = '<h4>Keys</h4><small><kbd>/</kbd> search <kbd>n</kbd>/<kbd>p</kbd> next/prev unsealed<br><kbd>j</kbd>/<kbd>k</kbd> next/prev doc <kbd>t</kbd> theme <kbd>[</kbd><kbd>]</kbd> history</small><p><small>bowerbird '+kb.VERSION+'</small></p>'
         return (f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>{esc(title)} · bowerbird</title>"
                 f"<link rel=icon type=image/svg+xml href=/_logo.svg><script>try{{var t=localStorage.getItem('kbtheme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}}catch(e){{}}</script>"
@@ -336,7 +341,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                                     "extra": "tags: " + ", ".join(hit), "text": str((x.meta or {}).get("description") or "")})
                 return sorted(out, key=lambda h: h["path"])[:50], ""
             if mode == "semantic" and not kb.OPTS["semantic"]:
-                return [], "meaning search is off | fix: set `semantic: true` in kbmcp.yaml (it needs fastembed), then reindex"
+                return [], "meaning search is off | fix: set `semantic: true` in kbmcp.yaml (it needs the `semantic` extra: bowerbird-mcp[semantic]), then reindex"
             with LOCK:  # passages reads one global switch: keyword mode turns it off for this call
                 keep = kb.OPTS["semantic"]
                 kb.OPTS["semantic"] = keep and mode == "semantic"
@@ -351,7 +356,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
 
     TOKEN, LOCK = secrets.token_urlsafe(16), threading.RLock()  # the kb module holds global state: one tool at a time
     HOSTS = {f"127.0.0.1:{port}", f"localhost:{port}"}  # a Host we did not bind is DNS rebinding
-    FORMS = {"move", "archive", "unarchive", "fix", "init"}  # the tools a button here leads to; the rest are the CLI's (`bowerbird-mcp help`)
+    FORMS = {"move", "archive", "unarchive", "fix", "create"}  # the tools a button here leads to; the rest are the CLI's (`bowerbird-mcp help`)
     HIDE = {"by", "ctx", "apply"}  # `by` is never asked: nothing here stamps `generated`
     uq = urllib.parse.quote  # not `q`: do_GET has its own
 
@@ -437,9 +442,10 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         return f'<h1>Lint{": " + esc(key) if key else ""}</h1><p>ok: {r.get("ok")} · {len(fs)} finding(s)</p>{fix}{ftable(fs)}'
 
     def ftable(fs, new_tab=False):
-        row = lambda x: (lambda path: f'<tr><td>{esc(x["severity"])}</td><td>{esc(x["kind"])}</td><td><a href="{href(path)}"{" target=_blank" if new_tab else ""}>{esc(path)}</a></td>'
-                         f'<td>{esc(x["message"])}<br><small>{esc(x["fix"])}</small></td><td>{"fix" if x["fixable"] else ""}</td></tr>')(
-            x["file"] if x.get("bundle") in (None, "", ".") else f'{x["bundle"]}/{x["file"]}')
+        def row(x):
+            path = x["file"] if x.get("bundle") in (None, "", ".") else f'{x["bundle"]}/{x["file"]}'
+            return (f'<tr><td>{esc(x["severity"])}</td><td>{esc(x["kind"])}</td><td><a href="{href(path)}"{" target=_blank" if new_tab else ""}>{esc(path)}</a></td>'
+                    f'<td>{esc(x["message"])}<br><small>{esc(x["fix"])}</small></td><td>{"fix" if x["fixable"] else ""}</td></tr>')
         return "<table><tr><th>severity<th>kind<th>file<th>finding<th></tr>" + "".join(map(row, fs)) + "</table>" if fs else "<p>No findings.</p>"
 
     def lint_text(key, text):
@@ -530,7 +536,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         """The modal: what seal's MCP prompt shows, and asks the same two things (confirm, and your id)."""
         try:
             f, b = tfile(key)
-            okf, p, r, t, d, label = kb.review_target(f, b, "")
+            okf, _p, _r, t, d, label = kb.review_target(f, b, "")
         except (ValueError, OSError):
             return ""
         extra = ""
@@ -540,9 +546,10 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
             extra = '<label>decision <small>(optional)</small><select name=decision><option value="">none<option>accepted<option>rejected</select></label>'
         msg = kb.review_message(label, okf, t, d, "", False)
         return (f'<dialog id=seal><form method=post action="/_seal"><input type=hidden name=_t value="{TOKEN}"><input type=hidden name=file value="{esc(key)}">'
-                f'<input type=hidden name=sha value="{kb.content_hash(t, okf)}"><h3>Seal {esc(key)}</h3><p>{esc(msg)}</p>'
+                f'<input type=hidden name=sha value="{kb.content_hash(t, okf)}"><h3>Confirm seal: {esc(key)}</h3><pre class=facts>{esc(msg)}</pre>'
                 f'<label><input type=checkbox name=confirm style="width:auto"> I reviewed this concept and confirm it is accurate</label>'
-                f'<label>Your id <small>(recorded as human:&lt;id&gt;)</small><input name=reviewer value="{esc(kb.kb_user())}"></label>{extra}'
+                f'<label>Your id <small>(recorded as human:&lt;id&gt;)</small><input name=reviewer value="{esc(kb.kb_user())}"></label>'
+                f'<label>Comment <small>(optional, one line, kept with your seal)</small><input name=comment maxlength=280></label>{extra}'
                 f'<div class=bar><button class="go hot">Seal</button><button type=button class=go onclick="this.closest(\'dialog\').close()">Cancel</button></div></form></dialog>')
 
     def do_seal(form):
@@ -552,16 +559,16 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
         if not rid or re.search(r"\s", rid):
             raise ValueError("reviewer id is empty or has spaces | fix: confirm again with your id")
         if kb.derived(ROOT / key):
-            raise ValueError(f"{key} is derived from the code | fix: nothing to review; a `!` glob in seal.require leaves it out")
+            raise ValueError(f"{key} is derived from the code | fix: nothing to review; `seal.exempt` leaves it out")
         f, b = tfile(key)
         decision = form.get("decision", [""])[0]
         with LOCK:
-            okf, p, r, t, d, label = kb.review_target(f, b, decision)
+            okf, _p, _r, t, _d, _label = kb.review_target(f, b, decision)
             if kb.content_hash(t, okf) != form.get("sha", [""])[0]:
                 raise ValueError(f"{key} changed while the prompt was open; nothing written | fix: review it again")
             kb.ATTEST = f"human:{rid}"  # the one place a human is recorded here: this click, with this typed id
             try:
-                asyncio.run(kb.seal(file=f, bundle=b, promote="promote" in form, decision=decision))
+                asyncio.run(kb.seal(file=f, bundle=b, promote="promote" in form, decision=decision, comment=form.get("comment", [""])[0]))
             finally:
                 kb.ATTEST = ""
         return f"sealed as human:{rid}"
@@ -723,7 +730,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                     raise ValueError(f"{len(back)} page(s) link to {key} | fix: unlink them first, or archive it")
                 with LOCK:
                     changes = {p: None}
-                    led = kb.ledger_read(kb.KB_ROOT / kb.LEDGER)
+                    led = kb.ledger_all(kb.KB_ROOT / kb.LEDGER)
                     if led.pop(os.path.relpath(p, kb.KB_ROOT), None) is not None:
                         changes[kb.KB_ROOT / kb.LEDGER] = kb.ledger_text(led)
                     kb.commit(kb.enclosing(p.parent), changes, True)
@@ -736,7 +743,7 @@ def run(kb, port: int = PORT, foreground: bool = False) -> int:
                 about, holds, user = one("about").strip(), one("holds"), one("user").strip().removeprefix("human:")
                 if not about or not user or re.search(r"\s", user):
                     raise ValueError("about and your id are required, and the id has no spaces | fix: fill both in")
-                r = call("init", apply=True, about=about, holds=holds, user=user)
+                r = call("create", apply=True, about=about, holds=holds, user=user)
                 return self.send_bytes(page("Set up", left, f"<h1>Set up</h1>{show(r)}<p>Restart <code>bowerbird-mcp serve</code> to load it.</p>"))
             if path == "/_stop":
                 if form is None:

@@ -10,7 +10,8 @@ The short form is in [CONTRIBUTING.md](../CONTRIBUTING.md#releasing). This page 
 - The name `bowerbird` on PyPI is held by another account (an empty project). A rename was tried for 2.1.0 and
   reverted when the upload returned 403. `/pypi/<name>/json` is not proof a name is free: it is 404 for a project with
   no files. Check `/simple/<name>/` (200 means it exists) before building a release around a new name.
-- The `bowerbird-mcp [extra]` form is the install line: `pip install 'bowerbird-mcp[serve]'`.
+- The `bowerbird-mcp [extra]` form is the install line: `pip install 'bowerbird-mcp[serve]'`. The extras are `serve`, `syntax`,
+  `semantic` (`fastembed`, kept out of the base install on purpose), `skos`, `sqlite-vec` and `hnsw`; the README's Run section lists them.
 
 ## Steps
 
@@ -39,5 +40,5 @@ undone (a yanked release still holds its version number).
 
 ## A major version
 
-Also change the pin `init` writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1`
+Also change the pin `create` writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1`
 example in `docs-src/formats/skos.md`.

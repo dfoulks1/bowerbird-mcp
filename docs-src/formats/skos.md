@@ -36,5 +36,5 @@ text: Also: message queue / Definition: A buffer that decouples a producer from 
 ```
 
 SKOS needs the `rdflib` library. With `uvx`, ask for the extra in the client config: `"--from", "bowerbird-mcp[skos]>=2,<3"`
-(the `.mcp.json` that `init` writes does not include it yet). A SKOS file is sealed as a whole, not per concept, and
+(the `.mcp.json` that `create` writes does not include it yet). A SKOS file is sealed as a whole, not per concept, and
 links between concepts do not count towards ranking.

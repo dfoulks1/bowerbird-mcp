@@ -65,7 +65,6 @@ exclude_docs: |
   prompts/
   releasing.md
   kbmcp.yaml
-  .waxseals.yaml
   .env
 
 nav:
@@ -83,6 +82,8 @@ nav:
   - Docs:
       - Guide: guide.md
       - Command line: cli.md
+      - Agent rules: agents.md
+      - Status badges: badges.md
       - Tools: tools.md
       - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md

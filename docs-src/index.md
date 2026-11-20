@@ -71,7 +71,7 @@ Or work from the terminal, no AI needed. In any folder, with the format that fit
 ```sh
 # make it a collection: settings files only, your files are not touched
 # holds= is markdown, adr, okf, skos or seal-only
-uvx bowerbird-mcp init holds=markdown about="Team notes." apply=true
+uvx bowerbird-mcp create holds=markdown about="Team notes." apply=true
 
 # ask a question: the best sections, each with the file and line to cite
 uvx bowerbird-mcp passages 'how do we deploy' output=text
