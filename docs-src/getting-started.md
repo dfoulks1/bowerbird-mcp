@@ -71,9 +71,13 @@ uvx bowerbird-mcp create -t markdown -a "Infra runbooks." --apply -O text
 ```
 
 ```text
+agent: {"file": "BOWERBIRD.md", "state": "written"}
+mcp: written
 edited: {}
-config: {"files": ["bower.yaml", ".env", "env.example", ".mcp.json", "BOWERBIRD.md"], "missing": [], "gitignore": "not a git work tree"}
+config: {"files": ["bower.yaml", ".env", "env.example", "BOWERBIRD.md", ".mcp.json"], "missing": [], "gitignore": "not a git work tree"}
 ```
+
+`agent` is the rules file for an assistant and `mcp` is the entry added to `.mcp.json` (an existing `.mcp.json` keeps its other servers).
 
 Your notes are not touched. `create` wrote the collection's settings:
 

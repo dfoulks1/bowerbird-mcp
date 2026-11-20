@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="tools/">Tools</a>
                   </li>
                 
@@ -205,7 +215,7 @@
 <p class="note">Local files only. No network, except the one-time model download if you turn on semantic search. Never writes to git. One Python file, installed or run with <a href="https://docs.astral.sh/uv/">uv</a>. These pages were written with Claude Opus 5.5 and Claude Sonnet 5.5 and are sealed with Bowerbird.</p>
 
 <h2 id="pick-the-format-that-fits">Pick the format that fits<a class="headerlink" href="#pick-the-format-that-fits" title="Link to this section">#</a></h2>
-<p>A <code>format:</code> line in <code>kbmcp.yaml</code> says what a folder holds. Each exists for a reason:</p>
+<p>A <code>format:</code> line in <code>bower.yaml</code> says what a folder holds. Each exists for a reason:</p>
 <ul>
 <li><strong>Markdown</strong>: notes, runbooks, wikis, docs. Nothing to write but Markdown.</li>
 <li><strong>ADR</strong>: decision records (ADR or MADR), with each record's status.</li>
@@ -234,7 +244,7 @@ file you name.</p>
 <p>Or work from the terminal, no AI needed. In any folder, with the format that fits what you keep (Markdown here, as an example):</p>
 <pre class="highlight"><code class="language-sh"># make it a collection: settings files only, your files are not touched
 # holds= is markdown, adr, okf, skos or seal-only
-uvx bowerbird-mcp init holds=markdown about="Team notes." apply=true
+uvx bowerbird-mcp create holds=markdown about="Team notes." apply=true
 
 # ask a question: the best sections, each with the file and line to cite
 uvx bowerbird-mcp passages 'how do we deploy' output=text

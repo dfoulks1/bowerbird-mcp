@@ -22,7 +22,7 @@ and the build swaps it for a badge, from the ledger, comparing the page's curren
 | reviewed, with the date | a person sealed this exact version |
 | edited since its last review | it was sealed, then changed |
 | not yet reviewed | no person has sealed it |
-| derived from the code | a generator recorded these exact bytes in the ledger (`derived: <generator>`) |
+| derived from the code | a generator recorded these exact bytes in the ledger (`derived: <generator>`), or the folder holding the file |
 
 The badge is a `<p class="seal-badge" data-state="reviewed|edited|unreviewed|derived">`. Colour comes from the CSS in
 `docs-src/css/custom.css` (`.seal-badge[data-state="reviewed"] { --seal: var(--bs-success); }` and so on), and the wording from the

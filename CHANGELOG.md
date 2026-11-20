@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.0 (unreleased)
+## 2.2.0 (2026-11-20)
 
 ### Added
 - **`bowers:`**, a root `bower.yaml` key listing the folders (globs allowed) that carry their own `bower.yaml`. Only those
@@ -19,7 +19,8 @@
   `.waxseals.yaml` (`mark_derived(path, generator)`; `docs_tools.py` does it for `docs-src/tools.md`). `serve` and the docs build badge a
   file derived only while that line matches its bytes; `seal.exempt` no longer implies it (it only leaves a file out of `seal check`), so a
   page that is exempt but hand-written is no longer badged as built from the code. `hooks/seal_banner.py` now reads only the ledger: no
-  `bower.yaml`, no globs, the same hash the tool uses, and several seals on one line. A derived line is not a review (it carries `by: generator:<name>` so a 2.1.x reader can still read the ledger).
+  `bower.yaml`, no globs, the same hash the tool uses, and several seals on one line. A generated folder gets one line for the whole folder (`mark_derived_dir`; `docs_tools.py` records `docs/` as built by mkdocs): everything under it is
+  derived, exempt and badged blue. A derived line is not a review (it carries `by: generator:<name>` so a 2.1.x reader can still read the ledger).
 - `serve` shows a link to the repository (from `origin`, when it has a web address) beside the theme and stop buttons. New docs page,
   [Status badges](https://bowerbird.voltpop.com/badges/): the site's review and fact badges, doing the same in another site generator, and a
   script that makes a README badge from `seal check`.
@@ -56,6 +57,10 @@
   (up to 1,000) and read for the `read` role; a dotfile, a link, a folder or anything outside the collection is refused. The SDK's
   templates match one path segment, so Bowerbird handles listing and reading for its own scheme and passes `okf://spec` and
   `bowerbird://agent-rules` through.
+- **`okf export` and `okf import`**, a person's command (a terminal; not a tool) that moves an OKF concept's reviews and sources between its
+  frontmatter and `.waxseals.yaml` and `.facts.yaml`, previewing until `--apply`. Export reads the documents and changes none (a review that holds is
+  rebound so it holds in the ledger; a stale one stays behind). Import writes `verified` and `sources`; one that already went stale loads as stale
+  history, and writing `sources` ends the reviews of the old bytes (the preview counts them: a new seal verifies what loaded). Both are idempotent.
 - **The `kb` names are gone.** The settings file is `bower.yaml` (was `kbmcp.yaml`), the environment variables are `BOWERBIRD_*` (were `KB_*`),
   the lint skip file is `bower.nolint` (was `kbmcp.nolint`; the inline marker is `<!-- bower-nolint -->`), the index cache is `.bower/` (was
   `.kbmcp/`; a cache, rebuilt on first use), and the generated-list markers say `bowerbird-index` (the old `kb-index` is still read, and replaced

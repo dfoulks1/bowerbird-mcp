@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../../tools/">Tools</a>
                   </li>
                 
@@ -225,49 +235,51 @@
           </nav>
         
         <article><h1 id="markdown">Markdown<a class="headerlink" href="#markdown" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T20:16:34Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:21Z</p>
 
 <p><strong>Use it when</strong> you have a folder of notes and want to ask questions of it and know which of them a person has
 checked. There is nothing to learn and nothing to convert.</p>
 <pre class="highlight"><code class="language-text">notes/
-  kbmcp.yaml             format: markdown
+  bower.yaml             format: markdown
   deploy.md              plain Markdown, no header needed
   rollback.md
   .waxseals.yaml    appears when someone seals a note (commit it)</code></pre>
-<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+<pre class="highlight"><code class="language-yaml"># bower.yaml
 format: markdown
 about: Team notes.</code></pre>
-<pre class="highlight"><code class="language-sh">kb init holds=markdown about="Team notes." apply=true
-kb passages 'how do I roll back' output=text</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp create holds=markdown about="Team notes." apply=true
+bowerbird-mcp passages 'how do I roll back' output=text</code></pre>
 <p>A hit is a section of a note, with its file and line:</p>
 <pre class="highlight"><code class="language-text">file: rollback.md, line: 2, heading: Rollback, match: 100, type: null, status: stable, tier: unverified, links: 1
 text: To roll back, redeploy the previous tag and confirm the dashboard is green.</code></pre>
 <p>Every hit says <code>tier: unverified</code> until a human has sealed that file. <code>links</code> counts the notes that link to it
 (<code>deploy.md</code> links to <code>rollback.md</code>, so it is 1). Files named <code>index.md</code> and <code>log.md</code> are ordinary notes here.</p>
-<p><strong>Reviewing.</strong> At a terminal, <code>kb seal deploy.md --attest</code> records you; over MCP a prompt asks you instead. The review
+<p><strong>Reviewing.</strong> At a terminal, <code>bowerbird-mcp seal deploy.md --attest</code> records you; over MCP a prompt asks you instead. The review
 goes into <code>.waxseals.yaml</code>, never into the note:</p>
 <pre class="highlight"><code class="language-yaml">- {file: deploy.md, sha256: 6205ee8f20e4fa49559acc629e6639e87cc7ac5233fe496f18158236bdf659f6, by: 'human:you', at: '2026-11-16T14:40:51Z'}</code></pre>
 <p>One line per file; sealing it again replaces the line, and git keeps the earlier ones.</p>
 <p>Edit the note afterwards and the <code>sha256</code> no longer matches: the review is broken, and the hit shows <code>unverified</code> and
-<code>stale</code>. <code>kb seal check=true</code> lists what has no review (for a pre-commit hook or CI).</p>
+<code>stale</code>. <code>bowerbird-mcp seal check=true</code> lists what has no review (for a pre-commit hook or CI).</p>
+<p><strong>Starting a page.</strong> <code>bowerbird-mcp new notes/deploy -T "Deploy"</code> writes <code>notes/deploy.md</code> from the markdown template (a title and
+<code>tags</code>, then a heading) and refuses a file that exists. <code>-t okf</code> or <code>-t adr</code> picks another template.</p>
 <h2 id="use-case-content-for-a-generated-website">Use case: content for a generated website<a class="headerlink" href="#use-case-content-for-a-generated-website" title="Link to this section">#</a></h2>
 <p>Use Bowerbird to manage the content behind a website that a generator builds. The content is a folder of
 Markdown or <a href="../asciidoc/">AsciiDoc</a>, the two formats site generators read. Bowerbird does
 not build the site. It searches the source, and it guarantees that a person reviewed the exact text of each page before it
 ships.</p>
 <h3 id="setup">Setup<a class="headerlink" href="#setup" title="Link to this section">#</a></h3>
-<p>A <code>kbmcp.yaml</code> at the root of the content folder. This is the one this site uses:</p>
+<p>A <code>bower.yaml</code> at the root of the content folder. This is the one this site uses:</p>
 <pre class="highlight"><code class="language-yaml">format: markdown      # or asciidoc
 about: Bowerbird's documentation pages (the site source). Each page needs a human review.
-seal: {require: ["/*.md", "/formats/*.md"], exempt_status: []}</code></pre>
-<p><code>seal.require</code> lists the pages that need a review. A leading <code>/</code> anchors a pattern at the content folder's root.</p>
+seal: {exempt: ["/tools.md", "/prompts/**"], exempt_status: []}</code></pre>
+<p>Every page needs a review except the ones <code>seal.exempt</code> lists. A leading <code>/</code> anchors a pattern at the content folder's root.</p>
 <h3 id="the-loop">The loop<a class="headerlink" href="#the-loop" title="Link to this section">#</a></h3>
 <ol>
 <li>People and agents write and edit pages. An agent can search them with <code>passages</code>, which returns the section, file and
    line to cite, and whether a person has reviewed it.</li>
-<li><code>kb seal check=true</code> lists the pages without a review of their current text. It changes nothing and exits 1 on findings:</li>
+<li><code>bowerbird-mcp seal check=true</code> lists the pages without a review of their current text. It changes nothing and exits 1 on findings:</li>
 </ol>
-<pre class="highlight"><code class="language-text">$ kb seal check=true
+<pre class="highlight"><code class="language-text">$ bowerbird-mcp seal check=true
 files_checked: 16, total: 12
 unsigned  contributing.md
 unsigned  formats/adr.md
@@ -276,7 +288,7 @@ unsigned  formats.md
 <ol>
 <li>A person reads a page and seals it, in the confirmation prompt or at a terminal with <code>--attest</code>. An agent never
    seals for them.</li>
-<li>In CI, <code>kb seal check=true since=origin/main</code> fails a pull request that changes a page without a review of the new
+<li>In CI, <code>bowerbird-mcp seal check=true since=origin/main</code> fails a pull request that changes a page without a review of the new
    version. Any edit after a seal makes it stale (<code>stale_signature</code>), so a reviewed page cannot change silently.</li>
 <li>The generator builds the site.</li>
 </ol>
@@ -293,7 +305,7 @@ ledger, then renders one of four badges:</p>
 <li><strong>Reviewed:</strong> "AI Generated, Human Reviewed at: <em>date-time</em>", when a person's seal matches this exact text.</li>
 <li><strong>Edited since its last human review:</strong> the page has a seal, but the text has changed since.</li>
 <li><strong>Not yet human reviewed:</strong> no person has sealed it.</li>
-<li><strong>Derived from the code:</strong> the page is built from the code (the tool list, from its docstrings), so <code>seal.require</code> leaves it out with a <code>!</code> glob and it needs no review.</li>
+<li><strong>Derived from the code:</strong> the page is built from the code (the tool list, from its docstrings), so <code>seal.exempt</code> leaves it out and it needs no review.</li>
 </ul>
 <p>The badge is built from the ledger, so it cannot go stale and the source never changes. A page that includes text from
 elsewhere (as the Guide includes the README) is marked as not covered for that text.</p>

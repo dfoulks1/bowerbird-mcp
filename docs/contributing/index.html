@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../tools/">Tools</a>
                   </li>
                 
@@ -267,7 +277,7 @@ changes nothing in the working tree and stops at the first failure.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Link to this section">#</a></h2>
 <ol>
 <li>Set <code>version</code> in <code>pyproject.toml</code> and <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), run <code>uv lock</code> (the
-   lockfile records the version), and add a section to <code>CHANGELOG.md</code>. For a new major version, also change the pin <code>init</code>
+   lockfile records the version), and add a section to <code>CHANGELOG.md</code>. For a new major version, also change the pin <code>create</code>
    writes into <code>.mcp.json</code> (<code>MCP_JSON</code> in <code>bowerbird_mcp.py</code>) and the <code>bowerbird-mcp[skos]&gt;=N,&lt;N+1</code> example in
    <code>docs-src/formats/skos.md</code>. Then run <code>tools/QA.sh</code>.</li>
 <li>Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to <code>main</code>.</li>
@@ -287,11 +297,11 @@ serves it from <code>main</code> <code>/docs</code>. No CI builds it. After chan
 tool or <code>docs-src/</code>, rebuild locally and commit both:</p>
 <pre class="highlight"><code class="language-sh">uv run docs_tools.py                          # docs-src/tools.md, from the tools' docstrings
 uvx --with pymdown-extensions mkdocs build    # docs-src/ -&gt; docs/</code></pre>
-<p><code>docs-src/</code> is also a collection (its own <code>kbmcp.yaml</code>): a person reviews each page and seals it, and the build draws each
+<p><code>docs-src/</code> is also a collection (its own <code>bower.yaml</code>): a person reviews each page and seals it, and the build draws each
 page's review badge from <code>docs-src/.waxseals.yaml</code> (<code>hooks/seal_banner.py</code>). So seal first, then build, then commit
 <code>docs/</code>: a build made before a seal is stale, and <code>tools/QA.sh</code> fails it. See what still needs a review with:</p>
-<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py seal check=true --config docs-src/kbmcp.yaml</code></pre>
-<p><code>tools.md</code> is built from the code and left out of the review policy (<code>!/tools.md</code> in <code>seal.require</code>). <code>mkdocs serve</code>
+<pre class="highlight"><code class="language-sh">uv run bowerbird_mcp.py seal check=true --config docs-src/bower.yaml</code></pre>
+<p><code>tools.md</code> is built from the code and left out of the review policy (<code>/tools.md</code> in <code>seal.exempt</code>). <code>mkdocs serve</code>
 loads <code>hooks/</code> once, so restart the preview after changing them.</p></article>
         
           <hr class="my-5">

@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../../tools/">Tools</a>
                   </li>
                 
@@ -211,6 +221,11 @@
     </li>
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#facts-what-a-claim-rests-on-and-drift">Facts: what a claim rests on, and drift</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#bundles-indexmd-and-logmd">Bundles, index.md and log.md</a>
       
     </li>
@@ -257,12 +272,12 @@
           </nav>
         
         <article><h1 id="okf">OKF<a class="headerlink" href="#okf" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:56:21Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:29Z</p>
 
 <p><strong>Use it when</strong> the knowledge needs to say where it came from, who checked it and when it expires, especially when
 agents write part of it. <a href="#what-okf-is">Open Knowledge Format</a> is a Markdown convention for exactly that: each
 note (a <em>concept</em>) starts with a small header of facts, and the tools check that the whole folder is well formed.
-It is the only format with the full toolset: <code>lint</code>, <code>fix</code>, <code>cite</code>, <code>provenance</code>, <code>status</code>, <code>move</code>, <code>rename</code> and the rest.</p>
+It is the only format with the full toolset: <code>lint</code>, <code>fix</code>, <code>fact</code>, <code>factcheck</code>, <code>provenance</code>, <code>status</code>, <code>move</code>, <code>rename</code> and the rest.</p>
 <h2 id="what-okf-is">What OKF is<a class="headerlink" href="#what-okf-is" title="Link to this section">#</a></h2>
 <p><strong>Open Knowledge Format</strong> (OKF) is a way of writing down what you know so that people and AI assistants can both
 use it. The whole format is this: <strong>a folder of Markdown files, each starting with a short block of facts about
@@ -286,8 +301,8 @@ and AI assistants begin to <em>write</em> parts of it. Then readers need answers
 conventions for exactly these questions and leaves everything else to you.</p>
 <h2 id="the-pieces">The pieces<a class="headerlink" href="#the-pieces" title="Link to this section">#</a></h2>
 <p>A collection is a folder of <em>bundles</em>; a bundle is a folder of concepts, one Markdown file each.</p>
-<pre class="highlight"><code class="language-text">kb/
-  kbmcp.yaml               format: okf (the default)
+<pre class="highlight"><code class="language-text">notes/
+  bower.yaml               format: okf (the default)
   index.md                 lists the bundles
   eng/                     a bundle: its index.md declares okf_version "0.2"
     index.md
@@ -383,6 +398,65 @@ slash (<code>/runbooks/rollback.md</code>, which survives moving files around in
 sentence around it says how. A broken link is allowed by the format: it may simply be knowledge nobody has written yet
 (<code>status</code> lists the pages that links ask for and nobody has written). A citation is different: the claim in the text points
 at its entry in <code>sources</code> with a Markdown footnote (<code>[^pg]</code>). Links are for navigation, citations are for lineage.</p>
+<h3 id="facts-what-a-claim-rests-on-and-drift">Facts: what a claim rests on, and drift<a class="headerlink" href="#facts-what-a-claim-rests-on-and-drift" title="Link to this section">#</a></h3>
+<p>A <strong>fact</strong> is a claim together with where it came from, written so it can be checked again. Put the source and the words you
+relied on in a block, in any Markdown document (it works in every format, not only OKF):</p>
+<pre class="highlight"><code class="language-markdown">[fact.url](https://stackoverflow.com/questions/8072700/how-to-restart-jenkins-manually)
+
+(jenkins_url)/safeRestart - Allows all running jobs to complete. New jobs will remain in the queue to run after the restart is complete.
+
+(jenkins_url)/restart - Forces a restart without waiting for builds to complete.
+
+[fact.end]
+
+The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]</code></pre>
+<ul>
+<li><strong><code>[fact.&lt;kind&gt;](&lt;source&gt;) &lt;the claim&gt; [fact.end]</code></strong> is the whole form. The kind says what the source is, the source goes in parentheses
+  right after it (it ends at the first <code>)</code>, so write a <code>)</code> inside an address as <code>%29</code>), and the words up to <code>[fact.end]</code> are what is
+  checked: paste them from the page. A block holds one source and any number of claims, on one line or many. In a Markdown renderer
+  that knows nothing of facts, <code>fact.url</code> shows as a link to the source.</li>
+<li><strong><code>[fact.url](address)</code></strong> is a page: its words must still appear there.</li>
+<li><strong><code>[fact.&lt;name&gt;](key)</code></strong>, for a name the root <code>bower.yaml</code> declares under <code>facts: types:</code>, is a fact from one tool of an MCP server the collection
+  already has, so the source is just the key: <code>[fact.ticket](INFRA-27707) is open [fact.end]</code>. Only the root declares one (a page cannot add a kind,
+  or choose what runs), and <code>lint</code> flags a kind nobody declared.</li>
+<li><strong><code>[fact.mcp](server key)</code></strong> is the general form, a fact from an MCP tool, for example <code>[fact.mcp](jira INFRA-27707) is open [fact.end]</code>. Which tool to
+  call, with what, and which part of the result to watch is declared once in <code>bower.yaml</code>, under <code>facts</code> (see below).</li>
+<li>The kinds are a registry (<code>bowerbird_facts.FACT_TYPES</code>): <code>url</code> and <code>mcp</code> are registered, and a new kind is one <code>register(name, sample, valid)</code> call plus a <code>check</code> for
+  <code>factcheck --fetch</code>. A block with no <code>[fact.end]</code>, an end with no start, or an unknown kind is a <code>lint</code> error. Blocks inside code are ignored, so
+  examples like the one above are safe.</li>
+</ul>
+<p><strong>Checking.</strong> <code>factcheck</code> with no arguments lists every block and its state: <em>unchecked</em>, <em>checked</em> (with the date and how), or
+<em>drifted</em>. It runs nothing. <code>factcheck --fetch</code>, run by a person at a terminal, shows what it will fetch or call, asks, and
+then compares each block with a fresh result:</p>
+<ul>
+<li>a <strong>page</strong> must still hold the block's words. Whitespace, case, backticks and emphasis are ignored: it is the content that is
+  compared, not the shape. With <code>semantic: true</code> and the <code>semantic</code> extra, a page that no longer says it word for word but still
+  means it counts too, scored against <code>min_similarity</code> (the same settings as semantic search), and the result says "similar meaning"
+  instead of "same words";</li>
+<li>an <strong>MCP call</strong> (only one declared under <code>facts</code>) must still return the value it did. The first check records that value.</li>
+</ul>
+<pre class="highlight"><code class="language-yaml"># bower.yaml, at the collection root: the only calls factcheck may make
+facts:
+  mcp:
+    jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
+  types:   # optional: a kind of fact for one tool, so the source is just the key
+    ticket: {server: jira, tool: get_issue, arg: issue_key, watch: fields.status.name}</code></pre>
+<p>The document supplies only the key (<code>INFRA-27707</code>), never the tool, so a page cannot make <code>factcheck</code> call something it was not
+told to. The server itself comes from <code>.mcp.json</code>. <code>--fetch</code> is a person's command: over MCP it is refused.</p>
+<p><strong>State is kept beside the document</strong>, in a <code>.facts.yaml</code> (commit it, as you do <code>.waxseals.yaml</code>). It holds the last check of each
+block. The document is never changed by a check, so a check that finds nothing wrong does not disturb a human's review of it.
+Edit the words of a block and it is a new fact, unchecked until it is checked.</p>
+<p><strong>Drift breaks the seal.</strong> A block that has drifted ends every <a href="../../sealing/">review</a> of that file made before it, and <code>seal check</code>
+reports <code>a cited fact drifted after it was reviewed</code>. Correct the claim and have a person review the file again: a review made after
+the drift holds. A check that passes does not undo a drift.</p>
+<p><strong>The docs build</strong> shows each block as a quotation with its source and its state (not yet checked, checked on a date, or drifted).</p>
+<p><strong>Moving between the two records.</strong> A concept's reviews and sources can live in its frontmatter (<code>verified</code>, <code>sources</code>) or beside it
+(<code>.waxseals.yaml</code>, <code>.facts.yaml</code>); <a href="../../cli/#moving-an-okf-concepts-history-okf-export-and-okf-import"><code>okf export</code> and <code>okf import</code></a> move them
+between the two, previewing first.</p>
+<p><strong>For an agent</strong>, <code>fact</code> records a fact as a <code>sources</code> entry in the frontmatter (a call as <code>via: {server, tool, args}</code>, and
+<code>result</code>, what it returned, as a <code>fact_sha256</code>), prints the footnote marker for the claim, and <code>factcheck file=... id=... result=...</code>
+compares a result an agent got by replaying the call with it. Same result: the check is noted in <code>.facts.yaml</code>. A different one is a
+drift. An agent runs no <code>--fetch</code>.</p>
 <h3 id="bundles-indexmd-and-logmd">Bundles, <code>index.md</code> and <code>log.md</code><a class="headerlink" href="#bundles-indexmd-and-logmd" title="Link to this section">#</a></h3>
 <p>A <strong>bundle</strong> is a folder of concepts, with subfolders as you like. Two filenames are reserved at any level:</p>
 <ul>
@@ -397,18 +471,18 @@ bigger repository. The word <strong>collection</strong>, as this site uses it, i
 folder of bundles, that Bowerbird manages together.</p>
 <h2 id="try-it">Try it<a class="headerlink" href="#try-it" title="Link to this section">#</a></h2>
 <p>In an empty folder:</p>
-<pre class="highlight"><code class="language-sh">kb init holds=okf about="Team runbooks." apply=true
-kb create deploy type=Playbook title="Deploy" description="How we ship a release." \
+<pre class="highlight"><code class="language-sh">bowerbird-mcp create holds=okf about="Team runbooks." apply=true
+bowerbird-mcp create deploy type=Playbook title="Deploy" description="How we ship a release." \
    body='Run the deploy script, then check the dashboard.' output=text
-kb cite deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
-kb lint output=text</code></pre>
-<p><code>create</code> writes a file with its header, <code>cite</code> records a source and prints the footnote tag (<code>[^runbook]</code>) to put next to
+bowerbird-mcp fact deploy.md resource=https://example.com/runbook title="Ops runbook" output=text
+bowerbird-mcp lint output=text</code></pre>
+<p><code>new</code> starts a file from the OKF template (<code>bowerbird-mcp new deploy -t okf</code>), or, given its <code>type</code> and a few fields, writes one with its header filled in, <code>fact</code> records a source and prints the footnote tag (<code>[^runbook]</code>) to put next to
 the claim it backs, and <code>lint</code> checks the whole collection:</p>
 <pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 1 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True</code></pre>
 <p>A file with no header, a broken link or a fact with no source is a finding, each naming the file, what is wrong and how to
-fix it, and <code>kb fix apply=true</code> repairs the mechanical ones.</p>
+fix it, and <code>bowerbird-mcp fix apply=true</code> repairs the mechanical ones.</p>
 <h2 id="reviewing">Reviewing<a class="headerlink" href="#reviewing" title="Link to this section">#</a></h2>
-<p><code>kb seal</code> writes a <code>verified</code> entry into the concept itself, with a <code>sha256</code> of the note. The trust tier
+<p><code>bowerbird-mcp seal</code> writes a <code>verified</code> entry into the concept itself, with a <code>sha256</code> of the note. The trust tier
 comes only from who verified: nobody means <em>unverified</em>, a script or agent means <em>machine-confirmed</em>, and a person
 means <em>human-reviewed</em>. Hits show the tier and whether the note has gone stale. See The tiers are explained <a href="#trust-tiers">above</a>.</p>
 <h2 id="why-it-is-good">Why it is good<a class="headerlink" href="#why-it-is-good" title="Link to this section">#</a></h2>

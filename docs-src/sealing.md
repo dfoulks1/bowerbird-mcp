@@ -49,7 +49,8 @@ characters, a single line, and is stored on the seal itself (`comment:` in the l
 setting and no extra.
 
 Because the file is untouched, Nygard ADRs, MADR, thesauri and AsciiDoc all work as they are. Reviews are not converted when
-you [change format](formats.md#changing-your-mind); after a switch the files may need sealing again.
+you [change format](formats.md#changing-your-mind) on their own; after a switch the files may need sealing again, or `okf export` and
+`okf import` carry an OKF concept's reviews and sources between its frontmatter and the ledgers (see [the command line](cli.md#moving-an-okf-concepts-history-okf-export-and-okf-import)).
 
 ## Several signers and a quorum (the `seal-extensions` extra)
 
@@ -137,7 +138,12 @@ and `serve` offers no Seal button. It is not a tool, so an agent cannot declare 
 longer matches: it stops being derived, and the next run of the generator records it again. The line carries a `by` so that an older
 Bowerbird can still read the ledger; the `derived` key is what says it is not a person's review.
 
+A generated *folder*, such as the site's output, gets one line for the whole folder, not one per file (`mark_derived_dir("docs", "mkdocs")`,
+which `docs_tools.py` calls). A folder has no hash, so it is the location that says so: everything under it is derived (binaries too),
+left out of the check, and badged blue, and nothing is compared per file.
+
 ```yaml
+- {file: docs/, by: 'generator:mkdocs', at: '2026-11-21T09:00:00Z', bowerbird: 2.2.0, derived: mkdocs}
 - {file: docs-src/tools.md, sha256: 5d1c…, by: 'generator:docs_tools.py', at: '2026-11-20T15:02:10Z', bowerbird: 2.2.0, derived: docs_tools.py}
 ```
 

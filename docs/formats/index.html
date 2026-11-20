@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../tools/">Tools</a>
                   </li>
                 
@@ -230,12 +240,12 @@
           </nav>
         
         <article><h1 id="formats">Formats<a class="headerlink" href="#formats" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:43:09Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:30:13Z</p>
 
-<p>Bowerbird is not tied to one way of keeping knowledge. A <code>kbmcp.yaml</code> at the root of a folder says what the folder
+<p>Bowerbird is not tied to one way of keeping knowledge. A <code>bower.yaml</code> at the root of a folder says what the folder
 holds, with one line:</p>
 <pre class="highlight"><code class="language-yaml">format: markdown      # markdown | adr | okf | skos | asciidoc | seal-only</code></pre>
-<p>All six share the same ideas: the folder is a git repository, <code>kbmcp.yaml</code> is committed with it, and a human's
+<p>All six share the same ideas: the folder is a git repository, <code>bower.yaml</code> is committed with it, and a human's
 review is recorded against the exact bytes they reviewed (see <a href="../sealing/">Sealing</a>).
 <code>seal</code> is what guarantees a person was in the loop, for stored knowledge and for decisions alike. Renaming a file with
 <code>move</code> keeps its seal when its text is unchanged.</p>
@@ -250,12 +260,12 @@ review is recorded against the exact bytes they reviewed (see <a href="../sealin
 <li><strong>Choose <a href="../sealing/#seal-only">Seal-only</a> if</strong> you need a guaranteed human review of code, configuration or any text files, and no search.</li>
 </ul>
 <h2 id="changing-your-mind">Changing your mind<a class="headerlink" href="#changing-your-mind" title="Link to this section">#</a></h2>
-<p>Change the <code>format</code> line and run <code>kb reindex</code>; nothing else moves. Reviews are not converted between formats: an OKF
+<p>Change the <code>format</code> line and run <code>bowerbird-mcp reindex</code>; nothing else moves. Reviews are not converted between formats: an OKF
 concept keeps its <code>verified</code> entries in its own frontmatter, while the other formats keep theirs in
 <code>.waxseals.yaml</code>, so after a switch the notes may need sealing again.</p>
 <h2 id="tools-by-format">Tools by format<a class="headerlink" href="#tools-by-format" title="Link to this section">#</a></h2>
-<p>Which tools a server offers, by role. The role is what <code>roles:</code> in <code>kbmcp.yaml</code> turns on (all five are on by default;
-<code>--role</code> or <code>KB_ROLE</code> picks one for a single server). Naming a role that is off refuses to start.</p>
+<p>Which tools a server offers, by role. The role is what <code>roles:</code> in <code>bower.yaml</code> turns on (all five are on by default;
+<code>--role</code> or <code>BOWERBIRD_ROLE</code> picks one for a single server). Naming a role that is off refuses to start.</p>
 <p><strong>✓</strong> a server offers it. <strong>CLI</strong> command line only (written for OKF files, so not offered outside OKF). <strong>—</strong> nothing to act on (seal-only indexes nothing).</p>
 <h3 id="seal"><code>seal</code><a class="headerlink" href="#seal" title="Link to this section">#</a></h3>
 <table>
@@ -403,7 +413,7 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 </thead>
 <tbody>
 <tr>
-<td><strong><a href="../tools/#cite"><code>cite</code></a></strong></td>
+<td><strong><a href="../tools/#fact"><code>fact</code></a></strong></td>
 <td>CLI</td>
 <td>CLI</td>
 <td>✓</td>
@@ -412,7 +422,7 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <td>CLI</td>
 </tr>
 <tr>
-<td><strong><a href="../tools/#create"><code>create</code></a></strong></td>
+<td><strong><a href="../tools/#factcheck"><code>factcheck</code></a></strong></td>
 <td>CLI</td>
 <td>CLI</td>
 <td>✓</td>
@@ -433,6 +443,15 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <td><strong><a href="../tools/#lint"><code>lint</code></a></strong></td>
 <td>CLI</td>
 <td>CLI</td>
+<td>✓</td>
+<td>CLI</td>
+<td>CLI</td>
+<td>CLI</td>
+</tr>
+<tr>
+<td><strong><a href="../tools/#new"><code>new</code></a></strong></td>
+<td>✓</td>
+<td>✓</td>
 <td>✓</td>
 <td>CLI</td>
 <td>CLI</td>
@@ -606,7 +625,7 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <td>CLI</td>
 </tr>
 <tr>
-<td><strong><a href="../tools/#init"><code>init</code></a></strong></td>
+<td><strong><a href="../tools/#create"><code>create</code></a></strong></td>
 <td>✓</td>
 <td>✓</td>
 <td>✓</td>
@@ -616,24 +635,6 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 </tr>
 <tr>
 <td><strong><a href="../tools/#provenance"><code>provenance</code></a></strong></td>
-<td>CLI</td>
-<td>CLI</td>
-<td>✓</td>
-<td>CLI</td>
-<td>CLI</td>
-<td>CLI</td>
-</tr>
-<tr>
-<td><strong><a href="../tools/#recheck_apply"><code>recheck_apply</code></a></strong></td>
-<td>CLI</td>
-<td>CLI</td>
-<td>✓</td>
-<td>CLI</td>
-<td>CLI</td>
-<td>CLI</td>
-</tr>
-<tr>
-<td><strong><a href="../tools/#recheck_plan"><code>recheck_plan</code></a></strong></td>
 <td>CLI</td>
 <td>CLI</td>
 <td>✓</td>
@@ -676,16 +677,16 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <tbody>
 <tr>
 <td><strong>Tools offered</strong></td>
-<td>12</td>
 <td>13</td>
-<td>35</td>
+<td>14</td>
+<td>34</td>
 <td>3</td>
 <td>4</td>
 <td>1</td>
 </tr>
 </tbody>
 </table>
-<p>(<code>dirs</code> sits in both <code>read</code> and <code>structure</code>, so it counts once. The 35 are all of <a href="../tools/">Tools</a>.)</p></article>
+<p>(<code>dirs</code> sits in both <code>read</code> and <code>structure</code>, so it counts once. The 34 are all of <a href="../tools/">Tools</a>.)</p></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">

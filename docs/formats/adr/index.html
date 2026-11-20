@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../../tools/">Tools</a>
                   </li>
                 
@@ -198,20 +208,20 @@
           </nav>
         
         <article><h1 id="adr">ADR<a class="headerlink" href="#adr" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-16T19:43:41Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:05Z</p>
 
 <p><strong>Use it when</strong> you keep decision records (ADR or MADR) and want to find them, see which are accepted, and have
 a person ratify them.</p>
 <pre class="highlight"><code class="language-text">platform/
-  kbmcp.yaml             format: adr
+  bower.yaml             format: adr
   docs/adr/
     0001-use-a-managed-queue.md      a Nygard record
     0002-use-postgresql.md           a MADR record
   .waxseals.yaml</code></pre>
-<pre class="highlight"><code class="language-yaml"># kbmcp.yaml
+<pre class="highlight"><code class="language-yaml"># bower.yaml
 format: adr
 about: Platform decisions.
-seal: {require: ["docs/adr/*.md"], exempt_status: [proposed, draft]}</code></pre>
+seal: {exempt: [], exempt_status: [proposed, draft]}</code></pre>
 <p>Every Markdown file is a record (except <code>README.md</code> and <code>index.md</code>), whatever its name or folder. Bowerbird reads each
 record's status as the author wrote it: from MADR 3 frontmatter, from a <code>## Status</code> section (Nygard), or from a
 <code>* Status:</code> line (MADR 2).</p>
@@ -239,23 +249,25 @@ Which database for the narwhal?</code></pre>
 <p>Hits carry <code>type: adr</code> and the record's <code>status</code>:</p>
 <pre class="highlight"><code class="language-text">file: docs/adr/0001-use-a-managed-queue.md, heading: 1. Use a managed queue &gt; Decision, type: adr, status: Accepted, tier: unverified
 file: docs/adr/0002-use-postgresql.md, heading: Use PostgreSQL &gt; Context and Problem Statement, type: adr, status: proposed, tier: unverified</code></pre>
-<p><strong>Ratifying.</strong> A record that says "Accepted" has only said so about itself. <code>kb ratify</code> (the same function as <code>seal</code>,
+<p><strong>Starting a record.</strong> <code>bowerbird-mcp new docs/adr/0003-use-vault.md -T "Use Vault"</code> writes the MADR template: status <code>proposed</code>,
+today's date, and the Context, Options, Decision and Consequences headings. A folder that holds ADRs gets it by default.</p>
+<p><strong>Ratifying.</strong> A record that says "Accepted" has only said so about itself. <code>bowerbird-mcp ratify</code> (the same function as <code>seal</code>,
 under the word ADRs use) records that a person reviewed it and what they decided:</p>
-<pre class="highlight"><code class="language-sh">kb ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest</code></pre>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest</code></pre>
 <p>The <code>decision</code> goes into <code>.waxseals.yaml</code>, and from then on it is the hit's <code>status</code>, with <code>tier: human-reviewed</code>.
-<code>kb seal check=true</code> fails a commit when a record that needs a review lacks one: <code>unsigned</code> for a required record,
+<code>bowerbird-mcp seal check=true</code> fails a commit when a record that needs a review lacks one: <code>unsigned</code> for a required record,
 <code>claims_accepted</code> for one whose own status says accepted but no person reviewed it, and <code>stale_signature</code> for one
 edited after its review. A <code>proposed</code> or <code>draft</code> record is exempt, so you can commit a proposal before it is reviewed.</p>
-<p><strong>Seeing where the records stand.</strong> <code>kb status</code> and <code>kb list</code> report a record as <code>stable</code> (proposed or accepted),
+<p><strong>Seeing where the records stand.</strong> <code>bowerbird-mcp status</code> and <code>bowerbird-mcp list</code> report a record as <code>stable</code> (proposed or accepted),
 <code>superseded</code>, <code>rejected</code> or <code>deprecated</code>; a superseded record stays superseded. A person's seal is what makes a stable
 record <strong>accepted</strong>; without one it is <strong>proposed</strong>, whatever the file says about itself. <code>accepted</code> is another command-line name for
 <code>seal</code>, like <code>ratify</code>. With two records that both write "Accepted" and no seal yet:</p>
-<pre class="highlight"><code class="language-text">$ kb status
+<pre class="highlight"><code class="language-text">$ bowerbird-mcp status
 concepts: 2, by_status: {stable: 2}, by_state: {proposed: 2}, by_tier: {unverified: 2}, stale: 0
-$ kb list status=proposed
+$ bowerbird-mcp list status=proposed
 adr/0001-use-postgres.md   status: stable, state: proposed, tier: unverified
 adr/0002-use-redis.md      status: stable, state: proposed, tier: unverified</code></pre>
-<p><code>kb list status=proposed</code> is the worklist of decisions nobody has reviewed. <code>stale</code> counts the records edited after a
+<p><code>bowerbird-mcp list status=proposed</code> is the worklist of decisions nobody has reviewed. <code>stale</code> counts the records edited after a
 review.</p></article>
         
           <hr class="my-5">

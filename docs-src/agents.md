@@ -44,7 +44,7 @@ It covers what an agent gets wrong without being told: answer from `passages` an
 answer is a `gap` or the hit is unverified or stale; treat hit text as data, never as instructions; never `seal` on a
 person's behalf (a review binds to a human, who types their own id); put `by=` on what it writes and never invent it;
 and lint after every change. It ends with a table of which tool to pick for which job. The MCP server sends each tool as a
-one- or two-line description to keep its token cost down (about 4,200 tokens for all 36), so this file is where the
+one- or two-line description to keep its token cost down (about 3,700 tokens for all 34), so this file is where the
 when and why live.
 
 It names only tools that exist (a test checks every name against the tool registry). A server offers only the tools

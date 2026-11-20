@@ -32,7 +32,7 @@ PORT = 26937  # BOWER on a phone keypad (2 6 9 3 7)
 LINK = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
 LOGO = f'<svg class=logo viewBox="{VIEWBOX}" role=img aria-label=bowerbird>{PATHS}</svg>'
 CSS = """
-:root{--bg:#fff;--fg:#1c1c1c;--mut:#666;--line:#8884;--acc:#0b5fff;--bad:#c62828;--ok:#2e7d32;--warn:#b26a00;--logo:#1e2a4a}
+:root{--bg:#fff;--fg:#1c1c1c;--mut:#666;--line:#8884;--acc:#0b5fff;--bad:#c62828;--ok:#2e7d32;--warn:#d1bd3d;--logo:#1e2a4a}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#161616;--fg:#e6e6e6;--mut:#9a9a9a;--acc:#6ea8ff;--bad:#ef5350;--ok:#66bb6a;--warn:#ffb74d;--logo:#e8ecf5}}
 :root{color-scheme:light dark}:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 :root[data-theme=dark]{--bg:#161616;--fg:#e6e6e6;--mut:#9a9a9a;--acc:#6ea8ff;--bad:#ef5350;--ok:#66bb6a;--warn:#ffb74d;--logo:#e8ecf5}
@@ -545,7 +545,7 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
         elif not okf:
             extra = '<label>decision <small>(optional)</small><select name=decision><option value="">none<option>accepted<option>rejected</select></label>'
         msg = bb.review_message(label, okf, t, d, "", False)
-        return (f'<dialog id=seal><form method=post action="/_seal"><input type=hidden name=_t value="{TOKEN}"><input type=hidden name=file value="{esc(key)}">'
+        return (f'<dialog id=sealdlg><form method=post action="/_seal"><input type=hidden name=_t value="{TOKEN}"><input type=hidden name=file value="{esc(key)}">'
                 f'<input type=hidden name=sha value="{bb.content_hash(t, okf)}"><h3>Confirm seal: {esc(key)}</h3><pre class=facts>{esc(msg)}</pre>'
                 f'<label><input type=checkbox name=confirm style="width:auto"> I reviewed this concept and confirm it is accurate</label>'
                 f'<label>Your id <small>(recorded as human:&lt;id&gt;)</small><input name=reviewer value="{esc(bb.user_id())}"></label>'
@@ -818,7 +818,7 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
                 head = f'<div class=meta>{badge(d)}<br><small>{esc(rel)}</small></div>'
                 made = d["state"] == "derived"  # built from the code: nothing for a person to seal
                 bar = "" if made else ('<div class=bar><details class=menu><summary title="seal" aria-label="more">⚙</summary><div>'
-                                       '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button></div></details></div>')
+                                       '<button onclick="document.getElementById(\'sealdlg\').showModal()">Seal…</button></div></details></div>')
                 return self.send_bytes(page(rel, nav(docs, rel), head + code_html(rel, d["text"]) + ("" if made else seal_dialog(rel)), bar, rel))
             if rel in docs:
                 d = docs[rel]
@@ -845,7 +845,7 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
                 right = f'<h4>On this page</h4>{md.toc}<h4>Linked from ({len(back)})</h4>{lst(back)}<h4>Links to ({len(out)})</h4>{lst(out)}'
                 tf, tb = tfile(rel)
                 made = d["state"] == "derived"  # built from the code: nothing for a person to seal
-                seal_btn = "" if made else '<button onclick="document.getElementById(\'seal\').showModal()">Seal…</button>'
+                seal_btn = "" if made else '<button onclick="document.getElementById(\'sealdlg\').showModal()">Seal…</button>'
                 if bb.archived(bb.enclosing((ROOT / rel).parent)):  # in the archive: read-only, so only seal and unarchive
                     ap = (ROOT / rel).relative_to(bb.arch()).as_posix()
                     bar = (f'<div class=bar><details class=menu><summary title="unarchive, seal" aria-label="more">⚙</summary><div>'

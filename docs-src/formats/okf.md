@@ -197,6 +197,10 @@ the drift holds. A check that passes does not undo a drift.
 
 **The docs build** shows each block as a quotation with its source and its state (not yet checked, checked on a date, or drifted).
 
+**Moving between the two records.** A concept's reviews and sources can live in its frontmatter (`verified`, `sources`) or beside it
+(`.waxseals.yaml`, `.facts.yaml`); [`okf export` and `okf import`](../cli.md#moving-an-okf-concepts-history-okf-export-and-okf-import) move them
+between the two, previewing first.
+
 **For an agent**, `fact` records a fact as a `sources` entry in the frontmatter (a call as `via: {server, tool, args}`, and
 `result`, what it returned, as a `fact_sha256`), prints the footnote marker for the claim, and `factcheck file=... id=... result=...`
 compares a result an agent got by replaying the call with it. Same result: the check is noted in `.facts.yaml`. A different one is a

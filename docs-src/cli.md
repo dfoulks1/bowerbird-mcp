@@ -186,6 +186,30 @@ bowerbird create docs -t markdown -a "Site pages" --apply   # a folder: a bower,
 - Settings you pass (`about`, `holds`, `user`) are ignored for a folder that already has a `bower.yaml`, and the result says so.
 - A document is not made here: `new` writes one.
 
+## Moving an OKF concept's history: `okf export` and `okf import`
+
+An OKF concept keeps its reviews (`verified`) and sources (`sources`) in its own frontmatter. Everything else keeps them beside the document,
+in `.waxseals.yaml` and `.facts.yaml`. When a collection changes format, or you want one record, this moves them between the two. It is a
+person's command: it needs a terminal, it is not a tool, and it previews until you add `--apply`.
+
+```sh
+bowerbird okf export [path]            # preview: frontmatter to the ledgers
+bowerbird okf export --apply
+bowerbird okf import [path]            # preview: the ledgers to frontmatter
+bowerbird okf import docs/ --apply
+```
+
+- **`export`** reads the documents and changes none. A review that still holds goes into `.waxseals.yaml`, rebound to the file as it is, so it
+  holds there too, with its person, date and comment. A stale one stays behind and is counted. Without `seal.extensions` the ledger keeps one
+  latest review per file, so extra signers are reported as left out. Each source's last check (`retrieved_at`, `fact_sha256`) goes into
+  `.facts.yaml`, unless that file already has a word on it.
+- **`import`** writes `verified` and `sources` into the frontmatter. Every review in the ledger becomes an entry, and one that is already stale
+  loads as stale history. Each fact's check updates its `sources` entry (a newer `retrieved_at`, a missing `fact_sha256`), and a block fact
+  from `.facts.yaml` is added as a source. Drift records stay in `.facts.yaml`: frontmatter has no place for them.
+- **Writing `sources` changes the concept's bytes, which ends the reviews of the old ones.** The preview says how many ("1 review(s) end"). A new
+  seal is what verifies that the history loaded properly. Reviews that the import does not disturb keep holding.
+- Both are idempotent: run again and it says "nothing to move".
+
 ## Sealing as a person
 
 `--attest` records you as a human, as `human:<BOWERBIRD_USER>` (else your git `user.email`). It works only on the command line,

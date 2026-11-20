@@ -1687,19 +1687,19 @@ else:
     home_ = hit("GET", "/")[1]
     assert "app.py" in home_ and 'data-seal="unsealed"' in home_ and "blob.py" not in home_ and "big.py" not in home_
     st_, pg_, _ = hit("GET", "/src/app.py")
-    assert st_ == 200 and "<dialog id=seal>" in pg_ and "Confirm seal: src/app.py" in pg_ and "unsealed" in pg_ and "✎" not in pg_  # no editor for code
+    assert st_ == 200 and "<dialog id=sealdlg>" in pg_ and "Confirm seal: src/app.py" in pg_ and "unsealed" in pg_ and "✎" not in pg_  # no editor for code
     assert hit("GET", "/src/blob.py")[0] == 404 and hit("GET", "/src/big.py")[0] == 404  # not shown; the CLI still covers them
     # derived from the code (a generator's ledger line): a fourth state, with nothing to seal; `seal.exempt` alone says nothing about who made a file
     assert bb.derived(so_ / "docs/gen.md") and not bb.derived(so_ / "docs/hand.md") and not bb.derived(so_ / "src/app.py")
     assert 'data-seal="derived"' in home_ and 'data-seal="unsealed"' in home_
     gen_ = hit("GET", "/docs/gen.md")[1]
-    assert "derived from the code" in gen_ and "<dialog id=seal>" not in gen_ and "Seal…" not in gen_
-    assert "<dialog id=seal>" in hit("GET", "/docs/hand.md")[1]  # a page the policy requires still has its modal
+    assert "derived from the code" in gen_ and "<dialog id=sealdlg>" not in gen_ and "Seal…" not in gen_
+    assert "<dialog id=sealdlg>" in hit("GET", "/docs/hand.md")[1]  # a page the policy requires still has its modal
     (so_ / "src/gen_tbl.py").write_text("T = {}\n")  # a non-markdown file built from the code: shown, marked, never sealed
     (so_ / "src/gen_other.py").write_text("U = {}\n")  # exempt too, but no generator recorded it: not derived, not listed
     assert not bb.derived(so_ / "src/gen_tbl.py") and bb.mark_derived(so_ / "src/gen_tbl.py", "gen.py") and not bb.derived(so_ / "src/gen_other.py")
     st_, gp_, _ = hit("GET", "/src/gen_tbl.py")
-    assert bb.derived(so_ / "src/gen_tbl.py") and st_ == 200 and "derived from the code" in gp_ and "<dialog id=seal>" not in gp_ and "Seal…" not in gp_
+    assert bb.derived(so_ / "src/gen_tbl.py") and st_ == 200 and "derived from the code" in gp_ and "<dialog id=sealdlg>" not in gp_ and "Seal…" not in gp_
     assert "gen_tbl.py" not in [p.name for p in bb.sealonly_files()] and "gen_tbl.py" in [p.name for p in bb.derived_files()]
     assert "gen_other.py" not in [p.name for p in bb.sealonly_files() + bb.derived_files()]
     assert [e["derived"] for e in bb.ledger_by_file()["src/gen_tbl.py"]] == ["gen.py"] and all(e["by"] == "generator:gen.py" for e in bb.ledger_by_file()["src/gen_tbl.py"])  # `by`: an older reader needs one
@@ -2348,5 +2348,127 @@ try:
     assert "does not parse" in P["ignored"][0] and (mj / "partial/bower.yaml").read_text() == "format: [unclosed\n"
 finally:
     bb.ROOT = saved_root
+
+
+# a generated folder: one ledger line for the folder, blue "derived" for everything under it (binaries included), exempt, and no orphan warning.
+gd, gd_saved = Path(tempfile.mkdtemp()).resolve(), (bb.ROOT, bb.CLI, dict(bb.OPTS))
+(gd / "bower.yaml").write_text("format: seal-only\n")
+(gd / "site/img").mkdir(parents=True)
+(gd / "site/index.html").write_text("<p>built</p>\n")
+(gd / "site/img/logo.png").write_bytes(b"\x89PNG\r\n\x1a\n\x00\xff")
+(gd / "hand.txt").write_text("written by a person\n")
+bb.ROOT, bb.CLI, bb.OPTS["format"], bb.OPTS["seal"] = gd, True, "seal-only", {"exempt": [], "exempt_status": []}
+bb._SCOPES.clear()
+bb._POLICY.clear()
+try:
+    assert {f["file"] for f in bb.signatures("")["findings"]} >= {"site/index.html", "hand.txt"}  # unreviewed, both
+    done = bb.mark_derived_dir(gd / "site", "mkdocs")
+    assert done[0] == ".waxseals.yaml" and "seal.exempt gets /site/**" in done[1], done
+    assert "seal: {exempt: [/site/**]}" in (gd / "bower.yaml").read_text().replace('"', "").replace("'", "") or "/site/**" in (gd / "bower.yaml").read_text()
+    assert bb.derived(gd / "site/index.html") and bb.derived(gd / "site/img/logo.png") and not bb.derived(gd / "hand.txt")  # by location; a binary too
+    assert {f["file"] for f in bb.signatures("")["findings"]} == {"hand.txt"}  # nobody seals it, and the folder's line is not an orphan
+    assert [p.name for p in bb.derived_files()] == ["logo.png", "index.html"] or {p.name for p in bb.derived_files()} == {"index.html", "logo.png"}
+    assert bb.mark_derived_dir(gd / "site", "mkdocs") == []  # nothing to change the second time
+    assert [e["file"] for e in bb.ledger_all(gd / ".waxseals.yaml").get("site/", [])] == ["site/"] and not bb.reviews({}, "site/index.html", "x", bb.ledger_by_file())[0]
+finally:
+    bb.ROOT, bb.CLI = gd_saved[:2]
+    bb.OPTS.clear()
+    bb.OPTS.update(gd_saved[2])
+    bb._SCOPES.clear()
+    bb._POLICY.clear()
+
+
+# okf export and import: a concept's reviews and sources between its frontmatter and the ledgers; a person's command, a preview until --apply.
+import bowerbird_okf as O
+
+ok_, ok_saved = Path(tempfile.mkdtemp()).resolve(), (bb.ROOT, bb.CLI, dict(bb.OPTS), bb.at_terminal)
+(ok_ / "bower.yaml").write_text("format: okf\nseal: {extensions: true}\n")
+(ok_ / "index.md").write_text('---\nokf_version: "0.2"\n---\n# T\n')
+bb.ROOT, bb.CLI, bb.OPTS["format"], bb.OPTS["seal"], bb.at_terminal = ok_, True, "okf", {"exempt": [], "exempt_status": [], "extensions": True, "quorum": 1}, (lambda: True)
+bb._SCOPES.clear()
+bb._POLICY.clear()
+try:
+    note = ok_ / "note.md"
+    note.write_text("---\ntype: Note\ndescription: d\nsources:\n- id: pg\n  resource: https://x.test/p\n  retrieved_at: 2026-11-18T10:00:00Z\n  fact_sha256: abc123\n---\n# N\n\nThe claim.[^pg]\n")
+    h = bb.content_hash(note.read_text(), True)
+    note.write_text(bb.put(note.read_text(), "verified", [
+        {"by": "human:ann", "at": "2026-11-19T10:00:00Z", "sha256": h, "comment": "ok"}, {"by": "human:bo", "at": "2026-11-20T10:00:00Z", "sha256": h},
+        {"by": "human:old", "at": "2026-11-01T10:00:00Z", "sha256": "0000"}]))
+    before = note.read_bytes()
+    out = O.export_(bb, "", False)  # a preview writes nothing
+    assert len(out) == 1 and "2 review(s) to .waxseals.yaml" in out[0] and "1 stale review(s) stay behind" in out[0] and "source pg to .facts.yaml" in out[0], out
+    assert not (ok_ / ".waxseals.yaml").exists() and not (ok_ / ".facts.yaml").exists()
+    O.export_(bb, "", True)
+    led = bb.ledger_all(ok_ / ".waxseals.yaml")["note.md"]
+    assert [(e["by"], e.get("comment")) for e in led] == [("human:ann", "ok"), ("human:bo", None)] and all(e["sha256"] == bb.content_hash(note.read_text(), False) for e in led)
+    st = F.read_state(ok_)[("note.md", "pg")]
+    assert st["kind"] == "source" and st["value"] == "abc123" and st["at"].startswith("2026-11-18") and note.read_bytes() == before  # the document is untouched
+    assert O.export_(bb, "", True) == []  # again: nothing to move
+    # import into a fresh concept that has no frontmatter history: the ledgers fill it in
+    fresh = ok_ / "fresh.md"
+    fresh.write_text("---\ntype: Note\ndescription: d\n---\n# F\n")
+    fh = bb.content_hash(fresh.read_text(), False)
+    cur = bb.ledger_all(ok_ / ".waxseals.yaml")  # one line holds the seals of one set of bytes
+    cur["fresh.md"] = [{"file": "fresh.md", "sha256": fh, "by": "human:cy", "at": "2026-11-20T11:00:00Z", "comment": "from the ledger"}]
+    bb.write(ok_ / ".waxseals.yaml", bb.ledger_text(cur))
+    F.record(ok_, "fresh.md", "abcdef123456", "url", "https://x.test/q", "checked", "same words", "2026-11-21T09:00:00Z")
+    out = O.import_(bb, str(fresh), False)
+    assert out and "+1 review(s)" in out[0] and fresh.read_text() == "---\ntype: Note\ndescription: d\n---\n# F\n"  # a preview writes nothing
+    assert "end" in out[0], out  # the source it adds changes the bytes: the review that held would end
+    O.import_(bb, str(fresh), True)
+    d2 = bb.meta(fresh.read_text())[0]
+    assert [(e["by"], e.get("comment")) for e in bb.entries(d2["verified"])] == [("human:cy", "from the ledger")]
+    assert d2["sources"] == [{"id": "abcdef123456", "resource": "https://x.test/q", "retrieved_at": "2026-11-21T09:00:00Z"}]
+    assert bb.trust_tier(bb.signed(d2, "fresh.md", {})) != "human-reviewed"  # the sources changed the bytes: a new seal verifies what loaded
+    assert O.import_(bb, str(fresh), True) == []  # again: nothing to move
+    # a review that is already stale loads as stale history, and nothing ends
+    stale = ok_ / "stale.md"
+    stale.write_text("---\ntype: Note\ndescription: d\n---\n# S\n")
+    cur = bb.ledger_all(ok_ / ".waxseals.yaml")
+    cur["stale.md"] = [{"file": "stale.md", "sha256": "dead", "by": "human:di", "at": "2026-11-10T11:00:00Z"}]
+    bb.write(ok_ / ".waxseals.yaml", bb.ledger_text(cur))
+    out = O.import_(bb, str(stale), True)
+    assert out == ["stale.md: +1 review(s), 0 source(s) updated"], out
+    assert [e["sha256"] for e in bb.entries(bb.meta(stale.read_text())[0]["verified"])] == ["dead"] and bb.trust_tier(bb.signed(bb.meta(stale.read_text())[0], "stale.md", {})) != "human-reviewed"
+    # a concept whose bytes the import does not change keeps its review
+    quiet = ok_ / "quiet.md"
+    quiet.write_text("---\ntype: Note\ndescription: d\n---\n# Q\n")
+    qh = bb.content_hash(quiet.read_text(), False)
+    bb.ledger_put("quiet.md", {"file": "quiet.md", "sha256": qh, "by": "human:ed", "at": "2026-11-20T12:00:00Z"})
+    O.import_(bb, str(quiet), True)
+    assert bb.trust_tier(bb.signed(bb.meta(quiet.read_text())[0], "quiet.md", {})) == "human-reviewed"
+    # the command: a person's, at a terminal, never a tool
+    assert "okf" not in bb.REG and O.main(bb, ["nope"]) == 2 and O.main(bb, []) == 0
+    bb.at_terminal = lambda: False
+    assert O.main(bb, ["export"]) == 2
+finally:
+    bb.ROOT, bb.CLI, bb.at_terminal = ok_saved[0], ok_saved[1], ok_saved[3]
+    bb.OPTS.clear()
+    bb.OPTS.update(ok_saved[2])
+    bb._SCOPES.clear()
+    bb._POLICY.clear()
+
+
+# sealing a folder says why it cannot be, and names a file to seal instead.
+fd, fd_saved = Path(tempfile.mkdtemp()).resolve(), (bb.ROOT, bb.CLI, dict(bb.OPTS))
+(fd / "bower.yaml").write_text("format: seal-only\n")
+(fd / "formats").mkdir()
+(fd / "formats/a.md").write_text("# a\n")
+(fd / "formats/.hidden").write_text("x\n")
+(fd / "empty").mkdir()
+bb.ROOT, bb.CLI, bb.OPTS["format"] = fd, True, "seal-only"
+bb._SCOPES.clear()
+bb._POLICY.clear()
+try:
+    msg = raises(lambda: asyncio.run(bb.seal(file="formats", by="process:t")))
+    assert "formats is a folder, and a seal covers one file" in msg and "such as formats/a.md (1 files here)" in msg, msg
+    assert "holds no files" in raises(lambda: asyncio.run(bb.seal(file="empty", by="process:t")))
+    assert asyncio.run(bb.seal(file="formats/a.md", by="process:t"))["file"] == "formats/a.md"
+finally:
+    bb.ROOT, bb.CLI = fd_saved[:2]
+    bb.OPTS.clear()
+    bb.OPTS.update(fd_saved[2])
+    bb._SCOPES.clear()
+    bb._POLICY.clear()
 
 print("ok")

@@ -50,7 +50,7 @@ uv lock --check
 step "ruff (the [tool.ruff] settings in pyproject.toml) and mypy: both run, then both are reported"
 lint=0
 uvx ruff check . || lint=1
-uv run --with mypy --with types-PyYAML --with types-Markdown --with types-Pygments mypy bowerbird_mcp.py bowerbird_serve.py bowerbird_facts.py bowerbird_seal.py docs_tools.py || lint=1
+uv run --with mypy --with types-PyYAML --with types-Markdown --with types-Pygments mypy bowerbird_mcp.py bowerbird_serve.py bowerbird_facts.py bowerbird_seal.py bowerbird_okf.py docs_tools.py || lint=1
 [ "$lint" = 0 ] || fail "ruff or mypy reported findings (above) | fix: see TODO.md; uvx ruff check . --fix clears the safe ruff ones"
 
 printf '\nQA ok (%s)\n' "$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"

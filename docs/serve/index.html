@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../tools/">Tools</a>
                   </li>
                 
@@ -228,7 +238,7 @@
           </nav>
         
         <article><h1 id="serve">Serve<a class="headerlink" href="#serve" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-18T15:57:43Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:24:49Z</p>
 
 <p><code>serve</code> is Bowerbird in a browser, for a person. It browses a collection, searches it, edits it and seals it, with no AI
 involved: it makes no model calls, and nothing it writes is stamped as machine-written. It runs on your machine, on
@@ -238,33 +248,40 @@ involved: it makes no model calls, and nothing it writes is stamped as machine-w
 <pre class="highlight"><code class="language-sh">pip install 'bowerbird-mcp[serve]'
 # or, with no install:
 uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve start</code></pre>
-<p>Run it from inside a collection (the folder holding <code>kbmcp.yaml</code>, or below it):</p>
+<p>Run it from inside a collection (the folder holding <code>bower.yaml</code>, or below it):</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp serve start       # in the background, at http://127.0.0.1:26937/
 bowerbird-mcp serve start -f    # in the foreground; ctrl-c stops it
 bowerbird-mcp serve start 8080  # another port
-bowerbird-mcp serve status      # information only (exit 0 if running, 1 if not); a bare `serve` does this
+bowerbird-mcp serve             # a bare `serve` prints the help: every verb and option, `--config` included
+bowerbird-mcp serve status      # information only (exit 0 if running, 1 if not)
 bowerbird-mcp serve stop        # end it; nothing running is not an error
-bowerbird-mcp serve restart     # stop what is found, then start</code></pre>
+bowerbird-mcp serve restart     # stop what is found, then start
+bowerbird-mcp --config ~/notes serve start   # another collection, from anywhere: a bower.yaml or its folder (a relative path, ~ or
+                                             # a full path). --config goes BEFORE `serve`; without it, run inside the collection</code></pre>
 <p>Code highlighting is optional: add the <code>syntax</code> extra (<code>pip install 'bowerbird-mcp[serve,syntax]'</code>) and <code>serve</code> colours
 code files by their file name, in a light and a dark set that follow the theme. Without it they show as plain numbered text.</p>
 <p><code>status</code> and <code>stop</code> take the port if it is not 26937. The port (26937) spells BOWER on a phone keypad.</p>
 <p><strong>A different repository.</strong> Run it from there, or name its config from anywhere:
-<code>bowerbird-mcp --config /path/to/repo/kbmcp.yaml serve</code>. To serve several at once, give each its own port and use the same
-port with <code>status</code> and <code>stop</code>.</p>
+<code>bowerbird-mcp --config /path/to/repo/bower.yaml serve start</code>. With no install, use an absolute path and the <code>serve</code> extra:</p>
+<pre class="highlight"><code class="language-sh">uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp --config /path/to/repo/bower.yaml serve start</code></pre>
+<p>To serve several at once, give each its own port (<code>serve start 8081</code>) and use the same port with <code>status</code> and <code>stop</code>.</p>
+<p><strong>Already running.</strong> One server holds a port. If one is up, <code>serve start</code> prints its status and starts nothing, so
+<code>--config</code> is not read and you keep seeing the old collection. Run <code>serve stop</code> first, or <code>serve restart</code>, or pick
+another port.</p>
 <p><strong>Stopping.</strong> <code>serve stop</code>, or the <strong>⏻</strong> button at the right of the top bar. If you lose your shell, the button ends the
 server, so you never have to hunt for the process.</p>
 <p><strong>Restarting.</strong> Refresh the page to see changed files. Run <code>serve restart</code> after you change
-<code>kbmcp.yaml</code> or update Bowerbird, because both are read once at start.</p>
+<code>bower.yaml</code> or update Bowerbird, because both are read once at start.</p>
 <h2 id="what-you-see">What you see<a class="headerlink" href="#what-you-see" title="Link to this section">#</a></h2>
 <ul>
 <li><strong>Left:</strong> the folder tree of the whole collection, with a dot on each page for its seal state (green sealed, amber
-  unsealed, red broken by an edit, grey derived from the code and so never sealed). Every folder ends in <strong>+ New file</strong>. Under the root are <strong>Lint all</strong> and <strong>Tags</strong>.</li>
+  unsealed, red broken by an edit, blue derived from the code and so never sealed). Every folder ends in <strong>+ New file</strong>. Under the root are <strong>Lint all</strong> and <strong>Tags</strong>.</li>
 <li><strong>Middle:</strong> the page, with a badge saying who sealed it and when, or that it is unsealed or edited since review.</li>
 <li><strong>Right:</strong> a pencil (edit) and a gear (Move, Delete, Seal), then the page's outline, the pages that link to it and the
   pages it links to.</li>
-<li><strong>Top:</strong> back and forward, a path, the search box with its type menu, a theme button (system, light, dark) and <strong>⏻</strong>.</li>
+<li><strong>Top:</strong> back and forward, a path, the search box with its type menu, a link to the repository (when <code>origin</code> has a web address), a theme button (system, light, dark) and <strong>⏻</strong>.</li>
 </ul>
-<p><strong>Seal-only collections.</strong> A file that <code>seal.require</code> names (code, YAML, config) is a page here: read-only, as numbered
+<p><strong>Seal-only collections.</strong> A file that <code>seal.exempt</code> does not leave out (code, YAML, config) is a page here: read-only, as numbered
 text, with a badge and the same Seal button. It has no editor, no tags and no outline. A file that is not UTF-8 text, or is
 over 512 KB, is not listed or shown; the command line still seals it. With no root <code>index.md</code>, <code>/</code> shows the empty shell
 (tree and search) rather than a directory listing.</p>
@@ -294,7 +311,7 @@ history.</p>
 <tr>
 <td>Meaning</td>
 <td>Passages, matched by meaning as well as keyword</td>
-<td>Offered only when <code>kbmcp.yaml</code> sets <code>semantic: true</code> (it needs <code>fastembed</code>).</td>
+<td>Offered only when <code>bower.yaml</code> sets <code>semantic: true</code> (it needs the <code>semantic</code> extra, <code>bowerbird-mcp[semantic]</code>).</td>
 </tr>
 <tr>
 <td>Tags</td>
@@ -323,8 +340,8 @@ nothing is written until you confirm.</p>
   clear.</li>
 </ul>
 <h2 id="seal-from-the-browser">Seal from the browser<a class="headerlink" href="#seal-from-the-browser" title="Link to this section">#</a></h2>
-<p><strong>Seal</strong> (the gear) opens a dialog that shows what the MCP prompt shows: the file, its word count, how it opens and the
-first characters of its sha256. You tick that you reviewed it, type your id, and Bowerbird records <code>human:&lt;your id&gt;</code> for
+<p><strong>Seal</strong> (the gear) opens a dialog that shows what the MCP prompt shows: the file, its title, word count and
+full sha256, under the heading "Confirm seal: <file>". You tick that you reviewed it, type your id, optionally leave a one-line comment (kept with the seal), and Bowerbird records <code>human:&lt;your id&gt;</code> for
 exactly that text. A draft concept can be promoted to stable in the same step, and a decision record can be marked accepted
 or rejected. If the page changed while the dialog was open, nothing is written and you review it again.</p>
 <p>The server never seals by itself. Editing a sealed page afterwards breaks its seal, and the badge says so until you
@@ -343,9 +360,9 @@ no logins.</p>
 <li><strong><code>serve needs the markdown package</code>.</strong> Install the extra: <code>pip install 'bowerbird-mcp[serve]'</code>.</li>
 <li><strong><code>port 26937: Address already in use</code>.</strong> It is already running (<code>serve status</code>), or something else has the port. Use
   <code>serve stop</code>, or pick a port: <code>serve start 8080</code>.</li>
-<li><strong>Meaning is not in the search menu.</strong> <code>semantic</code> is off in <code>kbmcp.yaml</code>. Turn it on, then restart <code>serve</code>.</li>
+<li><strong>Meaning is not in the search menu.</strong> <code>semantic</code> is off in <code>bower.yaml</code>. Turn it on, then restart <code>serve</code>.</li>
 <li><strong>A page you edited is not what you expected.</strong> Check <code>git diff</code>. Edits are plain file writes, and Git has the history.</li>
-<li><strong>Not in the tools here.</strong> <code>provenance</code>, <code>init</code> and the rest of the tools are the command line's:
+<li><strong>Not in the tools here.</strong> <code>provenance</code>, <code>create</code> and the rest of the tools are the command line's:
   <code>bowerbird-mcp help</code>.</li>
 </ul></article>
         

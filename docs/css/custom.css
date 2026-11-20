@@ -55,7 +55,12 @@ body { font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiase
 .seal-badge::before { content: ""; width: .55rem; height: .55rem; border-radius: 50%; background: var(--seal, var(--bs-secondary-color)); }
 .seal-badge[data-state="reviewed"] { --seal: var(--bs-success); }
 .seal-badge[data-state="edited"] { --seal: var(--bs-warning); }
-.seal-badge[data-state="derived"] { --seal: var(--bs-info); }
+.seal-badge[data-state="derived"] { --seal: #2f6fe4; }
+.fact-badge { display: inline-flex; align-items: center; gap: .4rem; margin-right: .4rem; padding: .05rem .6rem; border: 1px solid var(--bs-border-color);
+              border-radius: 999px; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); font-size: .75rem; font-weight: 500; }
+.fact-badge::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--fact, var(--bs-secondary-color)); }
+.fact-badge[data-state="checked"] { --fact: var(--bs-success); }
+.fact-badge[data-state="drifted"] { --fact: var(--bs-danger); }
 .seal-note { margin: -.75rem 0 1.25rem; color: var(--bs-secondary-color); font-size: .8rem; }
 
 .headerlink { margin-left: .4rem; color: var(--bs-secondary-color); text-decoration: none; opacity: 0; transition: opacity .15s; }

@@ -3275,30 +3275,54 @@ def mark_derived(p, generator: str) -> list:
         cur[key] = [{"file": key, "sha256": sha, "by": f"generator:{generator}", "at": now(), "bowerbird": VERSION, "derived": generator}]
         write(ROOT / LEDGER, ledger_text(cur))
         done.append(LEDGER)
-    d, pol = policy_for(p)
-    local = os.path.relpath(p, d)
-    cf = config_file(d)
-    if not (pol["exempt"] and any(rx.fullmatch(local) for rx in policy_rx(pol["exempt"]))) and cf:
-        text = cf.read_text(encoding="utf-8")
-        if (new := with_exempt(text, "/" + Path(local).as_posix())) is None:
-            done.append(f"{bundle_name(cf)}: add /{Path(local).as_posix()} to seal.exempt by hand (seal is not on one line)")
-        elif new != text:
-            cf.write_text(new, encoding="utf-8")
-            _SCOPES.clear()
-            _POLICY.clear()
-            if d == ROOT:
-                OPTS["seal"] = {**OPTS["seal"], **(yaml.safe_load(new) or {}).get("seal", {})}
-            done.append(f"{bundle_name(cf)}: seal.exempt gets /{Path(local).as_posix()}")
-    return done
+    return done + ensure_exempt(p)
+
+
+def ensure_exempt(target: Path, directory: bool = False) -> list:
+    """Put the file (or, for a folder, everything under it) in `seal.exempt` of the bower.yaml whose seal policy covers it, if no glob there
+    names it yet; say what it did, or that `seal:` needs a hand edit."""
+    d, pol = policy_for(target)
+    local = Path(os.path.relpath(target, d)).as_posix()
+    glob, cf = "/" + local + ("/**" if directory else ""), config_file(d)
+    if (pol["exempt"] and any(rx.fullmatch(local + ("/x" if directory else "")) for rx in policy_rx(pol["exempt"]))) or not cf:
+        return []
+    text = cf.read_text(encoding="utf-8")
+    if (new := with_exempt(text, glob)) is None:
+        return [f"{bundle_name(cf)}: add {glob} to seal.exempt by hand (seal is not on one line)"]
+    if new == text:
+        return []
+    cf.write_text(new, encoding="utf-8")
+    _SCOPES.clear()
+    _POLICY.clear()
+    if d == ROOT:
+        OPTS["seal"] = {**OPTS["seal"], **(yaml.safe_load(new) or {}).get("seal", {})}
+    return [f"{bundle_name(cf)}: seal.exempt gets {glob}"]
+
+
+def mark_derived_dir(directory, generator: str) -> list:
+    """Record that everything under a folder is built by `generator` (the site's output folder, say), in one ledger line for the folder, and
+    leave it out of the review check. A folder has no hash, so it is the location that says so: nothing is checked per file. Returns what it
+    changed (empty when the record is already there)."""
+    key, done = os.path.relpath(directory, ROOT) + "/", []
+    cur = ledger_all(ROOT / LEDGER)
+    old = cur.get(key, [])
+    if not (len(old) == 1 and old[0].get("derived") == generator and old[0].get("by")):
+        cur[key] = [{"file": key, "by": f"generator:{generator}", "at": now(), "bowerbird": VERSION, "derived": generator}]
+        write(ROOT / LEDGER, ledger_text(cur))
+        done.append(LEDGER)
+    return done + ensure_exempt(Path(directory), directory=True)
 
 
 def derived(p, ledger=None) -> bool:
     """Is the file at p built from the code? The ledger says so: a line with `derived: <generator>` and the sha256 of the file as it is now
     (`mark_derived`, written by the generator). Edit the file by hand and the line no longer matches, so it is no longer derived.
     `seal.exempt` only leaves a file out of the review check; it does not say who made it. ledger: `ledger_by_file()`, when the caller has it."""
-    t = read(Path(p))
     led = ledger_by_file() if ledger is None else ledger
-    return t is not None and any(e.get("derived") and e.get("sha256") == content_hash(t, False) for e in led.get(os.path.relpath(p, ROOT), []))
+    key = os.path.relpath(p, ROOT)
+    if any(e.get("derived") for k, es in led.items() if k.endswith("/") and key.startswith(k) for e in es):  # a generated folder, such as the site's output
+        return True
+    t = read(Path(p))
+    return t is not None and any(e.get("derived") and e.get("sha256") == content_hash(t, False) for e in led.get(key, []))
 
 
 def seal_policy(p) -> tuple:
@@ -3371,7 +3395,7 @@ def signatures(since: str = "") -> dict:
         elif status.startswith("accepted"):
             findings.append(flag("claims_accepted", key, "its status says accepted, but no human reviewed it", f"{SIGN} {key}"))
     if keep is None:  # a file reviewed by path, outside the format's own files: still checked for edits, or a gone file
-        for key in sorted(set(ledger) - seen):
+        for key in sorted(k for k in set(ledger) - seen if not k.endswith("/")):  # a folder record (mark_derived_dir) is not a file that went
             p = ROOT / key
             text = read(p) if p.is_file() else None
             if text is None:
@@ -3398,6 +3422,10 @@ def review_target(file: str, bundle: str, decision: str) -> tuple:
         label = (os.path.relpath(p, ROOT), title_of(d, t, p))
     else:
         p = confined(ROOT, file)
+        if p.is_dir():
+            inside_ = sorted(x for x in p.rglob("*") if x.is_file() and not any(part.startswith(".") for part in x.relative_to(p).parts))
+            raise ValueError(f"{os.path.relpath(p, ROOT)} is a folder, and a seal covers one file | fix: seal a file in it" + (
+                f", such as {os.path.relpath(inside_[0], ROOT)} ({len(inside_)} files here)" if inside_ else " (it holds no files)"))
         if not p.is_file() or (t := read(p)) is None:
             raise ValueError(f"{file} is not a readable file here | fix: pass its path from the collection root")
         fmt = fmt_of(p)
@@ -4728,7 +4756,8 @@ def help_text(full: bool) -> str:
     for g, ns in rows:
         if ns:
             out += [g] + [f"  {n:14} {one_line(REG[n])}" for n in ns] + [""]
-    out += ["  serve <verb>   browse the collection in a browser: start|stop|restart|status [port] (26937; bare `serve` prints its help; needs bowerbird-mcp[serve])",
+    out += ["  okf <verb>     move an OKF concept's reviews and sources between its frontmatter and the ledgers: export|import [path] [--apply] (a terminal; previews)",
+            "  serve <verb>   browse the collection in a browser: start|stop|restart|status [port] (26937; bare `serve` prints its help; needs bowerbird-mcp[serve])",
             "  help all       every command" if not full else "",
             "  help <tool>    its arguments and examples", "",
             "Arguments are name=value (lists a,b or JSON) or flags: lint scope=okf output=github is lint -s okf -O github.",
@@ -4860,6 +4889,9 @@ def cli(argv) -> int:
     if argv and argv[0] in ("--version", "-V"):
         print(version_line())
         return 0
+    if argv and argv[0] == "okf":  # a person's way of moving reviews and sources between an OKF concept's frontmatter and the ledgers; not a tool
+        import bowerbird_okf
+        return bowerbird_okf.main(sys.modules[__name__], argv[1:])
     if argv and argv[0] == "serve":  # a human's browser front end to the tools, not an MCP tool
         import bowerbird_serve
         rest = [a for a in argv[1:] if a not in ("-f", "--foreground")]

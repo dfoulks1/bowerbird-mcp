@@ -130,6 +130,16 @@
                 
                   <li>
                     <a class="dropdown-item "
+                       href="../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
                        href="../tools/">Tools</a>
                   </li>
                 
@@ -180,6 +190,11 @@
             <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#names">Names</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#searching">Searching</a>
       
     </li>
@@ -213,29 +228,38 @@
           </nav>
         
         <article><h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-18T15:58:02Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:25:02Z</p>
 
+<h2 id="names">Names<a class="headerlink" href="#names" title="Link to this section">#</a></h2>
+<ul>
+<li><strong><code>warning: ... kbmcp.yaml is the old name of bower.yaml</code></strong> (or <code>KB_USER is the old name of BOWERBIRD_USER</code>). Before 2.2.0 the settings
+  file was <code>kbmcp.yaml</code>, the environment variables began <code>KB_</code>, the lint skip file was <code>kbmcp.nolint</code> and the index cache was <code>.kbmcp/</code>. The
+  old names still work, and the warning says what to rename: <code>git mv kbmcp.yaml bower.yaml</code>, <code>KB_X</code> to <code>BOWERBIRD_X</code> (in the environment or in
+  <code>.env</code>), <code>kbmcp.nolint</code> to <code>bower.nolint</code>. When both names exist, the new one is used. The old <code>.kbmcp/</code> cache folder can just be deleted.
+  A generated <code>index.md</code> written under the old <code>kb-index</code> markers is read as it was, and rewritten with the new markers the next time <code>index</code> runs.</li>
+</ul>
 <h2 id="searching">Searching<a class="headerlink" href="#searching" title="Link to this section">#</a></h2>
 <ul>
 <li><strong><code>passages</code> says <code>gap: true</code> for something you know is there.</strong> It matches by words and has no stemming, so "rolling"
-  does not match "roll". Try the file's own words. <code>kb search roll</code> matches by substring, so it finds <code>rollback</code>, and
-  semantic search (<code>semantic: true</code>) matches by meaning. <a href="../getting-started/#4-search-it">Getting started</a> covers all three.</li>
-<li><strong>A search from the wrong folder finds nothing, and says only <code>gap: true</code>.</strong> Bowerbird looks for a <code>kbmcp.yaml</code> in the
+  does not match "roll". Try the file's own words. <code>bowerbird-mcp search roll</code> matches by substring, so it finds <code>rollback</code>, and
+  semantic search (<code>semantic: true</code>) matches by meaning. <a href="../getting-started/#5-searching">Getting started</a> covers all three.</li>
+<li><strong>A search from the wrong folder finds nothing, and says only <code>gap: true</code>.</strong> Bowerbird looks for a <code>bower.yaml</code> in the
   current folder and then in the folders above it, never below. From a folder that is not a collection, or from the parent
   of several, there is nothing to search. Run it inside the collection, or name the file:
-  <code>kb --config path/to/kbmcp.yaml passages ...</code>.</li>
+  <code>bowerbird-mcp --config path/to/bower.yaml passages ...</code>.</li>
 <li><strong>A hit says <code>stale</code>.</strong> The file changed after its review. Read it again and seal it again.</li>
 </ul>
 <h2 id="settings">Settings<a class="headerlink" href="#settings" title="Link to this section">#</a></h2>
 <ul>
-<li><strong><code>init holds=adr</code> did not change the format.</strong> <code>holds</code> only applies when there is no <code>kbmcp.yaml</code> yet. On an existing
-  collection, edit the <code>format:</code> line in <code>kbmcp.yaml</code> and run <code>kb reindex</code>.</li>
-<li><strong><code>seal-only needs seal.require</code>.</strong> In a <code>seal-only</code> collection the policy must name the files that need a review:
-  <code>seal: {require: ["src/**/*.py"]}</code> in <code>kbmcp.yaml</code>.</li>
-<li><strong>My MCP server does not offer <code>seal</code>.</strong> If <code>roles:</code> in <code>kbmcp.yaml</code> spells the roles out, <code>seal</code> has to be in the list.
+<li><strong><code>create holds=adr</code> did not change the format.</strong> <code>holds</code> only applies when there is no <code>bower.yaml</code> yet. On an existing
+  collection, edit the <code>format:</code> line in <code>bower.yaml</code> and run <code>bowerbird-mcp reindex</code>.</li>
+<li><strong><code>seal takes exempt and exempt_status (lists of strings), extensions (true or false) and quorum</code>.</strong> <code>seal.require</code> is gone. Every file is
+  checked, so <code>bower.yaml</code> lists only the ones to leave out: <code>seal: {exempt: ["src/gen_*.py"]}</code>. <code>extensions</code> and <code>quorum</code> belong to the
+  <a href="../sealing/#several-signers-and-a-quorum-the-seal-extensions-extra">seal extensions</a>; a <code>quorum</code> above 1 needs <code>extensions: true</code>.</li>
+<li><strong>My MCP server does not offer <code>seal</code>.</strong> If <code>roles:</code> in <code>bower.yaml</code> spells the roles out, <code>seal</code> has to be in the list.
   A file with no <code>roles:</code> line gets all five. Asking for a role that is left out (<code>--role seal</code>) refuses to start, with
-  "role seal is off in kbmcp.yaml".</li>
-<li><strong><code>KB_ROOT is no longer read</code>.</strong> The old environment variable is gone. Put the folder's <code>kbmcp.yaml</code> where the tool runs,
+  "role seal is off in bower.yaml".</li>
+<li><strong><code>BOWERBIRD_ROOT is no longer read</code>.</strong> The old environment variable is gone. Put the folder's <code>bower.yaml</code> where the tool runs,
   or name it with <code>--config</code>.</li>
 </ul>
 <h2 id="serve">Serve<a class="headerlink" href="#serve" title="Link to this section">#</a></h2>
@@ -243,7 +267,7 @@
 <li><strong><code>serve needs the markdown package</code>.</strong> Install the extra: <code>pip install 'bowerbird-mcp[serve]'</code>.</li>
 <li><strong><code>port 26937: Address already in use</code>.</strong> It is already running (<code>serve status</code>), or something else has the port. Use
   <code>serve stop</code>, or pick a port: <code>serve start 8080</code>.</li>
-<li><strong>The page does not show my change.</strong> A file change shows on refresh; a change to <code>kbmcp.yaml</code>, or an update to
+<li><strong>The page does not show my change.</strong> A file change shows on refresh; a change to <code>bower.yaml</code>, or an update to
   Bowerbird, needs <code>serve restart</code>.</li>
 <li><strong>I lost the shell it started in.</strong> Press ⏻ in the top bar of the page, or run <code>serve stop</code> from anywhere.</li>
 </ul>
@@ -252,8 +276,8 @@
 <ul>
 <li><strong><code>rdflib is missing</code></strong> (a <code>skos</code> collection). Install the extra: <code>pip install rdflib</code>, or with <code>uvx</code>, ask for it:
   <code>uvx --from "bowerbird-mcp[skos]" bowerbird-mcp</code>.</li>
-<li><strong>Semantic search does not start with the bare script.</strong> <code>uvx bowerbird-mcp</code> carries <code>fastembed</code>; the one-file script
-  needs <code>uv run --with fastembed bowerbird_mcp.py</code>.</li>
+<li><strong>Semantic search does not start (<code>needs the semantic extra</code>).</strong> It is an add-on: <code>uv tool install 'bowerbird-mcp[semantic]'</code>,
+  or <code>uvx --from 'bowerbird-mcp[semantic]' bowerbird-mcp</code>; the one-file script needs <code>uv run --with fastembed bowerbird_mcp.py</code>.</li>
 <li><strong><code>uvx</code> runs an old build while you test local changes.</strong> Add <code>--no-cache</code>.</li>
 </ul></article>
         

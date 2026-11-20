@@ -40,3 +40,5 @@ for name, fn in sorted(k.REG.items()):
 if k.ROOT == HERE:  # the ledger says this page is built from the code, for these bytes, and it is left out of the review check
     for change in k.mark_derived(HERE / "docs-src/tools.md", "docs_tools.py"):
         print(f"derived: {change}")
+    for change in k.mark_derived_dir(HERE / "docs", "mkdocs"):  # and the site mkdocs builds from docs-src/
+        print(f"derived: {change}")
