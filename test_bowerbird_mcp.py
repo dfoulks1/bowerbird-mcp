@@ -2774,6 +2774,8 @@ def counted(d):
         assert {h["file"]: h["seals"] for h in bb.passages("quokka")["hits"]} == {"a.md": 1, "b.md": 2}
         assert {c["file"]: c["seals"] for c in bb.list_(limit=0)["concepts"]} == {"a.md": 1, "b.md": 2}
         assert bb.signatures()["most_sealed"] == [{"file": "b.md", "seals": 2}, {"file": "a.md", "seals": 1}]
+        bb.ledger_put("a.md", {"file": "a.md", "sha256": bb.content_hash((d / "a.md").read_text(), False), "by": "process:ci", "at": "2026-11-23T11:00:00Z"})  # a machine's check is not a person
+        assert {c["file"]: c["seals"] for c in bb.list_(limit=0)["concepts"]} == {"a.md": 1, "b.md": 2}  # the count is a human signal: process:ci is not in it
         (d / "b.md").write_text("# B\n\nThe quokka lives here, edited.\n")  # an edit ends the seals: only live ones count
         assert {c["file"]: c["seals"] for c in bb.list_(limit=0)["concepts"]} == {"a.md": 1, "b.md": 0} and bb.signatures()["most_sealed"] == [{"file": "a.md", "seals": 1}]
         bb.SEAL_EXT = None
