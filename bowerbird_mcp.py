@@ -88,6 +88,9 @@ class Profile(typing.NamedTuple):
     clean: typing.Callable | None = None  # body text -> body text with what is not a link removed (Obsidian's %%comments%%), before links are read
     quiet: tuple = ()  # lint kinds this tool's files are not held to (a Foam link-reference definition nobody uses, a Logseq page with no file)
     virtual: typing.Callable | None = None  # (page name, every page name that has a file) -> true when the page exists without one (a Dendron stub)
+    tags: typing.Callable | None = None  # body text -> the inline #tags it holds (the frontmatter `tags` are always read)
+    names: typing.Callable | None = None  # (text, frontmatter) -> other names a file's page answers to (aliases, a `title::`)
+    resolve: typing.Callable | None = None  # (link as written, citing file, root, [(page name, file)]) -> a Path, None (no file, not broken), or False (not mine: use the default)
 
 
 PROFILES: dict = {}  # format name -> Profile, filled by add-ons (entry point group `bowerbird.formats`)
@@ -1172,20 +1175,28 @@ def loaded(p: Path, r: Path):
 
 def wiki_index(files: list, r: Path) -> list:
     """[(the page name a link uses for the file, the file)]: its path under r, lowercase, without .md; a profile may rename it (Logseq's `a___b` is page `a/b`)."""
-    pr = profile()
-    return [((pr.page(n) if pr and pr.page else n), p) for p in files for n in [rel(p, r)[:-3].lower()]]
+    pr, out = profile(), []
+    for p in files:
+        n = rel(p, r)[:-3].lower()
+        out.append(((pr.page(n) if pr and pr.page else n), p))
+        if pr and pr.names:
+            text = read(p) or ""
+            out += [(a.strip().lower(), p) for a in pr.names(text, meta(text)[0] or {}) if a and a.strip()]
+    return out
 
 
 def wiki_target(name: str, src: Path, r: Path):
     """The file `[[name]]` means: the one in r whose path ends in name (.md optional, case ignored), the shortest path first, then the
     nearest to src. A name that matches nothing gets the path it would have, so a missing target is a dead_link like any other.
     shortcut: the index comes from the last scan(r); a wikilink resolved outside a scan (log, ingest) sees that scan's files. Upgrade if it bites."""
-    key = urllib.parse.unquote(name).strip().strip("/").lower().removesuffix(".md")
     if r not in WIKI:
         WIKI[r] = wiki_index(concept_files(r), r)
+    if (pr := profile()) and pr.resolve and (got := pr.resolve(name, src, r, WIKI[r])) is not False:
+        return got
+    key = urllib.parse.unquote(name).strip().strip("/").lower().removesuffix(".md")
     if hits := [p for rp, p in WIKI[r] if rp == key or rp.endswith("/" + key)]:
         return min(hits, key=lambda p: (len(p.relative_to(r).parts), -len(os.path.commonpath([p, src]).split(os.sep)), str(p)))
-    if (pr := profile()) and pr.virtual and pr.virtual(key, [n for n, _ in WIKI[r]]):
+    if pr and pr.virtual and pr.virtual(key, [n for n, _ in WIKI[r]]):
         return None  # a page with no file of its own: not a broken link
     if Path(key).suffix:  # an attachment, ![[diagram.png]]: beside the page, from the root, or anywhere in the collection
         return next((c for c in (src.parent / key, r / key) if c.exists()), None) or next(iter(walk(r, Path(key).name)), r / key)
@@ -1922,7 +1933,7 @@ def lint(scope: str = "all", limit: int = 100, offset: int = 0, baseline: str = 
          all: bool | None = None, file: str = "", files: list[str] | None = None, only: list[str] | None = None,
          ignore: list[str] | None = None, bundle: str = "") -> dict:
     """Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Files of the markdown family (markdown, ADR, Obsidian, Foam, Dendron,
-    Logseq) are not judged as OKF concepts: for them it checks fact blocks, and links (markdown and [[wikilinks]]) that lead nowhere, as warnings.
+    Logseq) are not judged as OKF concepts: for them it checks fact blocks, and links (markdown, and `[[wikilinks]]`) that lead nowhere, as warnings.
     Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file;
     message; fix (what to do); fixable (true: `fix` clears it). conformant: §11 holds for what was linted
     (frontmatter parses, `type` set, index.md and log.md well formed). ok: no errors in scope. scope: all |
@@ -2287,6 +2298,12 @@ def adr_meta(d: dict, text: str, p: Path, every: bool = False) -> dict:
             d["status"] = m.group(1) or m.group(2)
         if d.get("status"):
             d["status"] = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", str(d["status"])).strip(" *_`")
+    if (pr := profile()) and pr.tags:  # a tool that writes #tags in the text: they are the file's tags beside its frontmatter ones
+        have = d.get("tags")
+        have = [x for x in re.split(r"[,\s]+", have) if x] if isinstance(have, str) else [str(x) for x in have] if isinstance(have, list) else []
+        more = [x for x in dict.fromkeys(pr.tags(split(text)[1])) if x not in have]
+        if have or more:
+            d["tags"] = have + more
     return d
 
 

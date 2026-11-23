@@ -33,7 +33,9 @@ Markdown notes in the workspace. A note's name is its file name, and the dots ar
 | `[[recipes.vegetarian#header]]` | a link; the header is checked against the note's headings |
 | `[[recipes.vegetarian#^anchor]]` | a link to the note; the anchor is not checked |
 | `![[recipes.vegetarian]]` | a note reference, read as a link |
-| `[[dendron://vault/recipes.vegetarian]]` | a link to `recipes.vegetarian`; the vault prefix is dropped |
+| `[[dendron://vault/recipes.vegetarian]]` | a link to `recipes.vegetarian` in that vault only: the vault's folder comes from `fsPath` in `dendron.yml` (its `name` is what the link says) |
+| `#proj.x` | a tag `proj.x`, and a link to the note `tags.proj.x`, which need not exist |
+| `@ann` | a link to the note `user.ann`, which need not exist |
 | `[[recipes]]` with no `recipes.md` but a `recipes.vegetarian.md` | a **stub**: the parent exists, so this is not a broken link |
 
 ## How a name finds its note
@@ -47,21 +49,23 @@ As in [Markdown](markdown.md): seals live in a `.waxseals.yaml` beside the note,
 
 ## What it does not do yet
 
-- Hashtags (`#a.b`) and `@user` tags, which Dendron treats as links to `tags.a.b` and `user.x`, are not read; nor are the `tags` property, schemas
-  (`*.schema.yml`) or `dendron.yml`.
 - Wildcard references (`![[demo.journal.*]]`) and range references (`![[note#start:#end]]`) are not followed.
-- A link into a named vault is resolved by note name across every vault, not within the vault it names.
+- Schemas (`*.schema.yml`) are not read, and nothing checks a note against one.
+- The `tags` property is read as tags, but a frontmatter tag does not make a link to `tags.<name>` (a `#tag` in the text does).
 - The documentation does not say whether link names are case-sensitive or how header slugs are made; Bowerbird ignores case and uses the same slugs as in markdown.
+- A `[[//vault/note]]` form, which the documentation does not confirm, is read as a name and reported as broken.
 
 ## Tested against
 
 Made-up collections, not a real workspace. The test builds this one in a temporary folder:
 
-- `x.md` holding `[[alias|a.b.c#head]]`, `[[a.b]]`, `[[dendron://v/a.b.c]]` and `[[gone.x]]`, and `a.b.c.md`.
-- What the test checks: the alias is read from the left; `[[a.b]]` is a stub (a child exists, there is no file) and is not broken; the `dendron://v/` prefix is dropped; and the only broken link reported is `[[gone.x]]`.
-- Not tested: more than one vault, `dendron.yml`, or a header slug that differs from the markdown one.
+- `x.md` holding `[[alias|a.b.c#head]]`, `[[a.b]]`, `[[dendron://v1/a.b.c]]`, `[[gone.x]]`, `#proj.x` and `@ann`; `v1/a.b.c.md`; `v2/a.b.c.md`; and a `dendron.yml` with the vaults `v1` and `v2`.
+- What the test checks: the alias is read from the left; `[[a.b]]` is a stub (a child exists, there is no file) and is not broken; `[[dendron://v1/a.b.c]]` finds `v1/a.b.c.md` and `[[dendron://v2/a.b.c]]` finds `v2/a.b.c.md`; `#proj.x` and `@ann` are not broken links; the only broken link reported is `[[gone.x]]`; and `#proj.x` and `#other` are tags.
+- Not tested: a workspace with one vault laid out the self-contained way, or a header slug that differs from the markdown one.
 
-Nothing here has run against a real workspace: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large workspaces and Dendron's own newer features are untested. The rules this page lists as unconfirmed come from Dendron's own documentation, read second-hand.
+Nothing here has run against a real workspace: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite
+(`test_bowerbird_mcp.py`). Windows and macOS paths, large workspaces and Dendron's own newer features are untested. The rules this page lists as unconfirmed come from
+Dendron's own documentation, read second-hand.
 
 ## Report a problem
 

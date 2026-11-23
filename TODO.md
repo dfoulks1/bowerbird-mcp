@@ -11,7 +11,7 @@ Only what is open. What is done is in `CHANGELOG.md`.
 - [ ] Agent-run `factcheck` beyond the local kinds: `url` and `mcp` still need a person at a terminal (`--fetch`). Decide what an agent may run, and what the plan and
       prompt look like.
 - [ ] The branch `2.3` holds the work so far, committed in pieces; it is not merged or pushed. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
-- [ ] ADR-001's header still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `fact-pack/`). Make it `partial` or `landed`; `fact` writing blocks is the part left. Editing it stales its seal.
+- [ ] ADR-001's header still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `partial` or `landed`; `fact` writing blocks is the part left. Editing it stales its seal.
 - [ ] OKF through import and export (decided 2026-11-23): OKF is the odd format, keeping facts (`sources`) and reviews (`verified`) in frontmatter. It should use the
       records every other format uses (`.facts.yaml`, `.waxseals.yaml`), and `okf export` and `okf import` convert to and from the frontmatter OKF readers expect.
       Open: does it cover seals as well as facts; how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile. Write the ADR first (ADR-003).
@@ -22,13 +22,14 @@ Only what is open. What is done is in `CHANGELOG.md`.
 
 ### Formats
 
-- [ ] Format add-ons, left to do after the first cut (`addons/obsidian`, `foam`, `dendron`, `logseq`; `register_format` and the `bowerbird.formats` entry point are in core):
-  - Add the extras to `pyproject.toml` (`obsidian = ["bowerbird-obsidian"]`, and the rest) and set each add-on's version to the release's. Left out so far: `uv.lock` cannot resolve a
-    package that is not on PyPI yet. Build and upload the four add-on distributions first.
-  - Run each format against a real vault (Obsidian, Foam, Dendron, Logseq). The rules came from each tool's documentation, read second-hand; the unconfirmed ones are
-    listed on each format's page (case rules, duplicate names, `title::`, what a tool does with links in code).
-  - Inline `#tags`, frontmatter `tags` and `aliases`, `title::` and `alias::` (a page found by its alias), Dendron vault-scoped links and `@user` tags, Foam `./` and `/` path links,
-    Logseq `config.edn` (`:file/name-format`, journal title format), block references `((uuid))`, `.canvas` and `.base` files.
+- [ ] Format add-ons, left to do (`addons/obsidian`, `foam`, `dendron`, `logseq`, `fact-pack`):
+  - Add the extras to `pyproject.toml` (`obsidian = ["bowerbird-obsidian"]`, and the rest, `fact-pack` included) and set each add-on's version to the release's. Left out so far:
+    `uv.lock` cannot resolve a package that is not on PyPI yet. Build and upload the add-on distributions first.
+  - Run each format against a real vault (Obsidian, Foam, Dendron, Logseq). Only made-up collections have been tested (each format's page says which); the rules came from each
+    tool's documentation, read second-hand, and the unconfirmed ones are listed on the page (case rules, duplicate names, what a tool does with links in code).
+  - What is read but not followed: links inside Obsidian `.canvas` and `.base` files; Dendron schemas, wildcard and range references; Logseq `{{query}}` and `config.edn` keys other than
+    the file name format and the journal title format; the Logseq database version. Take one when a real vault needs it.
+- [ ] `[gollum]`, GitHub wiki repos, is a candidate (see Later).
 
 ### Release
 

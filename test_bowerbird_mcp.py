@@ -2330,39 +2330,61 @@ def dead(d):
     return {(f["file"], f["message"].split(" ")[2]) for f in bb.lint(limit=0)["findings"] if f["kind"] == "dead_link"}
 
 
-# Obsidian: [[Note]] by name, the vault's own folders skipped, %%comments%% and embeds of files handled
+# Obsidian: [[Note]] by name or alias, the vault's own folders skipped, %%comments%% and embeds of files handled, inline #tags
 def obs(d):
     a = d / "a.md"
-    assert bb.hrefs(a.read_text()) == ["[[b]]", "[[Missing]]", "[[img.png]]", "[[b]]"], bb.hrefs(a.read_text())  # %% [[Hidden]] %% is a comment; [[b#^blk]] keeps the note
+    assert bb.hrefs(a.read_text()) == ["[[b]]", "[[Missing]]", "[[img.png]]", "[[b]]", "[[Alt Name]]"], bb.hrefs(a.read_text())  # %% [[Hidden]] %% is a comment; [[b#^blk]] keeps the note
     assert bb.target("[[b]]", a, d) == d / "sub/b.md" and bb.target("[[img.png]]", a, d) == d / "img.png"
+    assert bb.target("[[alt name]]", a, d) == d / "sub/b.md"  # a note's `aliases` find it
     assert not any(".obsidian" in str(p) for p in bb.walk(d)) and dead(d) == {("a.md", "[[Missing]]")}, dead(d)
     assert bb.fmt_of(a) == "markdown" and bb.profile().name == "obsidian"
-in_vault("obsidian", {"a.md": "[[b]] [[Missing]] %% [[Hidden]] %% ![[img.png]] [[b#^blk]]\n", "sub/b.md": "b\n", "img.png": "x", ".obsidian/workspace.md": "[[Nope]]\n"}, obs)
+    tg = bb.adr_meta(bb.meta((d / "t.md").read_text())[0] or {}, (d / "t.md").read_text(), d / "t.md")["tags"]
+    assert tg == ["fm", "alpha", "beta/sub", "x_1"], tg  # the frontmatter's first; not #1984, a comment's, a code span's or a URL's
+in_vault("obsidian", {"a.md": "[[b]] [[Missing]] %% [[Hidden]] %% ![[img.png]] [[b#^blk]] [[Alt Name]]\n", "sub/b.md": "---\naliases: [Alt Name]\n---\nb\n", "img.png": "x",
+                      ".obsidian/workspace.md": "[[Nope]]\n", "t.md": "---\ntags: [fm]\n---\n# Heading\n\n#alpha #beta/sub #1984 %% #hidden %% `#code` http://x.y/#frag #x_1\n"}, obs)
 
 
-# Foam: [[projects]] is projects/index.md, a sibling projects.md would win; the editor's folders are skipped
+# Foam: [[projects]] is projects/index.md, a sibling projects.md would win; ./ and / paths; the editor's folders are skipped; `alias` as a comma list
 def foam(d):
-    a = d / "a.md"
-    assert bb.target("[[projects]]", a, d) == d / "projects/index.md" and bb.target("[[house/todo]]", a, d) == d / "projects/house/todo.md"
-    assert dead(d) == {("a.md", "[[nope]]")} and not any(".foam" in str(p) for p in bb.walk(d)), dead(d)
-in_vault("foam", {"a.md": "[[projects]] [[house/todo]] [[nope]]\n", "projects/index.md": "i\n", "projects/house/todo.md": "t\n", ".foam/templates/n.md": "[[$FOAM_X]]\n"}, foam)
+    a, deep = d / "a.md", d / "projects/house/todo.md"
+    assert bb.target("[[projects]]", a, d) == d / "projects/index.md" and bb.target("[[house/todo]]", a, d) == deep
+    assert bb.target("[[./sib]]", deep, d) == d / "projects/house/sib.md" and bb.target("[[../index]]", deep, d) == d / "projects/index.md" and bb.target("[[/a]]", deep, d) == a
+    assert bb.target("[[Plan B]]", a, d) == d / "projects/index.md" and bb.target("[[plan c]]", a, d) == d / "projects/index.md"  # `alias: Plan B, Plan C`
+    assert dead(d) == {("a.md", "[[nope]]"), ("a.md", "[[./gone]]")} and not any(".foam" in str(p) for p in bb.walk(d)), dead(d)
+    assert bb.adr_meta({}, "#one and #two/x\n", a)["tags"] == ["one", "two/x"]
+in_vault("foam", {"a.md": "[[projects]] [[house/todo]] [[nope]] [[./gone]] [[/a]]\n", "projects/index.md": "---\nalias: Plan B, Plan C\n---\ni\n", "projects/house/todo.md": "t\n", "projects/house/sib.md": "s\n",
+                  ".foam/templates/n.md": "[[$FOAM_X]]\n"}, foam)
 
 
-# Dendron: the alias is on the left, dotted names are the hierarchy, a stub parent exists, a vault prefix is not a note
+# Dendron: the alias is on the left, dotted names are the hierarchy, a stub parent exists, a vault link stays in its vault, #tags and @user are not broken links
 def den(d):
     a = d / "x.md"
-    assert bb.hrefs(a.read_text()) == ["[[a.b.c#head]]", "[[a.b]]", "[[a.b.c]]", "[[gone.x]]"], bb.hrefs(a.read_text())
-    assert bb.target("[[a.b.c]]", a, d) == d / "a.b.c.md" and bb.target("[[a.b]]", a, d) is None  # a.b is a stub: no file, not a broken link
+    assert bb.hrefs(a.read_text()) == ["[[a.b.c#head]]", "[[a.b]]", "[[dendron://v1/a.b.c]]", "[[gone.x]]", "[[tags.proj.x]]", "[[user.ann]]"], bb.hrefs(a.read_text())
+    assert bb.target("[[a.b.c]]", a, d) == d / "v2/a.b.c.md" or bb.target("[[a.b.c]]", a, d) == d / "v1/a.b.c.md"  # an unscoped link: the shortest path (both are one deep; the first by name)
+    assert bb.target("[[a.b]]", a, d) is None  # a.b is a stub: no file, not a broken link
+    assert bb.target("[[dendron://v1/a.b.c]]", a, d) == d / "v1/a.b.c.md" and bb.target("[[dendron://v2/a.b.c]]", a, d) == d / "v2/a.b.c.md"  # the vault says which
+    assert bb.target("[[tags.proj.x]]", a, d) is None and bb.target("[[user.ann]]", a, d) is None
     assert dead(d) == {("x.md", "[[gone.x]]")}, dead(d)
-in_vault("dendron", {"x.md": "[[alias|a.b.c#head]] [[a.b]] [[dendron://v/a.b.c]] [[gone.x]]\n", "a.b.c.md": "c\n"}, den)
+    assert bb.adr_meta({}, "#proj.x and #other\n", a)["tags"] == ["proj.x", "other"]
+in_vault("dendron", {"x.md": "[[alias|a.b.c#head]] [[a.b]] [[dendron://v1/a.b.c]] [[gone.x]] #proj.x @ann\n", "v1/a.b.c.md": "c1\n", "v2/a.b.c.md": "c2\n",
+                     "dendron.yml": "workspace:\n  vaults:\n    - fsPath: v1\n      name: v1\n    - fsPath: v2\n      name: v2\n"}, den)
 
 
-# Logseq: a___b.md is page a/b, a journal page needs no file, and a link to a page with no file is not a mistake
+# Logseq: a___b.md is page a/b, `title::` and `alias::` name a page, ((uuid)) finds its block, a journal page needs no file, config.edn sets the formats
 def lsq(d):
     a = d / "pages/z.md"
     assert bb.target("[[a/b]]", a, d) == d / "pages/a___b.md" and bb.target("[[Sep 14th, 2020]]", a, d) is None
+    assert bb.target("[[A Better Title]]", a, d) == d / "pages/titled.md" and bb.target("[[tl]]", a, d) == d / "pages/titled.md"
+    assert bb.target("[[block:6700a8c1-aaaa-bbbb-cccc-000000000001]]", a, d) == d / "pages/titled.md"
+    assert "[[block:6700a8c1-aaaa-bbbb-cccc-000000000001]]" in bb.hrefs(a.read_text())
     assert dead(d) == set() and not any("logseq" in p.relative_to(d).parts for p in bb.walk(d))
-in_vault("logseq", {"pages/z.md": "- [[a/b]] [[Sep 14th, 2020]] [[nowhere]]\n", "pages/a___b.md": "- b\n", "logseq/bak/old.md": "[[x]]\n"}, lsq)
+    assert bb.adr_meta({}, a.read_text(), a)["tags"] == ["tag1", "two words", "plain", "x", "y"]
+    (d / "logseq/config.edn").write_text('{:journal/page-title-format "yyyy-MM-dd"}\n')  # a config with no :file/name-format is a legacy graph: `.` is `/`; and the journal title is its own
+    assert bb.target("[[2020-09-14]]", a, d) is None and bb.target("[[Sep 14th, 2020]]", a, d) != None
+    assert bb.PROFILES["logseq"].page("a.b") == "a/b"
+in_vault("logseq", {"pages/z.md": "- [[a/b]] [[Sep 14th, 2020]] [[nowhere]] [[A Better Title]] [[tl]] ((6700a8c1-aaaa-bbbb-cccc-000000000001)) #tag1 #[[two words]] #plain\ntags:: x, y\n",
+                    "pages/a___b.md": "- b\n", "pages/titled.md": "title:: A Better Title\nalias:: tl, [[tt]]\n\n- a block\n  id:: 6700a8c1-aaaa-bbbb-cccc-000000000001\n",
+                    "logseq/bak/old.md": "[[x]]\n", "logseq/config.edn": "{:file/name-format :triple-lowbar}\n"}, lsq)
 for n in ("obsidian", "foam", "dendron", "logseq"):
     del bb.PROFILES[n]
 
@@ -2404,7 +2426,7 @@ in_vault("markdown", {"n.md": "x\n"}, facts_vault)
 
 
 # the fact pack (ADR-001): key, git, until, manual and script, registered through the `bowerbird.fact_types` entry point.
-_fp = _iu.spec_from_file_location("bowerbird_fact_pack", HERE / "fact-pack" / "bowerbird_fact_pack.py")
+_fp = _iu.spec_from_file_location("bowerbird_fact_pack", HERE / "addons" / "fact-pack" / "bowerbird_fact_pack.py")
 fact_pack = _iu.module_from_spec(_fp)
 _fp.loader.exec_module(fact_pack)
 FF = bb.facts_mod()

@@ -1,3 +1,3 @@
 # .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
 # an edit breaks them, git has the earlier ones. Commit it.
-- {file: tools.md, sha256: 054ffffe0311c4e45a86949d86bef7bf9ae873541636179281c462022efd3a6f, by: 'generator:docs_tools.py', at: '2026-11-23T15:08:03Z', bowerbird: 2.2.0, derived: docs_tools.py}
+- {file: tools.md, sha256: e76b33c24e245b61bc11885c2b3e86245bee02bc055a9bd896a30e68062b9faa, by: 'generator:docs_tools.py', at: '2026-11-23T15:19:42Z', bowerbird: 2.2.0, derived: docs_tools.py}

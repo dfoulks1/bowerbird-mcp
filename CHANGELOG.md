@@ -19,11 +19,14 @@
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
-- **The fact pack, `bowerbird-mcp[fact-pack]`** (`fact-pack/`): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
+- **The fact pack, `bowerbird-mcp[fact-pack]`** (`addons/fact-pack/`): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
   and `script` (a command declared in the root `bower.yaml`, an argument list with no shell, terminal only). It registers through the new `bowerbird.fact_types` entry point; `facts:` takes
   `scripts:` and `manual_days:`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.
 - **Fact kinds `file` and `internal`.** `[fact.file](path#L10-20)` reads a file (absolute, `~/`, or relative to the document; no network), `[fact.internal](page.md#Heading)` reads a page or a section of
   this collection. Their checks only read files, so `factcheck file=... id=...` runs one with no prompt, for an agent too, and records it beside the document.
+- **The format add-ons read more.** Inline `#tags` (and Logseq's `#[[two words]]`, `tags::`), frontmatter `aliases` and `alias` (and Logseq's `title::` and `alias::`) as other names a page answers to,
+  Foam's `./`, `../` and `/` path links, Dendron's `dendron://vault/note` links scoped to the vault (from `dendron.yml`) with `#tag` and `@user` as links to `tags.*` and `user.*`, Logseq's
+  `((uuid))` block references and the file name and journal title formats of its `config.edn`. A format sets these through `register_format(tags=, names=, resolve=)`.
 - **Format add-ons: `obsidian`, `foam`, `dendron`, `logseq`.** Each is its own package under `addons/` (`bowerbird-obsidian`, ...), found through the `bowerbird.formats` entry point and
   selected with `format:` in `bower.yaml`; its files are markdown, read with that tool's rules for links (the alias side, how a name finds a file, the folders that are the tool's
   own, stub and journal pages). `register_format` in core takes `about`, `skip`, `alias_first`, `page`, `clean`, `links`, `virtual`, `quiet` and `lint`. A format that fails to load is

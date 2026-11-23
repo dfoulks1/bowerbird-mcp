@@ -34,6 +34,9 @@ Markdown notes anywhere in the workspace. It leaves out `.foam/` (templates, whi
 | `![[note]]`, `![[note#Section]]` | an embed, read as a link |
 | `![[image.png\|300]]` | a link to the file; the size is ignored |
 | `[[projects]]` | `projects.md` if there is one, else `projects/index.md`, else `projects/README.md` |
+| `[[./a]]`, `[[../b]]`, `[[/c]]` | a path: from the citing note, or (`/`) from the workspace root; the `.md` is optional |
+| `alias: Plan B, Plan C` | `[[Plan B]]` finds this note |
+| `#tag`, `#nested/tag` | a tag of the note, beside the `tags` property (a comma-separated `tags: a, b` is read too) |
 | `[note]: note.md "Note"` | a link reference definition: read as it is, in every format; Foam writes one for each wikilink |
 
 A link to a note that does not exist yet is a Foam *placeholder*. Bowerbird reports it as a `dead_link` warning like any broken link, so
@@ -54,19 +57,21 @@ As in [Markdown](markdown.md): seals live in a `.waxseals.yaml` beside the note,
 
 ## What it does not do yet
 
-- Inline `#tags`, the `tags` and `alias` properties, and `type` are not read.
-- Relative and root-anchored path links (`[[./a]]`, `[[/a]]`) are not resolved.
-- `foam.files.exclude` and `foam.files.include` are not read; `.gitignore` decides what is left out, as in every format.
+- `foam.files.exclude` and `foam.files.include` are not read; `.gitignore` decides what is left out, as in every format. `.foam/` and `.vscode/` are always left out.
+- The `type` property and a note's `title` are not used for links (Foam finds a note by its file name or alias).
+- The inline tag rule is Obsidian's, because Foam's documentation does not give one.
 
 ## Tested against
 
 Made-up collections, not a real workspace. The test builds this one in a temporary folder:
 
-- `a.md` holding `[[projects]]`, `[[house/todo]]` and `[[nope]]`; `projects/index.md`; `projects/house/todo.md`; and `.foam/templates/n.md` holding `[[$FOAM_X]]`.
-- What the test checks: `[[projects]]` finds `projects/index.md`; `[[house/todo]]` finds the note by path suffix; `.foam/` is left out; and the only broken link reported is `[[nope]]`.
+- `a.md` holding `[[projects]]`, `[[house/todo]]`, `[[nope]]`, `[[./gone]]` and `[[/a]]`; `projects/index.md` with `alias: Plan B, Plan C`; `projects/house/todo.md`; `projects/house/sib.md`; and `.foam/templates/n.md` holding `[[$FOAM_X]]`.
+- What the test checks: `[[projects]]` finds `projects/index.md`; `[[house/todo]]` finds the note by path suffix; `[[./sib]]`, `[[../index]]` and `[[/a]]` are read as paths; `[[Plan B]]` and `[[plan c]]` find the index by alias; `.foam/` is left out; the only broken links reported are `[[nope]]` and `[[./gone]]`; and `#one and #two/x` are tags.
 - Not tested: that a link reference definition is never called unused. Markdown-format `lint` does not report unused definitions at all, so that setting has nothing to quiet yet.
 
-Nothing here has run against a real workspace: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large workspaces and Foam's own newer features are untested. The rules this page lists as unconfirmed come from Foam's own documentation, read second-hand.
+Nothing here has run against a real workspace: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite
+(`test_bowerbird_mcp.py`). Windows and macOS paths, large workspaces and Foam's own newer features are untested. The rules this page lists as unconfirmed come from
+Foam's own documentation, read second-hand.
 
 ## Report a problem
 

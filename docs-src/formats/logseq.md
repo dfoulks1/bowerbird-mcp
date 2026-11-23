@@ -35,6 +35,9 @@ backups) and `.recycle/`.
 | `((uuid))` | a block reference: not followed |
 | `a___b.md` (or `a%2Fb.md`) | the page `a/b`: `___` and `%2F` in a file name are a namespace's `/` |
 | `[[Sep 14th, 2020]]` | a journal page: it exists with no file of its own |
+| `title:: A Better Title`, `alias:: tl, [[tt]]` | the page also answers to those names (the first lines of the file) |
+| `((6700a8c1-...))` | a link to the page that holds the block `id:: 6700a8c1-...` |
+| `#tag`, `#[[two words]]`, `tags:: x, y` | tags of the page |
 
 Logseq creates a page the moment you link to it, so **a link to a page with no file is not reported as broken**. It is how a page is born.
 The files you see are only the pages that have content.
@@ -52,20 +55,22 @@ pages that have no file; headings in `[[Page#Heading]]` are not checked either.
 
 ## What it does not do yet
 
-- `title::` and `alias::` properties, `#tags` and `#[[multi word tags]]`, and block references are not read.
 - The outliner structure is not used: a page is searched as the markdown it is, with its bullets.
-- `config.edn` is not read: a graph with other `:pages-directory`, `:journal/page-title-format` or `:file/name-format` settings than the defaults
-  may not resolve every name.
+- Only the first lines of a file are read for `title::` and `alias::`; a property after the first few lines is missed.
+- A journal page's file name (`journals/2020_09_14.md`) is a page named by the title format; the title format is read from `config.edn`, but other `config.edn` keys (`:hidden`, `:pages-directory`) are not.
+- Queries (`{{query ...}}`) and the database version of Logseq are not read.
 
 ## Tested against
 
 Made-up collections, not a real graph. The test builds this one in a temporary folder:
 
-- `pages/z.md` holding `[[a/b]]`, `[[Sep 14th, 2020]]` and `[[nowhere]]`; `pages/a___b.md`; and `logseq/bak/old.md`.
-- What the test checks: `[[a/b]]` finds `pages/a___b.md`; a journal title needs no file; `logseq/` is left out; and a link to a page with no file is not reported.
-- Not tested: the legacy `a%2Fb.md` file names, `title::`, or a `config.edn` with a different file name format.
+- `pages/z.md` holding `[[a/b]]`, `[[Sep 14th, 2020]]`, `[[nowhere]]`, `[[A Better Title]]`, `[[tl]]`, `((6700a8c1-...))`, `#tag1`, `#[[two words]]`, `#plain` and `tags:: x, y`; `pages/a___b.md`; `pages/titled.md` with `title::`, `alias::` and a block `id::`; `logseq/bak/old.md`; and a `logseq/config.edn`.
+- What the test checks: `[[a/b]]` finds `pages/a___b.md`; a journal title needs no file; `[[A Better Title]]` and `[[tl]]` find `pages/titled.md`; the block reference finds `pages/titled.md`; `logseq/` is left out; a link to a page with no file is not reported; the tags are `tag1`, `two words`, `plain`, `x`, `y`; and a `config.edn` with no `:file/name-format` makes `.` a namespace slash, and a `:journal/page-title-format` of `yyyy-MM-dd` makes `[[2020-09-14]]` a journal page.
+- Not tested: the legacy `a%2Fb.md` names, or any other `config.edn` key.
 
-Nothing here has run against a real graph: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large graphs and Logseq's own newer features are untested. The rules this page lists as unconfirmed come from Logseq's own documentation, read second-hand.
+Nothing here has run against a real graph: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite
+(`test_bowerbird_mcp.py`). Windows and macOS paths, large graphs and Logseq's own newer features are untested. The rules this page lists as unconfirmed come from
+Logseq's own documentation, read second-hand.
 
 ## Report a problem
 

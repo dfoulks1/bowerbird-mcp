@@ -37,6 +37,8 @@ Markdown notes, anywhere in the vault. It leaves out `.obsidian/` (the vault's s
 | `![[diagram.png]]`, `![[diagram.png\|300]]` | a link to the file: beside the note, from the vault root, or anywhere in the vault; the size part is ignored |
 | `[text](Note%20Name.md)` | a markdown link, as in every format |
 | `%% [[a comment]] %%` | nothing: a comment is not read |
+| `#tag`, `#nested/tag` | a tag of the note, beside the `tags` property (letters, digits, `_`, `-`, `/`; at least one letter or `_`; not in code, a comment or a URL) |
+| `aliases: [Other name]` | `[[Other name]]` finds this note |
 
 Links inside code (fenced or inline) are not read, in this format or any other.
 
@@ -57,19 +59,20 @@ leads nowhere or to a heading that is not there, both as warnings.
 
 ## What it does not do yet
 
-- Inline `#tags` and the `tags`, `aliases` and `cssclasses` properties are not read; `[[Alias]]` does not resolve to the note that
-  declares the alias.
-- `.canvas` and `.base` files are not read, and a link inside one is not followed.
+- `.canvas` and `.base` files are found as the target of a link (`[[board.canvas]]`), but the links inside them are not followed.
 - `[[## text]]` and `[[^text]]` are searches in Obsidian, not links; they are reported as broken.
+- A comma-separated `tags: a, b` string is read as a list, though Obsidian's documentation does not say it is one.
 
 ## Tested against
 
 Made-up collections, not a real vault. The test builds this one in a temporary folder:
 
-- `a.md` holding `[[b]]`, `[[Missing]]`, `%% [[Hidden]] %%`, `![[img.png]]` and `[[b#^blk]]`; `sub/b.md`; `img.png`; and `.obsidian/workspace.md` holding `[[Nope]]`.
-- What the test checks: the comment's link is not read; `[[b]]` finds `sub/b.md`; `![[img.png]]` finds the image; `.obsidian/` is left out; and the only broken link reported is `[[Missing]]`.
+- `a.md` holding `[[b]]`, `[[Missing]]`, `%% [[Hidden]] %%`, `![[img.png]]`, `[[b#^blk]]` and `[[Alt Name]]`; `sub/b.md` with `aliases: [Alt Name]`; `img.png`; `.obsidian/workspace.md` holding `[[Nope]]`; and `t.md` with `tags: [fm]` and `#alpha #beta/sub #1984 %% #hidden %% `#code` http://x.y/#frag #x_1`.
+- What the test checks: the comment's link is not read; `[[b]]` finds `sub/b.md`; `![[img.png]]` finds the image; `[[Alt Name]]` finds `sub/b.md` by alias; `.obsidian/` is left out; the only broken link reported is `[[Missing]]`; and the tags are `fm`, `alpha`, `beta/sub`, `x_1`, not `#1984`, `#hidden`, the code span or the URL fragment.
 
-Nothing here has run against a real vault: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large vaults and Obsidian's own newer features are untested. The rules this page lists as unconfirmed come from Obsidian's own documentation, read second-hand.
+Nothing here has run against a real vault: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite
+(`test_bowerbird_mcp.py`). Windows and macOS paths, large vaults and Obsidian's own newer features are untested. The rules this page lists as unconfirmed come from
+Obsidian's own documentation, read second-hand.
 
 ## Report a problem
 
