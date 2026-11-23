@@ -56,3 +56,19 @@ pages that have no file; headings in `[[Page#Heading]]` are not checked either.
 - The outliner structure is not used: a page is searched as the markdown it is, with its bullets.
 - `config.edn` is not read: a graph with other `:pages-directory`, `:journal/page-title-format` or `:file/name-format` settings than the defaults
   may not resolve every name.
+
+## Tested against
+
+Made-up collections, not a real graph. The test builds this one in a temporary folder:
+
+- `pages/z.md` holding `[[a/b]]`, `[[Sep 14th, 2020]]` and `[[nowhere]]`; `pages/a___b.md`; and `logseq/bak/old.md`.
+- What the test checks: `[[a/b]]` finds `pages/a___b.md`; a journal title needs no file; `logseq/` is left out; and a link to a page with no file is not reported.
+- Not tested: the legacy `a%2Fb.md` file names, `title::`, or a `config.edn` with a different file name format.
+
+Nothing here has run against a real graph: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large graphs and Logseq's own newer features are untested. The rules this page lists as unconfirmed come from Logseq's own documentation, read second-hand.
+
+## Report a problem
+
+Something read wrong, a link reported broken that is not, or one missed: [open an issue](https://github.com/dfoulks1/bowerbird-mcp/issues/new) or write to [dfoulks@voltpop.com](mailto:dfoulks@voltpop.com). Say which
+format it is (`format: logseq`), the version (`bowerbird-mcp --version`), and give the smallest note or two that show it, never your private ones. More on
+[reporting a problem](../troubleshooting.md#reporting-a-problem).

@@ -61,3 +61,18 @@ leads nowhere or to a heading that is not there, both as warnings.
   declares the alias.
 - `.canvas` and `.base` files are not read, and a link inside one is not followed.
 - `[[## text]]` and `[[^text]]` are searches in Obsidian, not links; they are reported as broken.
+
+## Tested against
+
+Made-up collections, not a real vault. The test builds this one in a temporary folder:
+
+- `a.md` holding `[[b]]`, `[[Missing]]`, `%% [[Hidden]] %%`, `![[img.png]]` and `[[b#^blk]]`; `sub/b.md`; `img.png`; and `.obsidian/workspace.md` holding `[[Nope]]`.
+- What the test checks: the comment's link is not read; `[[b]]` finds `sub/b.md`; `![[img.png]]` finds the image; `.obsidian/` is left out; and the only broken link reported is `[[Missing]]`.
+
+Nothing here has run against a real vault: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large vaults and Obsidian's own newer features are untested. The rules this page lists as unconfirmed come from Obsidian's own documentation, read second-hand.
+
+## Report a problem
+
+Something read wrong, a link reported broken that is not, or one missed: [open an issue](https://github.com/dfoulks1/bowerbird-mcp/issues/new) or write to [dfoulks@voltpop.com](mailto:dfoulks@voltpop.com). Say which
+format it is (`format: obsidian`), the version (`bowerbird-mcp --version`), and give the smallest note or two that show it, never your private ones. More on
+[reporting a problem](../troubleshooting.md#reporting-a-problem).

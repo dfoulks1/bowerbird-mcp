@@ -48,7 +48,7 @@ Prefer a browser to a terminal? `uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp
 
 Personal project. Apache-2.0 (see [LICENSE](https://github.com/dfoulks1/bowerbird-mcp/blob/main/LICENSE); [NOTICE](https://github.com/dfoulks1/bowerbird-mcp/blob/main/NOTICE) credits the
 spec), built under the [ASF generative-tooling guidelines][asf-gt]. Bugs and ideas:
-[GitHub Issues](https://github.com/dfoulks1/bowerbird-mcp/issues); security reports: [SECURITY.md](https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md).
+[GitHub Issues](https://github.com/dfoulks1/bowerbird-mcp/issues) or dfoulks@voltpop.com; security reports: [SECURITY.md](https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md).
 
 <!-- --8<-- [start:run] -->
 ## Run

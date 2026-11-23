@@ -52,3 +52,19 @@ As in [Markdown](markdown.md): seals live in a `.waxseals.yaml` beside the note,
 - Wildcard references (`![[demo.journal.*]]`) and range references (`![[note#start:#end]]`) are not followed.
 - A link into a named vault is resolved by note name across every vault, not within the vault it names.
 - The documentation does not say whether link names are case-sensitive or how header slugs are made; Bowerbird ignores case and uses the same slugs as in markdown.
+
+## Tested against
+
+Made-up collections, not a real workspace. The test builds this one in a temporary folder:
+
+- `x.md` holding `[[alias|a.b.c#head]]`, `[[a.b]]`, `[[dendron://v/a.b.c]]` and `[[gone.x]]`, and `a.b.c.md`.
+- What the test checks: the alias is read from the left; `[[a.b]]` is a stub (a child exists, there is no file) and is not broken; the `dendron://v/` prefix is dropped; and the only broken link reported is `[[gone.x]]`.
+- Not tested: more than one vault, `dendron.yml`, or a header slug that differs from the markdown one.
+
+Nothing here has run against a real workspace: only the small made-up collections above, in a temporary folder on Linux with Python 3.10, by the test suite (`test_bowerbird_mcp.py`). Windows and macOS paths, large workspaces and Dendron's own newer features are untested. The rules this page lists as unconfirmed come from Dendron's own documentation, read second-hand.
+
+## Report a problem
+
+Something read wrong, a link reported broken that is not, or one missed: [open an issue](https://github.com/dfoulks1/bowerbird-mcp/issues/new) or write to [dfoulks@voltpop.com](mailto:dfoulks@voltpop.com). Say which
+format it is (`format: dendron`), the version (`bowerbird-mcp --version`), and give the smallest note or two that show it, never your private ones. More on
+[reporting a problem](../troubleshooting.md#reporting-a-problem).

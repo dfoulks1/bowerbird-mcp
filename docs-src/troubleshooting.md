@@ -51,3 +51,16 @@ More in [Serve](serve.md).
 - **Semantic search does not start (`needs the semantic extra`).** It is an add-on: `uv tool install 'bowerbird-mcp[semantic]'`,
   or `uvx --from 'bowerbird-mcp[semantic]' bowerbird-mcp`; the one-file script needs `uv run --with fastembed bowerbird_mcp.py`.
 - **`uvx` runs an old build while you test local changes.** Add `--no-cache`.
+
+## Reporting a problem
+
+Problems with Bowerbird, a format or these docs come to one person: write to [dfoulks@voltpop.com](mailto:dfoulks@voltpop.com), or [open an issue](https://github.com/dfoulks1/bowerbird-mcp/issues/new) on GitHub and it
+reaches the same place. Include:
+
+- the version (`bowerbird-mcp --version`) and the format (`format:` in `bower.yaml`), and the add-on you installed if any (`bowerbird-mcp[obsidian]`, `[fact-pack]`);
+- what you ran, what you expected and what you got, with the output;
+- the smallest file or two that show it. Do not send private notes or secrets: a made-up example does as well.
+
+A problem that could let the tool read or write outside its collection, run a command or leak a secret is a security problem: do not post it publicly. Use
+[SECURITY.md](https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md) or write to the same address.
+

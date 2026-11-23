@@ -7,7 +7,7 @@ anything public-facing ships.
 
 ## Feedback
 
-Bugs, ideas and OKF edge cases: [GitHub Issues](https://github.com/dfoulks1/bowerbird-mcp/issues). Doc fixes are welcome too.
+Bugs, ideas and OKF edge cases: [GitHub Issues](https://github.com/dfoulks1/bowerbird-mcp/issues), or write to dfoulks@voltpop.com. Doc fixes are welcome too.
 Security problems: see [SECURITY.md](https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md), and please do not open a public issue for them.
 
 ## What it serves
