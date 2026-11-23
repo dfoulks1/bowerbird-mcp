@@ -55,7 +55,7 @@ Because the file is untouched, Nygard ADRs, MADR, thesauri and AsciiDoc all work
 you [change format](formats.md#changing-your-mind) on their own; after a switch the files may need sealing again, or `okf export` and
 `okf import` carry an OKF concept's reviews and sources between its frontmatter and the ledgers (see [the command line](cli.md#moving-an-okf-concepts-history-okf-export-and-okf-import)).
 
-## Several signers and a quorum (the `seal-extensions` extra)
+## Several signers and a quorum (the `seal-extensions` add-on)
 
 By default a version of a file has one review: the latest. Where a change should be reviewed by more than one person, switch the seal
 extensions on in the root `bower.yaml`:
@@ -67,16 +67,19 @@ seal: {extensions: true, quorum: 2}
 - **`extensions: true`** lets different people seal the same version of a file. Their seals are kept together on the file's one ledger
   line, each with its own date, version of Bowerbird and comment:
   ```yaml
-  - {file: docs/limits.md, sha256: 3b1f…, seals: [{by: 'human:ann', at: '2026-11-20T10:02:10Z', bowerbird: 2.2.0, comment: "limits match the runbook"}, {by: 'human:bo', at: '2026-11-20T11:40:03Z', bowerbird: 2.2.0}]}
+  - {file: docs/limits.md, sha256: 3b1f…, quorum: 2, seals: [{by: 'human:ann', at: '2026-11-20T10:02:10Z', bowerbird: 2.3.0, comment: "limits match the runbook"}, {by: 'human:bo', at: '2026-11-20T11:40:03Z', bowerbird: 2.3.0}]}
   ```
-  The same person sealing again replaces their own seal. An edit ends every seal of the old version; the next seal starts the list again.
+  The same person sealing again replaces their own seal. An edit ends every seal of the old version; the next seal starts the list again. The line says how many it wants
+  (`quorum: 2`), so a badge on a built page can say who signed and how many are needed (`Human Reviewed ... by ann, bo (2 of 3 needed)`) without reading the policy.
 - **`quorum: N`** (2 or more needs `extensions: true`) is how many *different people* a version needs. Until it has them, `seal check`
   reports `short_of_quorum` (`1 of 2 human reviews of this version`) and the file's tier is `unverified`, not `human-reviewed`. A machine
   check (`by=<tool>`) is never counted as a person.
 - A folder can set its own, since `seal` is one of the keys a [bower](formats.md) may override.
-- **The extra** is called `seal-extensions`. It has no dependency: `uv tool install 'bowerbird-mcp[seal-extensions]'` installs nothing
-  more, and the setting is what turns the behaviour on. Without it, seals work as before, one latest review per file, comments included.
+- **The add-on** is called `seal-extensions` (`bowerbird-seal-extensions`, in `addons/seal-extensions/`): `uv tool install 'bowerbird-mcp[seal-extensions]'`. Installing it is not enough: the
+  setting is what turns the behaviour on. Without the add-on, seals work as before, one latest review per file, comments included, and a collection that sets `extensions: true` is told to install it
+  rather than quietly losing seals (a write that would keep only the last seal is refused).
 - Turn it off again and the ledger still reads: the latest seal of each line counts.
+- The optional parts of sealing live here, so they stay out of core: several signers and a quorum today, and the rest of the optional features (seal count, tally, break on purpose) as they are built.
 
 ## Decisions
 

@@ -538,6 +538,7 @@ for _gone in ("KB_ROOT", "BOWERBIRD_ROOT"):  # a root named by the environment i
                          "bower.yaml, or below it), or name that file with --config")
 ROOT = Path.cwd().resolve()
 load_plugins()
+load_plugins("bowerbird.seal")  # the seal-extensions add-on
 CFG_DIR, CFG = load_config(ROOT, opt_arg(sys.argv[1:], "--config")[0])
 if CFG_DIR:  # the config file sits at the root of its collection, so its folder is the base
     ROOT = CFG_DIR
@@ -3280,13 +3281,18 @@ def content_hash(text: str, okf: bool) -> str:
     return hashlib.sha256(t.replace("\r\n", "\n").removeprefix("\ufeff").encode("utf-8")).hexdigest()
 
 
+SEAL_EXT = None  # the seal extensions' helpers (merge, collapse, signers), registered by the `bowerbird-mcp[seal-extensions]` add-on through the `bowerbird.seal` entry point
+
+
+def register_seal_extension(mod) -> None:
+    """Called by the seal-extensions add-on: it hands over its helpers (see addons/seal-extensions)."""
+    global SEAL_EXT
+    SEAL_EXT = mod
+
+
 def seal_mod():
-    """bowerbird_seal, the seal extensions' helpers; None for a lone copy of this file."""
-    try:
-        import bowerbird_seal
-        return bowerbird_seal
-    except ImportError:
-        return None
+    """The seal extensions' helpers, or None when the add-on is not installed."""
+    return SEAL_EXT
 
 
 def seal_ext(p) -> tuple:
@@ -3350,12 +3356,14 @@ def ledger_by_file() -> dict:
 def ledger_text(by_file: dict, base: Path = ROOT) -> str:
     """The ledger file: a header and one dense line per file, in path order. A value is an entry, or a list of them (the seals of a file).
     base: the folder the ledger sits in, which the file names are relative to."""
-    dump = lambda e: yaml.dump({k: e[k] for k in ("file", "sha256", "by", "at", "bowerbird", "decision", "comment", "derived", "seals") if e.get(k) is not None},
+    dump = lambda e: yaml.dump({k: e[k] for k in ("file", "sha256", "quorum", "by", "at", "bowerbird", "decision", "comment", "derived", "seals") if e.get(k) is not None},
                                Dumper=Dumper, default_flow_style=True, sort_keys=False, allow_unicode=True, width=10 ** 6).strip()
 
     def line(k):
         es = by_file[k] if isinstance(by_file[k], list) else [by_file[k]]
-        return "- " + dump(seal_mod().collapse(es) if seal_ext(base / k)[0] and seal_mod() and not any(e.get("derived") for e in es) else es[-1])
+        if seal_ext(base / k)[0] and not seal_mod() and not any(e.get("derived") for e in es):  # writing now would keep only the last seal and lose the others
+            raise ValueError("seal.extensions needs the seal-extensions add-on | fix: pip install 'bowerbird-mcp[seal-extensions]'")
+        return "- " + dump(seal_mod().collapse(es, seal_ext(base / k)[1]) if seal_ext(base / k)[0] and seal_mod() and not any(e.get("derived") for e in es) else es[-1])
     return ("# .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;\n"
             "# an edit breaks them, git has the earlier ones. Commit it.\n" + "".join(line(k) + "\n" for k in sorted(by_file)))
 
@@ -3398,7 +3406,7 @@ def ledger_put(key: str, e: dict) -> list:
     person's. Returns the ledgers written."""
     if seal_ext(ROOT / key)[0]:
         if not (m := seal_mod()):
-            raise ValueError("seal.extensions needs bowerbird_seal.py beside this file | fix: install bowerbird-mcp (the seal-extensions extra)")
+            raise ValueError("seal.extensions needs the seal-extensions add-on | fix: pip install 'bowerbird-mcp[seal-extensions]'")
         es = m.merge(ledger_view().get(key, []), {**e, "file": key})
     else:
         es = [{**e, "file": key}]

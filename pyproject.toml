@@ -48,7 +48,7 @@ bowerbird-mcp = "bowerbird_mcp:main"
 bowerbird = "bowerbird_mcp:main"  # a shorter command for the same tool
 
 [tool.setuptools]
-py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo", "bowerbird_facts", "bowerbird_seal", "bowerbird_okf"]
+py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo", "bowerbird_facts", "bowerbird_okf"]
 
 # The file still runs as a PEP 723 script (`uv run bowerbird_mcp.py`); the table above
 # makes it installable too: `uvx --from git+<repo> bowerbird-mcp`.

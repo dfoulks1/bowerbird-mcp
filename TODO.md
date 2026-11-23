@@ -14,7 +14,6 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 - [ ] **Seal and fact state as data** for other tools (a JSON function, or `/_api/status` for the Obsidian plugin): `bowerbird_facts.render` returns the facts' side; the seals'
       side is still in the hook and `serve`.
-- [ ] **The quorum's M in the docs hook.** The hook reads only the ledger, so a badge says who signed (`by ann, bo`) but not "2 of 3".
 
 ### Documentation passes
 
@@ -52,7 +51,7 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Seals
 
-Everything optional about sealing belongs to `seal-extensions`: several signers and a quorum are there now; the rest below joins them.
+Everything optional about sealing belongs to the `seal-extensions` add-on (`addons/seal-extensions`): several signers and a quorum are there now; the rest below joins them.
 
 - [ ] Vote tally. Several signers and a quorum exist (`seal-extensions`); still open: a seal as a vote, a break-on-purpose and a strict-seal mode,
       seal count as importance, `seal.tally`. A tally counts distinct human sealers per file or ADR from the ledger, each only while the sha256
@@ -70,7 +69,7 @@ Everything optional about sealing belongs to `seal-extensions`: several signers 
       rank by it, counting only live seals. Each seal is a person who judged the file worth their review, so the count is earned, not guessed.
       A heavily sealed file marks its subject as important, and a recurring multi-seal workflow marks the process as common; with the mode off
       a count means neither.
-- [ ] **Optional, not core:** all of it lives in `seal-extensions` (`bowerbird_seal.py`, the extra that already holds several signers and the quorum), not in a separate
+- [ ] **Optional, not core:** all of it lives in the `seal-extensions` add-on (`addons/seal-extensions`, which holds several signers and the quorum today), not in a separate
       `[tally]` extra. Each feature is off by default and switched on under `seal:` in `bower.yaml` (`seal.tally`: threshold, gate or inform). Plain seals work unchanged without it.
 - [ ] **Open:** does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote, by what identity;
       threshold or quorum (ratify at N); approve only, or also object and abstain; where it shows. Each sealer also needs a way to find out

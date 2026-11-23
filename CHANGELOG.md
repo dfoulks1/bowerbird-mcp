@@ -7,6 +7,9 @@
   `bower.yaml` beside it stops the run with `git mv kbmcp.yaml bower.yaml`; the rest are ignored.
 
 ### Changed
+- **Seal extensions are an add-on.** The code for several signers and a quorum moved out of core to `addons/seal-extensions` (`bowerbird-seal-extensions`, found through the `bowerbird.seal` entry point);
+  `pip install 'bowerbird-mcp[seal-extensions]'` installs it. A collection that sets `seal.extensions: true` without it is told what to install, and a write that would lose seals is refused. A multi-seal ledger line
+  now carries its `quorum`, so the docs badge says `by ann, bo (2 of 3 needed)`.
 - **Distributed ledgers.** A seal goes into a `.waxseals.yaml` in the file's own folder, with the file's name relative to that folder, so seals live
   beside what they cover and move with the folder. A root `.waxseals.yaml` from before 2.3 is still read; a file's line leaves it when the file is sealed again.
   Reading merges every ledger (the nearest wins), `move` carries a seal into the new folder's ledger, and the docs hook looks for the nearest one.

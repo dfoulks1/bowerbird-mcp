@@ -26,7 +26,7 @@ def entries(root: Path, rel: str) -> list:
         if not ledger.is_file():
             continue
         c = yaml.safe_load(ledger.read_text()) or []
-        flat = [x for e in c for x in ([{**s, "file": e["file"], "sha256": e.get("sha256")} for s in e["seals"] if isinstance(s, dict)]
+        flat = [x for e in c for x in ([{**s, "file": e["file"], "sha256": e.get("sha256"), "quorum": e.get("quorum")} for s in e["seals"] if isinstance(s, dict)]
                                        if isinstance(e.get("seals"), list) else [e])]
         if es := [e for e in flat if e.get("file") == name]:
             return es
@@ -53,7 +53,7 @@ def banner(src: Path, rel: str, docs: Path, text: str, includes: bool) -> str:
     now = last if last and last.get("sha256") == sha else None
     names = sorted({str(e["by"]).removeprefix("human:") for e in humans if e.get("sha256") == sha})  # each person who sealed these exact bytes
     state, label = (("derived", "Derived from the code") if made else
-                    ("reviewed", f"AI Generated, Human Reviewed at: {now['at']}" + (f" by {', '.join(names)}" if len(names) > 1 else "")) if now else
+                    ("reviewed", f"AI Generated, Human Reviewed at: {now['at']}" + (f" by {', '.join(names)}" + (f" ({len(names)} of {now['quorum']} needed)" if now.get("quorum") else "") if len(names) > 1 or now.get("quorum") else "")) if now else
                     ("edited", "AI Generated, edited since its last human review") if last else
                     ("unreviewed", "AI Generated, not yet human reviewed"))
     # a badge, styled by .seal-badge in css/custom.css; the page's own text (what made it, who sealed it) stays in the source, unshown

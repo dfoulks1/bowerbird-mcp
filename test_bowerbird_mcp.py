@@ -28,6 +28,12 @@ os.environ.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
 sys.argv[1:] = ["--config", str(coll / "bower.yaml")]
 sys.path.insert(0, str(HERE))
 import bowerbird_mcp as bb
+import importlib.util as _iu0
+
+_se = _iu0.spec_from_file_location("bowerbird_seal_extensions", HERE / "addons" / "seal-extensions" / "bowerbird_seal_extensions.py")
+seal_extensions = _iu0.module_from_spec(_se)
+_se.loader.exec_module(seal_extensions)
+seal_extensions.register(bb)  # what the `bowerbird.seal` entry point does when the add-on is installed
 
 
 def create(**kw):
@@ -2703,6 +2709,50 @@ def numbered(d):
     assert any(f["kind"] == "duplicate_fact_id" for f in bb.lint(limit=0)["findings"])
     assert "already used" in raises(bb.fact, file="n.md", kind="url", source="https://x.test/c", claim="c", meta={"id": 1})
 in_vault("markdown", {"n.md": "x\n"}, numbered)
+
+
+# seal-extensions is an add-on (addons/seal-extensions): registered through the `bowerbird.seal` entry point; without it a collection that turns extensions on is told what to install, and loses no seal
+import importlib.metadata as _im2
+
+
+def ext_vault(d):
+    text = (d / "a.md").read_text()
+    saved = (dict(bb.OPTS["seal"]), bb.SEAL_EXT)
+    bb.OPTS["seal"] = {**saved[0], "extensions": True, "quorum": 3}
+    bb._POLICY.clear()
+    try:
+        for i, who in enumerate(("ann", "bo"), 1):
+            bb.ledger_put("a.md", {"file": "a.md", "sha256": bb.content_hash(text, False), "by": f"human:{who}", "at": f"2026-11-23T10:00:0{i}Z"})
+        line = (d / ".waxseals.yaml").read_text()
+        assert "quorum: 3" in line and "seals: [" in line, line  # the line says how many it wants, so a badge can say "2 of 3"
+        assert [e["by"] for e in bb.ledger_by_file()["a.md"]] == ["human:ann", "human:bo"]
+        # the docs hook: who signed, and how many are needed
+        os.chdir(d)
+        try:
+            (d / "p.md").write_text("# P\n\n<!-- seal-banner: x -->\n")
+            bb.ledger_put("p.md", {"file": "p.md", "sha256": bb.content_hash((d / "p.md").read_text(), False), "by": "human:ann", "at": "2026-11-23T10:00:01Z"})
+            bb.ledger_put("p.md", {"file": "p.md", "sha256": bb.content_hash((d / "p.md").read_text(), False), "by": "human:bo", "at": "2026-11-23T10:00:02Z"})
+            made = hk.banner(d / "p.md", "p.md", d, "x", False)
+            assert "by ann, bo (2 of 3 needed)" in made and 'data-state="reviewed"' in made, made
+        finally:
+            os.chdir(HERE)
+        # no add-on: writing would keep only the last seal and lose the rest, so it is refused, and the file is untouched
+        bb.SEAL_EXT = None
+        before = (d / ".waxseals.yaml").read_text()
+        assert "seal-extensions add-on" in raises(bb.ledger_put, "a.md", {"file": "a.md", "sha256": bb.content_hash(text, False), "by": "human:cy", "at": "2026-11-23T10:00:09Z"})
+        assert (d / ".waxseals.yaml").read_text() == before
+        # the entry point registers it
+        _orig = _im2.entry_points
+        _im2.entry_points = lambda group=None: [_EP("seal-extensions", seal_extensions.register)] if group == "bowerbird.seal" else []
+        try:
+            bb.load_plugins("bowerbird.seal")
+        finally:
+            _im2.entry_points = _orig
+        assert bb.seal_mod() is not None and bb.seal_mod().signers([{"by": "human:a"}, {"by": "process:x"}]) == {"human:a"}
+    finally:
+        bb.OPTS["seal"], bb.SEAL_EXT = saved
+        bb._POLICY.clear()
+in_vault("markdown", {"a.md": "# A\n\nbody\n"}, ext_vault)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.

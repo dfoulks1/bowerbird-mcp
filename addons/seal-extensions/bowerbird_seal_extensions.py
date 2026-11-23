@@ -1,10 +1,12 @@
-"""Seal extensions (`seal: {extensions: true}` in bower.yaml; the `seal-extensions` extra): several people seal the same version of
+"""bowerbird-mcp[seal-extensions]: the optional parts of sealing (`seal: {extensions: true}` in bower.yaml). Several people seal the same version of
 a file, each with an optional comment, and `quorum` says how many different people a version needs.
 
-Plain functions over ledger entries. A ledger line for a file with several seals keeps them in one place:
+Plain functions over ledger entries, registered with bowerbird-mcp through the `bowerbird.seal` entry point. A ledger line for a file with several seals
+keeps them in one place, and says how many it wants:
 
-    - {file: a.md, sha256: ..., seals: [{by: 'human:ann', at: ..., bowerbird: 2.2.0, comment: "ok"}, {by: 'human:bo', at: ...}]}
+    - {file: a.md, sha256: ..., quorum: 3, seals: [{by: 'human:ann', at: ..., bowerbird: 2.3.0, comment: "ok"}, {by: 'human:bo', at: ...}]}
 """
+import types
 
 
 def expand(line: dict) -> list:
@@ -14,11 +16,12 @@ def expand(line: dict) -> list:
     return [line]
 
 
-def collapse(entries: list) -> dict:
-    """One ledger line for a file's seals, which all bind the same bytes."""
+def collapse(entries: list, quorum: int = 1) -> dict:
+    """One ledger line for a file's seals, which all bind the same bytes. A quorum above 1 is kept in the line, so a badge can say "2 of 3" without reading the policy."""
     first = entries[0]
     keep = ("by", "at", "bowerbird", "comment", "decision")
-    return {"file": first["file"], "sha256": first.get("sha256"), "seals": [{k: e[k] for k in keep if e.get(k) is not None} for e in entries]}
+    return {"file": first["file"], "sha256": first.get("sha256"), **({"quorum": quorum} if quorum > 1 else {}),
+            "seals": [{k: e[k] for k in keep if e.get(k) is not None} for e in entries]}
 
 
 def merge(existing: list, new: dict) -> list:
@@ -30,3 +33,8 @@ def merge(existing: list, new: dict) -> list:
 def signers(valid: list) -> set:
     """The different people (human:<id>) among a file's seals that still hold. A machine check is not a signer."""
     return {str(e["by"]) for e in valid if str(e.get("by", "")).startswith("human:")}
+
+
+def register(bb):
+    """The entry point: hand bowerbird-mcp these helpers."""
+    bb.register_seal_extension(types.SimpleNamespace(expand=expand, collapse=collapse, merge=merge, signers=signers))

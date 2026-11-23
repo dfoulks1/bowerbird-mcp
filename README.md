@@ -88,7 +88,7 @@ The base install is small: search, lint, seal, the MCP server and the CLI. Anyth
 | `skos` | `rdflib` | `format: skos` |
 | `sqlite-vec` | `sqlite-vec` | `vector_index: sqlite-vec` |
 | `hnsw` | `hnswlib` | `vector_index: hnsw` |
-| `seal-extensions` | nothing | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum |
+| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum |
 
 Ask for one, or several, in the same places:
 

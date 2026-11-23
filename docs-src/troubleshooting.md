@@ -26,7 +26,7 @@
   collection, edit the `format:` line in `bower.yaml` and run `bowerbird-mcp reindex`.
 - **`seal takes exempt and exempt_status (lists of strings), extensions (true or false) and quorum`.** `seal.require` is gone. Every file is
   checked, so `bower.yaml` lists only the ones to leave out: `seal: {exempt: ["src/gen_*.py"]}`. `extensions` and `quorum` belong to the
-  [seal extensions](sealing.md#several-signers-and-a-quorum-the-seal-extensions-extra); a `quorum` above 1 needs `extensions: true`.
+  [seal extensions](sealing.md#several-signers-and-a-quorum-the-seal-extensions-add-on); a `quorum` above 1 needs `extensions: true`.
 - **My MCP server does not offer `seal`.** If `roles:` in `bower.yaml` spells the roles out, `seal` has to be in the list.
   A file with no `roles:` line gets all five. Asking for a role that is left out (`--role seal`) refuses to start, with
   "role seal is off in bower.yaml".

@@ -8,3 +8,4 @@ change the ADR and run the script again. An ADR's own header outranks this table
 | [ADR-001](ADR-001-fact-kinds-core-and-pack.md) | Core ships four fact kinds, and the fact-pack ships the rest | architecture | accepted | not started |
 | [ADR-002](ADR-002-format-plugins.md) | Format plugins: a shared wikilink base, a registry, and each tool's part in its own extra | architecture | accepted | not started |
 | [ADR-003](ADR-003-fact-block-grammar.md) | A fact is `[fact.KIND]{metadata}(source) claim [fact.end]`, and nothing else is needed | design | accepted | landed |
+| [ADR-005](ADR-005-seal-extensions-addon.md) | The optional parts of sealing are the seal-extensions add-on | architecture | proposed | partial |
