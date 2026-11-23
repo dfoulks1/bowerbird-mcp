@@ -376,7 +376,7 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
     def tfile(key):
         """(file, bundle) as the tools name a file: within its bundle for okf, from the collection root otherwise."""
         p = ROOT / key
-        if bb.fmt_of(p) != "okf":
+        if not bb.fm_records(p):
             return key, ""
         b = bb.enclosing(p.parent)
         return bb.rel(p, b), bb.bundle_name(b)
@@ -549,11 +549,11 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
         except (ValueError, OSError):
             return ""
         extra = ""
-        if okf and d.get("status") == "draft":
+        if bb.fmt_of(_p) == "okf" and d.get("status") == "draft":
             extra = '<label><input type=checkbox name=promote style="width:auto"> promote draft to stable (§5.4)</label>'
-        elif not okf and d.get("type") == "adr":
+        elif not okf and bb.fmt_of(_p) != "okf" and d.get("type") == "adr":
             extra = '<label>decision <small>(becomes the file status)</small><select name=decision required><option value="">choose<option>accepted<option>rejected</select></label>'
-        elif not okf:
+        elif not okf and bb.fmt_of(_p) != "okf":
             extra = '<label>decision <small>(optional)</small><select name=decision><option value="">none<option>accepted<option>rejected</select></label>'
         msg = bb.review_message(label, okf, t, d, "", False)
         try:  # who already holds this exact version, and how many the seal policy wants

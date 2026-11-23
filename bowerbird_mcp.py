@@ -71,6 +71,7 @@ DEFAULTS: dict[str, typing.Any] = {  # bower.yaml keys beyond root, user and ai_
     "vector_index": "scan",  # how semantic search finds neighbours: scan (exact, Python), sqlite-vec (exact, C), hnsw (approximate)
     "index": ".bower/index.db",  # one SQLite file for passages, BM25, links and vectors; "" keeps it in memory
     "seal": {"exempt": [], "exempt_status": ["proposed", "draft"], "extensions": False, "quorum": 1, "count": False},  # `seal check=true` checks every file except the exempt; extensions: several signers and quorum
+    "okf": {"records": "frontmatter"},  # where an OKF concept's reviews and facts live: frontmatter (`verified`, `sources`, as in 2.2) or files (the ledger and the blocks, like every other format; ADR-004)
     "build": "auto",  # auto: passages keeps the index current; manual: only `reindex` does, passages just reads
     "roles": ["read", "write", "structure", "lifecycle", "seal"],  # which roles the MCP server may offer; drop one to turn it off
     "about": ""}  # a sentence for the agent: what this collection holds (matters with several loaded)
@@ -148,7 +149,7 @@ CONFIG_KEYS = {"user", "ai_producers", "bowers", "facts", *DEFAULTS}
 MCP_JSON = {"mcpServers": {"bowerbird": {"command": "uvx", "args": ["--from", "bowerbird-mcp>=2,<3", "bowerbird-mcp"]}}}  # a repo pins the major
 AGENTS = "BOWERBIRD.md"  # the agent rules create writes beside bower.yaml (AGENTS_MD, never overwritten); frontmatter so an okf bundle lints clean
 LEDGER = ".waxseals.yaml"  # the latest review of each file, one dense line each: markdown, adr, skos, asciidoc, seal-only (okf keeps them in frontmatter); committed
-SHARED_ONLY = {"format", "seal", "bowers", "facts"}  # what the folder is, and who must review it: only bower.yaml sets these, never .env or the environment
+SHARED_ONLY = {"format", "seal", "bowers", "facts", "okf"}  # what the folder is, and who must review it: only bower.yaml sets these, never .env or the environment
 NOT_IN_DEFAULTS = {"user": "", "ai_producers": [], "bowers": [], "facts": {}}  # types of the keys DEFAULTS does not hold (for BOWERBIRD_USER, BOWERBIRD_AI_PRODUCERS)
 EXAMPLE_CONFIG = """\
 # bower.yaml: settings for this collection. Commit it: it is shared. It sits at the collection root (not in
@@ -191,6 +192,10 @@ EXAMPLE_CONFIG = """\
 # have. count: true (needs extensions) counts those people as the file's importance: `list` and `passages` show the number, and a search ranks
 # a file a little higher for each. A comment on a seal needs none of this: every seal can carry one.
 # seal: {exempt: [], exempt_status: [proposed, draft], extensions: false, quorum: 1, count: false}
+
+# Where an OKF concept keeps its reviews and facts: frontmatter (`verified`, `sources`, the 2.2 way) or files (the ledger and the [fact.*] blocks,
+# where every other format keeps them). `okf export --apply` moves what the frontmatter holds into the files first. Shared: only bower.yaml sets it.
+# okf: {records: frontmatter}
 
 # false removes the passages and reindex tools.
 # passages: true
@@ -420,6 +425,9 @@ def check(c, f):
                          " | fix: seal: {extensions: true, quorum: 2}")
     if not isinstance(vp.get("count", False), bool) or (vp.get("count") and not vp.get("extensions")):
         raise SystemExit(f"error: {f}: seal.count is true or false, and counting seals needs extensions: true | fix: seal: {{extensions: true, count: true}}")
+    ok = c.get("okf", {})
+    if not isinstance(ok, dict) or set(ok) - {"records"} or ok.get("records", "frontmatter") not in ("frontmatter", "files"):
+        raise SystemExit(f"error: {f}: okf takes records: frontmatter or files | fix: okf: {{records: files}} (see `okf export --apply` to move what the frontmatter holds)")
     fc = c.get("facts", {})
     shape = lambda v, extra=(): isinstance(v, dict) and set(v) - {"tool", "arg", "watch", *extra} == set() and all(
         isinstance(v.get(k), str) for k in ("tool", "arg", *extra)) and isinstance(v.get("watch", ""), str)
@@ -1136,7 +1144,7 @@ def scan(r: Path, okf_only: bool = False):
     tools that judge or rewrite OKF concepts."""
     docs: list = []
     reserved: list = []
-    ledger = ledger_by_file() if formats_in_use() & {"markdown", "adr"} else {}
+    ledger = ledger_by_file() if formats_in_use() & {"markdown", "adr"} or okf_files() else {}
     files = concept_files(r)
     WIKI[r] = wiki_index(files, r)
     for p in files:
@@ -3455,10 +3463,20 @@ def drift_of(key: str, d: dict):
     return when(F.drift_time(p.parent, p.name)) if F and (p.parent / ".facts.yaml").is_file() else None
 
 
+def okf_files() -> bool:
+    """Does this collection keep an OKF concept's reviews and facts in the shared files (`okf: {records: files}`, ADR-004)?"""
+    return (CFG.get("okf") or {}).get("records") == "files"
+
+
+def fm_records(p) -> bool:
+    """Does the file at p keep its reviews in its own frontmatter (`verified`)? An OKF concept does, unless the collection chose the files."""
+    return fmt_of(p) == "okf" and not okf_files()
+
+
 def reviews(d: dict, key: str, text: str, ledger: dict) -> tuple:
     """(entries, valid): a file's reviews, and those that still hold: unbound ones (okf entries without sha256) and
     ones whose sha256 is the file's current hash. okf keeps them in frontmatter, the other formats in the ledger."""
-    okf = fmt_of(ROOT / key) == "okf"
+    okf = fm_records(ROOT / key)
     es = [e for e in entries(d.get("verified")) if isinstance(e, dict) and e.get("by")] if okf else [e for e in ledger.get(key, []) if e.get("by") and not e.get("derived")]
     h = content_hash(text, okf)
     valid = [e for e in es if not e.get("sha256") or e["sha256"] == h]
@@ -3504,7 +3522,7 @@ def signed(d: dict, key: str, ledger: dict) -> dict:
         return d
     es, valid = reviews(d, key, text, ledger)
     if not es:
-        return d
+        return {k: v for k, v in d.items() if k != "verified"} if okf_files() and fmt_of(ROOT / key) == "okf" else d  # the files are the record: a frontmatter `verified` is not read
     out = {**d, "verified": [{"by": e["by"], "at": e.get("at"), **({"comment": e["comment"]} if e.get("comment") else {})} for e in valid]}
     if gap := quorum_gap(key, valid):
         out["quorum_short"] = gap
@@ -3717,8 +3735,9 @@ def review_target(file: str, bundle: str, decision: str) -> tuple:
         raise ValueError("which file? | fix: name it, or pass check=true")
     if decision not in ("", "accepted", "rejected"):
         raise ValueError(f"decision {decision!r} | fix: accepted or rejected")
-    okf = fmt_of(next((q for q in (ROOT / file, root(bundle) / file, root(bundle) / f"{file}.md") if q.is_file()), ROOT / file)) == "okf"
-    if decision and okf:
+    target = next((q for q in (ROOT / file, root(bundle) / file, root(bundle) / f"{file}.md") if q.is_file()), ROOT / file)
+    okf = fm_records(target)
+    if decision and fmt_of(target) == "okf":
         raise ValueError("decision is for the markdown, adr, skos and asciidoc formats | fix: drop it; an okf concept has `status`")
     if okf:
         p, r = locate(file, bundle)
@@ -3733,8 +3752,8 @@ def review_target(file: str, bundle: str, decision: str) -> tuple:
         if not p.is_file() or (t := read(p)) is None:
             raise ValueError(f"{file} is not a readable file here | fix: pass its path from the collection root")
         fmt = fmt_of(p)
-        d = adr_meta(meta(t)[0] or {}, t, p, fmt == "adr") if fmt in ("markdown", "adr") else {}
-        label = (os.path.relpath(p, ROOT), title_of(d, t, p) if fmt in ("markdown", "adr") else p.stem)
+        d = adr_meta(meta(t)[0] or {}, t, p, fmt == "adr") if fmt in ("markdown", "adr") else (meta(t)[0] or {}) if fmt == "okf" else {}
+        label = (os.path.relpath(p, ROOT), title_of(d, t, p) if fmt in ("markdown", "adr", "okf") else p.stem)
     return okf, p, r if okf else None, t, d, label
 
 
@@ -3780,7 +3799,7 @@ async def seal(file: str = "", by: str = "", promote: bool = False, decision: st
     if len(comment) > 280:
         raise ValueError("comment is over 280 characters | fix: one line is kept with the seal; shorten it")
     okf, p, r, t, d, label = review_target(file, bundle, decision)
-    if not okf and d.get("type") == "adr" and not decision and (not by or by.startswith("human:") or ATTEST):
+    if not okf and fmt_of(p) != "okf" and d.get("type") == "adr" and not decision and (not by or by.startswith("human:") or ATTEST):
         raise ValueError("a decision record is sealed with its outcome | fix: decision=accepted or decision=rejected; it becomes the file's status")
     if by := attested(by):
         if promote and not by.startswith("human:"):
@@ -3809,6 +3828,8 @@ async def seal(file: str = "", by: str = "", promote: bool = False, decision: st
         t, d = (loaded(p, r) if okf else (now_text, d))
         by = f"human:{rid}"
     if not okf:
+        if promote and fmt_of(p) == "okf" and d.get("status") == "draft":
+            write(p, t := put(t, "status", "stable"))  # a human's review promotes it (§5.4), then seals the text as written
         if decision and d.get("type") == "adr" and by.startswith("human:") and (new := adr_status(t, decision, by.removeprefix("human:"), now()[:10])) != t:
             write(p, new)  # the person's ruling is written into the record, then sealed as written
             t = new
@@ -3926,7 +3947,7 @@ def fact_block(file: str, kind: str, source, claim: str, fmeta, after: str, chec
         result = sys.stdin.read() if result == "-" else Path(os.path.expanduser(result[1:])).read_text(encoding="utf-8")
     fmeta = {**(fmeta or {})}
     fmeta.setdefault("at", now()[:10])
-    okf = fmt_of(next((q for q in (ROOT / file, ROOT / f"{file}.md") if q.is_file()), ROOT / file)) == "okf"
+    okf = fm_records(next((q for q in (ROOT / file, ROOT / f"{file}.md") if q.is_file()), ROOT / file))
     p, r = (locate(file, bundle) if okf else (confined(ROOT, file if file.endswith(".md") else file + ".md"), ROOT))
     if not p.is_file():
         raise ValueError(f"{file} is not a file here | fix: pass its path from the collection root")

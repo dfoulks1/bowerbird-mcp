@@ -23,6 +23,8 @@
   and a History line holding the old values. A machine's seal (`by=`) does not rule.
 
 ### Added
+- **`okf: {records: files}`** (ADR-004, off by default). With it an OKF concept's reviews go to `.waxseals.yaml` and its facts are `[fact.*]` blocks, like every other format; a frontmatter `verified` is no longer read.
+  `okf export --apply` moves what a collection's frontmatter holds into the files first. The default flips in 3.0.
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.

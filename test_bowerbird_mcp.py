@@ -2935,6 +2935,33 @@ _r = subprocess.run([sys.executable, "-c", "import bowerbird_mcp"], cwd=_c, capt
 assert "seal.extensions is on but the seal-extensions add-on is not installed" in _r.stderr, _r.stderr[-300:]
 
 
+# ADR-004: okf: {records: files} keeps an OKF concept's reviews and facts in the ledger and the blocks, like every other format
+def okf_files_mode(d):
+    bb.CFG["okf"] = {"records": "files"}
+    try:
+        a = d / "a.md"
+        a.write_text(a.read_text().replace("type: Note", "type: Note\nstatus: draft\nverified:\n  - {by: human:old, at: '2026-01-01T00:00:00Z'}"))  # an old frontmatter review is not read
+        asyncio.run(bb.seal(file="a.md", by="process:ci", promote=False))
+        assert "verified" in a.read_text() and "human:old" in a.read_text() and "process:ci" not in a.read_text()  # the frontmatter is not written
+        led = bb.ledger_by_file()["a.md"]
+        assert [e["by"] for e in led] == ["process:ci"], led
+        assert bb.page_state("a.md")["seal"]["state"] == "sealed"
+        (d / "src.txt").write_text("the freeze is on\n")
+        w = bb.fact(file="a.md", kind="file", source="src.txt", claim="the freeze is on")
+        assert w["written"] and "[fact.file]" in a.read_text() and "sources:" not in a.read_text().split("---")[1]
+        assert bb.page_state("a.md")["seal"]["state"] == "broken-seal"  # a new block is an edit to the page
+        asyncio.run(bb.seal(file="a.md", by="process:ci"))
+        assert bb.page_state("a.md")["seal"]["state"] == "sealed" and bb.page_state("a.md")["facts"][0]["status"] == "checked"
+        a.write_text(a.read_text() + "edited\n")
+        assert bb.page_state("a.md")["seal"]["state"] == "broken-seal"
+        raises(lambda: asyncio.run(bb.seal(file="a.md", by="process:ci", decision="accepted")))  # an okf concept has `status`, not a decision
+    finally:
+        bb.CFG.pop("okf", None)
+    assert bb.fm_records(d / "a.md") and bb.reviews(bb.meta(a.read_text())[0], "a.md", a.read_text(), {})[0][0]["by"] == "human:old"  # default: frontmatter, as in 2.2
+    raises(bb.parse_config_text, "okf: {records: both}\n") if hasattr(bb, "parse_config_text") else None
+in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text that is long enough to not be a stub here.\n"}, okf_files_mode)
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)

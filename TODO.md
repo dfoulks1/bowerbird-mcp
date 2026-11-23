@@ -6,11 +6,6 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 Built and committed on `2.3`. What is left is yours.
 
-### Needs a decision from you
-
-- [ ] **ADR-004 is accepted; its build is not started.** `okf: {records: files}` (off by default in 2.3): `seal` and `fact` write the shared files for OKF, every tool reads them there, and `okf export` and `okf import`
-      are the bridge, tested both ways. Build it before 2.3, or ship 2.3 first? I would ship first: it is a new setting that is off by default, and nothing in 2.3 depends on it.
-
 ### Needs a person or a real environment
 
 - [ ] The new badges and the Facts tab in a real browser, and the Web UI generally (`tools/QA.sh --rebuild` builds the site; the tests cover the HTML, not how it looks).

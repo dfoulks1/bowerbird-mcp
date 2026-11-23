@@ -3,8 +3,8 @@ status: accepted
 status-note: accepted by dfoulks on 2026-11-23, in the seal dialog
 owner: dfoulks
 kind: architecture
-built: not started
-proof: "queued in TODO.md (2.3, OKF through import and export)"
+built: landed
+proof: "test_bowerbird_mcp.py::okf_files_mode"
 supersedes: nothing
 amends: nothing
 consulted: "Claude Sonnet 5.5 (options and drafting)"
@@ -64,3 +64,4 @@ Drivers:
 
 - 2026-11-23: drafted from the owner's words: OKF "will need to rely on import and export for the default formats", "yes. an okf will need to use import / export". The two migration questions were answered here with a recommendation.
 - 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"`.
+- 2026-11-23: built (`okf: {records: files}`; `fm_records`, `okf_files` in `bowerbird_mcp.py`). Earlier values, word for word: `built: not started`, `proof: "queued in TODO.md (2.3, OKF through import and export)"`.
