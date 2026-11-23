@@ -30,7 +30,7 @@ A block with no metadata is the form of 2.2.0 and is still valid. A page may hol
 renderer that knows nothing of facts, a `url` block shows as a link to its source.
 
 **For an agent**, both the metadata and the source may be JSON, so a block can be written exactly: `{"id": 3, "by": "claude", "tags": ["db"]}` and `(["jira", "INFRA-1"])`, which reads as the words `jira INFRA-1`.
-A `}` or `)` inside a JSON string is written `}` or `%29`.
+A `}` inside a quoted string of the metadata is safe. A `)` in the source is always written `%29`.
 
 ### Its number
 
@@ -56,7 +56,7 @@ Any other key is kept and shown. `lint` warns of a wrong value in a key that has
 
 ## The kinds
 
-Nine kinds. The first four are in `bowerbird-mcp`; the other five are the [fact pack](fact-pack.md), which you install with `pip install 'bowerbird-mcp[fact-pack]'`.
+Nine kinds. The first four are in `bowerbird-mcp`; the other five are the [fact pack](fact-pack.md), an add-on you install with `pip install 'bowerbird-mcp[fact-pack]'`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.
 
 | Kind | Source | Holds while | An agent may check it |
 |---|---|---|---|
@@ -70,9 +70,23 @@ Nine kinds. The first four are in `bowerbird-mcp`; the other five are the [fact 
 | `manual` | `ops standup` | a person says it still holds | no: it asks a person, so an agent's run skips it |
 | `script` | `uvver` or `latest v2` | the command's output is what it was | yes (only a command declared in the root `bower.yaml`) |
 
-`file` and `key` read paths that are absolute, `~/`, or relative to the page's folder, and may lie outside the collection. `internal` reads another page of the collection, from its root, and
-does not look at whether that page is sealed. The first check of a `mcp`, `key`, `git` or `script` fact records the value; later ones compare. Each kind is explained in
-[OKF](formats/okf.md#facts-what-a-claim-rests-on-and-drift) and, for the pack's, on [its page](fact-pack.md).
+The first check of a `mcp`, `key`, `git` or `script` fact records the value; later ones compare. A source is read as words: `jira INFRA-1` is a server and a key, and `deploy.sh#L10-14` a path and lines.
+
+### The four in core
+
+- **`url`**: a page, fetched when a check runs (`http` and `https` only, 2 MB at most). Whitespace, case, backticks and emphasis are ignored: the content is compared, not the shape. A claim of
+  several paragraphs holds when each one is on the page. With `semantic: true` and the `semantic` extra, a page that no longer says it word for word but still means it counts too,
+  scored against `min_similarity` (as in semantic search), and the check says `similar meaning` instead of `same words`. A page built by script in the browser has no text here.
+- **`file`**: a file, read here with no network. The path is absolute, `~/`, or relative to the page's folder, and may lie outside the collection. `#L10-20` (or `#L10`) names the lines
+  the claim rests on; leave it off for the whole file. A file that shifted by a line drifts, and you re-point the fact by editing the range. A missing file, or a range past the end, is a drift.
+- **`internal`**: another page of this collection: a path from the collection root, then optionally `#Heading` (matched by its anchor, so `#Part Two` and `#part-two` are the same). The claim must
+  still be on the page, or under that heading down to the next heading of the same or a higher level. A missing page or heading is a drift. The page's seal is not consulted: this checks the words,
+  not who reviewed them.
+- **`mcp`**: a call to a tool of an MCP server the collection already has (`.mcp.json`). Which tool, with what argument, and which part of the result to watch is declared once in the root
+  `bower.yaml` (see Settings); the page gives only the server and the key. The first check records the watched value, and a later one must return it. A server not declared there is **skipped**.
+
+A kind can also be declared for one tool, under `facts: types:`: `[fact.ticket](INFRA-1)` then has just the key as its source. Only the root `bower.yaml` declares one, a page cannot add a kind or
+choose what runs, and the names of the nine kinds are taken.
 
 ## Writing a fact
 
@@ -83,9 +97,9 @@ bowerbird-mcp fact notes/deploy.md kind=file source='deploy.sh#L10-14' claim='ro
 bowerbird-mcp fact notes/db.md kind=mcp source='jira INFRA-1' claim='is open' meta='{"by": "ann", "confidence": "high"}' result=@issue.json
 ```
 
-`after` is a heading's text (the block goes at the end of its section) or a line number; the default is the end of the file. `meta` is the metadata (`at` is added). A kind that only reads files
+`after` is a heading's text (the block goes at the end of its section) or a line number; the default is the end of the file. `meta` is the metadata (`at` is added; `id` is the next free number, and one already used is refused). A kind that only reads files
 here (`file`, `internal`, `key`, `git`, `until`) is **checked first**, and `fact` refuses a claim the source does not hold, so a quotation that is not there never reaches the page (`check=false`
-writes it anyway). For `mcp`, `result` is what the call returned, and its watched value becomes the baseline. At a terminal, `result=-` reads standard input and `result=@file` a file, and
+writes it anyway). What `fact` checked is recorded, and its day is written as `last_checked`. For `mcp`, `result` is what the call returned, and its watched value becomes the baseline. At a terminal, `result=-` reads standard input and `result=@file` a file, and
 `harvest=true` with `kind=url` fetches the page, shows its paragraphs and asks which to quote. An agent cannot harvest or read `-` and `@file`.
 
 ## Checking
@@ -100,15 +114,16 @@ writes it anyway). For `mcp`, `result` is what the call returned, and its watche
 
 ```sh
 bowerbird-mcp factcheck notes/deploy.md              # the facts on the page and their state
-bowerbird-mcp factcheck notes/deploy.md id=3         # check fact 3 (file, internal, key, git, until: read here, no prompt)
-bowerbird-mcp factcheck --fetch                      # a person: show every fetch and call, ask, then check them all
+bowerbird-mcp factcheck notes/deploy.md id=3         # check fact 3 now, whatever its kind, with no plan shown
+bowerbird-mcp factcheck --fetch                      # a person: show every fetch, call and command, ask, then check them all
 ```
 
-`--fetch` checks every block against a fresh result. For a person at a terminal it first lists what it will fetch, call or run (an address, a call, a command), asks `Run these? [y/N]`, then checks each block; an agent, or a script, is not asked, and the list comes back with the result as `ran`. A page is fetched, an `mcp` call is made
-(only one declared under `facts` in `bower.yaml`), a `manual` fact asks a person `Still true?` (skipped when no one is there), and a `script` runs (only one declared in the root `bower.yaml`). A check ends as checked, drifted, **skipped** (not declared, or the command failed:
+`id=` checks one fact, and `--fetch` checks every block, each against a fresh result. `--fetch` for a person at a terminal it first lists what it will fetch, call or run (an address, a call, a command), asks `Run these? [y/N]`, then checks each block; an agent, or a script, is not asked, and the list comes back with the result as `ran`. A page is fetched, an `mcp` call is made
+(only one declared under `facts` in `bower.yaml`), a `manual` fact asks a person `Still true?` (skipped when no one is there), and a `script` runs (only one declared in the root `bower.yaml`). A check ends as checked, drifted, **skipped** (not declared, the command failed, or a `manual` fact had no person to ask:
 nothing is recorded) or **error** (the source could not be read: nothing is recorded). The command exits 1 if anything drifted.
 
-**Where the result goes.** Each check is recorded in a `.facts.yaml` beside the page (commit it, as you do `.waxseals.yaml`), and the day is written into the block as `last_checked`.
+**Where the result goes.** Each check is recorded in a `.facts.yaml` beside the page (commit it, as you do `.waxseals.yaml`), and the day is written into the block as `last_checked` (for a checked or
+drifted result, not a skipped one). The file also holds the value a `mcp`, `key`, `git` or `script` fact is compared with, so a command that prints a secret puts it in a committed file.
 
 ## Drift and seals
 
@@ -155,8 +170,8 @@ A page never names a command or a tool, only a key; only the root `bower.yaml` d
 ## The older forms
 
 - A block with no metadata, as in 2.2.0, still reads and checks.
-- In an [OKF](formats/okf.md) concept, `fact` with a `resource` and no `claim` records a frontmatter `sources` entry and prints a footnote marker. `okf export` and `okf import` move those to and from the blocks and
-  `.facts.yaml`.
+- In an [OKF](formats/okf.md#facts-what-a-claim-rests-on-and-drift) concept, `fact` with a `resource` and no `claim` records a frontmatter `sources` entry and prints a footnote marker. `okf export` and
+  `okf import` move those checks to and from `.facts.yaml` (and the reviews to and from `.waxseals.yaml`).
 
 ## Report a problem
 

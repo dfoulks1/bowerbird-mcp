@@ -5,7 +5,7 @@
 **Use it when** a claim rests on something other than a web page, a file or another page of the collection: a value in a config file, a tag in git, a date, a
 command's output, or something only a person can say.
 
-`bowerbird-mcp` has four kinds of [fact](formats/okf.md#facts-what-a-claim-rests-on-and-drift): `url`, `mcp`, `file` and `internal`. The pack adds five. It is a separate
+`bowerbird-mcp` has four kinds of [fact](facts.md): `url`, `mcp`, `file` and `internal`. The pack adds five. It is a separate
 package (`bowerbird-fact-pack`, in `addons/fact-pack/`), so what runs a command or reads your repository is off until you install it.
 
 ## Install
@@ -19,7 +19,7 @@ build still shows the block from its recorded state.
 
 ## The five kinds
 
-Each is a block, `[fact.<kind>](<formats/source>) the claim [fact.end]`, on one line or many. A check records its result beside the document in `.facts.yaml`, never in the document.
+Each is a block like any other, `[fact.KIND]{metadata}(source) the claim [fact.end]` (the grammar is on the [Facts](facts.md) page), on one line or many. A check records its result in `.facts.yaml` beside the document, and the day as `last_checked` in the block.
 
 | Kind | Source | Holds while | First check |
 |---|---|---|---|
@@ -33,13 +33,13 @@ Each is a block, `[fact.<kind>](<formats/source>) the claim [fact.end]`, on one 
 (`servers.0.host`). The value is compared as text, and a number or list is written as JSON. TOML needs Python 3.11, or `tomli`, which the pack requires on 3.10. A missing file or key is a
 drift.
 
-**`git`.** `tag NAME` is the commit the tag points at; `file REVISION PATH` is the file's blob at that revision (`main`, a tag, a commit). The repository is the one around the
+**`git`.** `tag NAME` is the commit the tag points at; `file REVISION PATH` is the file's blob at that revision (`main`, a tag, a commit), with the path from the repository's root. The repository is the one around the
 document. A tag that moved or was deleted, or a file that changed, is a drift. A name or revision cannot start with `-`. The command that runs is always `git rev-parse`.
 
 **`until`.** A claim with an end date: a freeze, a deadline, a promise. Nothing is read. Once the date passes it drifts, and editing the date makes a new fact.
 
 **`manual`.** What no machine can read. `factcheck --fetch`, run by a person at a terminal, shows the source and the claim and asks `Still true? [y/N]`; no is a drift. An agent cannot
-answer it, so its run skips a `manual` fact. Nothing forces a re-check: set `facts: {manual_days: 90}` in `bower.yaml` and a fact confirmed in the last 90 days is skipped, without it the question is asked each time.
+answer it, so its run skips a `manual` fact (it is reported as skipped, and nothing is recorded). Nothing forces a re-check: set `facts: {manual_days: 90}` in `bower.yaml` and a fact confirmed in the last 90 days is skipped, without it the question is asked each time.
 
 **`script`.** A command's output. The command is declared once, in the **root** `bower.yaml`, as an argument list that is run with no shell:
 
@@ -52,7 +52,7 @@ facts:
 
 A page names the script and may give one key (`[fact.script](latest main) ...`), which replaces `{key}` in the arguments. The key is one word of letters, digits and `. / : @ = + -`, and it
 cannot start with `-`, so it cannot become a second argument or a shell command; anything else is not a fact. A page can never name a command, and a script in a nested `bower.yaml` is
-ignored. A person at a terminal is shown the command by `--fetch` and asked first; an agent runs it without being asked, and the command comes back with the result. A command that exits non-zero is skipped, not a drift.
+ignored. The command runs with the collection root as its working directory. A person at a terminal is shown the command by `--fetch` and asked first (`factcheck id=` runs it without showing it); an agent runs it without being asked, and the command comes back with the result. A command that exits non-zero is skipped, not a drift. Its output is kept in `.facts.yaml`, so a command that prints a secret writes it to a committed file.
 
 **Read the plan before you answer `y`.** A script runs with your privileges, and a collection you did not write can declare one in its root `bower.yaml`.
 

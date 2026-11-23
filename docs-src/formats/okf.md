@@ -136,122 +136,18 @@ at its entry in `sources` with a Markdown footnote (`[^pg]`). Links are for navi
 
 ### Facts: what a claim rests on, and drift
 
-This section is the OKF side of facts; the whole reference, in any format, is on the [Facts](../facts.md) page.
+The grammar, the kinds, the checks and the settings of facts are the same in every format, so they live on the [Facts](../facts.md) page. A concept may hold fact blocks like any
+Markdown document, and a bundle's blocks are read, checked and shown the same way. What is OKF's is the older record, in the frontmatter, and how it moves.
 
-A **fact** is a claim together with where it came from, written so it can be checked again. Put the source and the words you
-relied on in a block, in any Markdown document (it works in every format, not only OKF):
+**The `sources` form.** `fact` with a `resource` and no `claim` records a fact as an entry of the concept's frontmatter `sources` (§5.1) and prints the footnote marker for the claim,
+`[^rollback]`; its definition is appended to the body. A call that made the result is recorded as `via: {server, tool, args}`, and `result`, what it returned, as a `fact_sha256`.
+`factcheck` with no arguments lists the entries that are due, each with `cites`, the lines whose claims rest on it: a `calls` list to replay (run each yourself, reading its `args` first) and a
+`manual` list to open. `factcheck file=... id=... result=...` compares a result you got by replaying the call with the recorded one. Same: the check is noted in `.facts.yaml`. A different one is a drift,
+and it ends every [review](../sealing.md) of the concept made before it. An agent may run this; the entries in `manual` have no call to replay, so a person opens them.
 
-```markdown
-[fact.url](https://stackoverflow.com/questions/8072700/how-to-restart-jenkins-manually)
-
-(jenkins_url)/safeRestart - Allows all running jobs to complete. New jobs will remain in the queue to run after the restart is complete.
-
-(jenkins_url)/restart - Forces a restart without waiting for builds to complete.
-
-[fact.end]
-
-The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
-```
-
-- **`[fact.<kind>]{<metadata>}(<source>) <the claim> [fact.end]`** is the whole form, and `[fact.` to `[fact.end]` is all a fact needs: a person and an agent write the same thing.
-  The `{metadata}` is optional (leave it out and you have the form of 2.2.0, which still works): a JSON or YAML mapping right after the tag, such as
-  `{id: 3, by: ann, as_of: 2026-11-20, confidence: high}`. **`id` is the fact's number**, first in the mapping and unique in the document: `factcheck file=notes.md id=3` checks it, and the
-  claim can be edited without losing it (a fact edited since its last check shows as unchecked until it is checked again). A fact with no `id` is known by a fingerprint of its words, as
-  in 2.2.0; `fix` numbers those, and the `fact` tool takes the next number. These other keys mean something: `by` and `note` (text), `at` and `as_of` (a date), `confidence` (0 to 1, or `low`, `medium`,
-  `high`), `tags` (a list), `stale_after` (days since the last check, or a date, after which `factcheck` lists the fact as due), and `last_checked` (a date). Any other key is kept and shown in the
-  bibliography. `lint` warns of a wrong value in one that has a meaning, and a number used twice in a document is an error. **A check writes `last_checked`** (the day) into the block's
-  metadata, in the style it is written in, and `fix` and `fact` write `id`. A [review](../sealing.md) does not see those two keys, or an empty `{}`: the sealed text is the
-  document without them, so numbering a fact or checking it never breaks a seal. The rest of the metadata is yours, and is part of the review. An agent may write it as JSON, `{"by": "claude", "tags": ["a"]}`, and the source
-  as a JSON string or an array of strings, `(["jira", "INFRA-1"])`, which reads as the words `jira INFRA-1`. Write a `)` or `}` inside a string as `%29` or `\u007d`. A mapping that never
-  closes, or a source that is not words, is a `lint` error. Otherwise: The kind says what the source is, the source goes in parentheses
-  right after it (it ends at the first `)`, so write a `)` inside an address as `%29`), and the words up to `[fact.end]` are what is
-  checked: paste them from the page. A block holds one source and any number of claims, on one line or many. In a Markdown renderer
-  that knows nothing of facts, `fact.url` shows as a link to the source.
-- **`[fact.url](address)`** is a page: its words must still appear there.
-- **`[fact.file](path#L10-20)`** is a file, read here with no network. The path is absolute, `~/…`, or relative to the document's folder, and may lie outside the
-  collection. `#L10-20` (or `#L10`) names the lines the claim rests on; leave it off for the whole file. The claim's words must still be in those lines, so a file
-  that shifted by a line drifts and is re-pointed by editing the range. A missing file, or a range past the end, is a drift. It is read only when a check is
-  asked for.
-- **`[fact.internal](docs/tools.md#links)`** is another page of this collection: a path from the collection root, optionally `#Heading` (matched by its anchor, so
-  `#Part Two` and `#part-two` are the same). The claim's words must still be on the page, or under that heading down to the next heading of the same or a higher
-  level. A missing page or heading is a drift. The page's seal is not consulted: this checks the words, not who reviewed them.
-- **The fact pack**, `pip install 'bowerbird-mcp[fact-pack]'`, brings five more kinds (the [fact pack](../fact-pack.md) page has each in full). Without it, a page that uses one is a `lint` error that says what to install.
-  - **`[fact.key](pyproject.toml project.version)`**: a value at a path in a JSON, YAML or TOML file (`a.b.0` for a list item; TOML needs Python 3.11 or `tomli`).
-    The first check records the value and later ones must match it, like an MCP fact. The file is found as for `file`. A missing file or key is a drift.
-  - **`[fact.git](tag v2.3.0)`** or **`[fact.git](file main docs/x.md)`**: a tag, or a file at a revision, in the repository around the document. The first check records
-    the commit (or file) and a moved or removed tag, or a changed file, is a drift. A name cannot start with `-`.
-  - **`[fact.until](2026-12-31)`**: the claim holds until that date, then it drifts. Nothing is read.
-  - **`[fact.manual](ops standup)`**: what only a person can say. `factcheck --fetch` at a terminal shows the claim and asks "Still true?"; no is a drift. Nothing is forced:
-    `facts: {manual_days: 90}` in `bower.yaml` makes a fact skip the question for that many days after a yes; without it, it is asked each time you check.
-  - **`[fact.script](name)`** or **`[fact.script](name key)`**: a command's output, compared as the first check recorded it. The command is declared in the root
-    `bower.yaml` only, as an argument list run with no shell (`{key}` in it is replaced by the page's key, a word with no shell characters and no leading `-`); a page names
-    a script and never a command. A command that fails is skipped, not a drift. A person at a terminal is shown the command and asked first; an agent runs it without being asked.
-- **`[fact.<name>](key)`**, for a name the root `bower.yaml` declares under `facts: types:`, is a fact from one tool of an MCP server the collection
-  already has, so the source is just the key: `[fact.ticket](INFRA-27707) is open [fact.end]`. Only the root declares one (a page cannot add a kind,
-  or choose what runs), and `lint` flags a kind nobody declared.
-- **`[fact.mcp](server key)`** is the general form, a fact from an MCP tool, for example `[fact.mcp](jira INFRA-27707) is open [fact.end]`. Which tool to
-  call, with what, and which part of the result to watch is declared once in `bower.yaml`, under `facts` (see below).
-- The kinds are a registry (`bowerbird_facts.FACT_TYPES`): `url`, `mcp`, `file` and `internal` are registered, and a new kind is one `register(name, sample, valid)` call plus a `check` for
-  `factcheck --fetch`. A block with no `[fact.end]`, an end with no start, or an unknown kind is a `lint` error. Blocks inside code are ignored, so
-  examples like the one above are safe.
-
-**Checking.** `factcheck` with no arguments lists every block and its state: *unchecked*, *checked* (with the date and how), or
-*drifted*. It runs nothing. `factcheck file=… id=…` checks one fact now, with no prompt, for a person or an agent. `factcheck --fetch`, run by a person at a terminal, shows what it will fetch or call, asks, and
-then compares each block with a fresh result:
-
-- a **page** must still hold the block's words. Whitespace, case, backticks and emphasis are ignored: it is the content that is
-  compared, not the shape. With `semantic: true` and the `semantic` extra, a page that no longer says it word for word but still
-  means it counts too, scored against `min_similarity` (the same settings as semantic search), and the result says "similar meaning"
-  instead of "same words";
-- an **MCP call** (only one declared under `facts`) must still return the value it did. The first check records that value.
-
-```yaml
-# bower.yaml, at the collection root: the only calls factcheck may make
-facts:
-  mcp:
-    jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
-  types:   # optional: a kind of fact for one tool, so the source is just the key
-    ticket: {server: jira, tool: get_issue, arg: issue_key, watch: fields.status.name}
-  scripts: # the fact pack's `script` kind: a command as an argument list, run with no shell, 30 s unless `timeout` says otherwise
-    uvver: {cmd: [uv, --version]}
-    latest: {cmd: [git, describe, --tags, "{key}"], timeout: 10}
-  manual_days: 90   # the fact pack's `manual` kind: skip the question for 90 days after a yes (unset: ask every time)
-```
-
-The document supplies only the key (`INFRA-27707`), never the tool, so a page cannot make `factcheck` call something it was not
-told to. The server itself comes from `.mcp.json`. `--fetch` is a person's command: over MCP it is refused.
-
-**State is kept beside the document**, in a `.facts.yaml` (commit it, as you do `.waxseals.yaml`). It holds the last check of each
-block. The document is never changed by a check, so a check that finds nothing wrong does not disturb a human's review of it.
-Edit the words of a block and it is a new fact, unchecked until it is checked.
-
-**Drift breaks the seal.** A block that has drifted ends every [review](../sealing.md) of that file made before it, and `seal check`
-reports `a cited fact drifted after it was reviewed`. Correct the claim and have a person review the file again: a review made after
-the drift holds. A check that passes does not undo a drift.
-
-**The docs build** shows each block as a quotation with its source and its state (not yet checked, checked on a date, or drifted).
-
-**Moving between the two records.** A concept's reviews and sources can live in its frontmatter (`verified`, `sources`) or beside it
-(`.waxseals.yaml`, `.facts.yaml`); [`okf export` and `okf import`](../cli.md#moving-an-okf-concepts-history-okf-export-and-okf-import) move them
-between the two, previewing first.
-
-**Writing a fact.** `fact` writes the block for you, in any format, for a person at a terminal and an agent alike:
-
-```sh
-bowerbird-mcp fact notes/deploy.md kind=file source='deploy.sh#L10-14' claim='rollback runs the previous tag' after='Rollback'
-bowerbird-mcp fact notes/db.md kind=mcp source='jira INFRA-1' claim='is open' meta='{"by": "ann", "confidence": "high"}' result=@issue.json
-```
-
-`kind` and `source` are the kind's own words, and `claim` is what the source says. `meta` is the optional metadata (`at`, the day it was written, is added), and `after` is a heading's text
-or a line number (the default is the end of the file). A `)` in the source is written `%29`. A kind that only reads files here (`file`, `internal`, and the pack's `key`, `git`, `until`) is
-**checked first, and refused when the source does not hold the claim**, so a quotation that is not there never reaches the page; `check=false` writes it anyway. For `mcp`, `result` is what
-the call returned: its watched value becomes the baseline a later check compares with. At a terminal `result` can be `-` (standard input) or `@file`, and `harvest=true` with `kind=url`
-fetches the page, shows its paragraphs and asks which to quote. An agent cannot harvest, or read `-` or `@file`.
-
-**The older form, for OKF.** `fact` with a `resource` and no `claim` records a fact as a `sources` entry in the frontmatter (a call as `via: {server, tool, args}`, and
-`result`, what it returned, as a `fact_sha256`) and prints the footnote marker for the claim; `factcheck file=... id=... result=...`
-compares a result an agent got by replaying the call with it. Same result: the check is noted in `.facts.yaml`. A different one is a
-drift. An agent may run any check except a `manual` fact's, which asks a person.
+**Moving between the two records.** A concept's reviews and sources can live in its frontmatter (`verified`, `sources`) or beside it (`.waxseals.yaml`, `.facts.yaml`).
+[`okf export` and `okf import`](../cli.md#moving-an-okf-concepts-history-okf-export-and-okf-import) move them between the two, previewing first. Export puts each source's last check into
+`.facts.yaml`. Import updates a `sources` entry from its check and adds the fact blocks that file records as sources. Drift stays in `.facts.yaml`: frontmatter has no place for it.
 
 ### Bundles, `index.md` and `log.md`
 
