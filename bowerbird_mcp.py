@@ -1285,7 +1285,7 @@ def mcp_spec(server: str):
     """The .mcp.json entry for server (command, args, env), or None."""
     try:
         d = json.loads(read(ROOT / ".mcp.json") or "")
-    except ValueError:
+    except (ValueError, OSError):
         return None
     s = (d.get("mcpServers") or d.get("servers") or {}) if isinstance(d, dict) else {}
     return s.get(server) if isinstance(s.get(server), dict) else None
@@ -4055,7 +4055,7 @@ def fact_plan_url(b, declared, p=None) -> str:
 def file_where(source: str, doc: Path) -> tuple:
     """(path, first line, last line) a `[fact.file]` source names: absolute, `~/`, or relative to the citing document's folder; lines are None for the whole file."""
     m = facts_mod().FILE_SOURCE.fullmatch(source)
-    path = Path(os.path.expanduser(m.group(1)))
+    path = Path(os.path.expanduser(m.group(1).replace("%29", ")")))
     a = int(m.group(2)) if m.group(2) else None
     return (path if path.is_absolute() else doc.parent / path), a, (int(m.group(3)) if m.group(3) else a)
 
@@ -4103,7 +4103,7 @@ def fact_plan_internal(b, declared, p=None) -> str:
 def fact_check_internal(p, b, old, declared) -> tuple:
     """Another page of this collection (path from the root, optionally #Heading): its text, or that section, must still hold the claim's words. Seals are not consulted."""
     F = facts_mod()
-    page, _, heading = b.source.partition("#")
+    page, _, heading = b.source.replace("%29", ")").partition("#")
     q = (ROOT / page.strip().lstrip("/")).resolve()
     if not inside(q, ROOT):
         raise ValueError(f"{page} is outside the collection")
@@ -4121,12 +4121,16 @@ def fact_check_internal(p, b, old, declared) -> tuple:
 def fact_check_url(p, b, old, declared) -> tuple:
     """A page: its words must still be there (same words; with `semantic: true` and the extra, a similar meaning)."""
     F = facts_mod()
-    text = F.page_text(b.source)
+    text, final = F.page_fetch(b.source)
+    if urllib.parse.urlparse(final).hostname != urllib.parse.urlparse(b.source).hostname:
+        raise ValueError(f"redirected to {final}: another host, so not the page the fact names (a login or a block?)")
     found, total = F.check_literal(b.claim, text)
     if found == total:
         return "checked", "same words", old
     if OPTS["semantic"] and semantic_ok(F.paragraphs(b.claim), text):
         return "checked", "similar meaning", old
+    if len(text.split()) < 12:  # a page with almost no words is blocked, or built by script: not a page that changed, and a drift would end the reviews
+        raise ValueError(f"the page has almost no text here ({len(text.split())} words): blocked, or built by script?")
     return "drifted", f"{found} of {total} paragraphs still on the page", old
 
 
@@ -4253,6 +4257,11 @@ def factcheck(file: str = "", id: str | int = "", result: str = "", older_than_d
     F = facts_mod()
     if file and id and not result and F:  # one fact, by its id: run its check (anyone may: a person-only kind is skipped for an agent)
         hit = next(((p, b) for p, b in fact_blocks(file if file.endswith(".md") else file + ".md") if b.id == id), None)
+        if hit and CLI and at_terminal() and not F.FACT_TYPES[hit[1].kind].local:  # a person: shown what will be fetched, called or run, and asked
+            ft = F.FACT_TYPES[hit[1].kind]
+            print(f"factcheck will:\n  {os.path.relpath(hit[0], ROOT)}:{hit[1].line}  " + (ft.plan(hit[1], (CFG.get("facts") or {}).get("mcp", {}), hit[0]) if ft.plan else f"check {hit[1].source}"), file=sys.stderr)
+            if input("Run it? [y/N] ").strip().lower() != "y":
+                return {"checked": [], "drifted": 0, "note": "nothing run"}
         if hit:
             row = fact_run(hit[0], hit[1], (CFG.get("facts") or {}).get("mcp", {}))
             return {"checked": [row], "drifted": int(row["status"] == "drifted")}
@@ -5498,7 +5507,7 @@ def cli(argv) -> int:
             raise ValueError(f"output {fmt!r} | fix: text, json, github or sarif")
         if inside(Path.cwd(), ROOT):  # in the collection, CLI paths are relative to where you are
             within = () if args.get("bundle") else ("file", "files", "dir", *(("to",) if argv[0] == "move" else ()))
-            for k in ("source", "bundle", "to_bundle", *within):
+            for k in (*(() if argv[0] == "fact" else ("source",)), "bundle", "to_bundle", *within):
                 if isinstance(args.get(k), str) and args[k]:
                     args[k] = os.path.abspath(args[k])
                 elif isinstance(args.get(k), list):

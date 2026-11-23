@@ -2856,6 +2856,72 @@ def fact_sources(d):
 in_vault("markdown", {"n.md": "x\n"}, fact_sources)
 
 
+# what the real-world checks found: the CLI keeps a fact's source as written, a date in the metadata is text, a blocked or redirected page is an error and not a drift, `%29` is a `)`
+def realworld(d):
+    import http.server
+    import threading
+    page = ("<html><body><p>The quick brown fox jumps over the lazy dog. " + "Filler words that make this page long enough to be a real page with text. " * 4 + "</p></body></html>").encode()
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/ok":
+                self.send_response(200), self.send_header("Content-Type", "text/html"), self.end_headers(), self.wfile.write(page)
+            elif self.path == "/tiny":
+                self.send_response(200), self.send_header("Content-Type", "text/html"), self.end_headers(), self.wfile.write(b"<html><body>Please enable JavaScript.</body></html>")
+            elif self.path == "/redir":
+                self.send_response(302), self.send_header("Location", f"http://localhost:{self.server.server_port}/ok"), self.end_headers()
+            else:
+                self.send_error(404)
+
+        def log_message(self, *a):
+            pass
+    srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_port}"
+    try:
+        (d / "n.md").write_text("# N\n")
+        os.chdir(d)  # in the collection, the CLI's paths are relative to where it is run
+        try:
+            assert cli("fact", "n.md", "kind=url", f"source={base}/ok", "claim=The quick brown fox jumps over the lazy dog.", "check=false")[0] == 0
+            assert cli("fact", "n.md", "kind=mcp", "source=jira INFRA-1", "claim=is open", "check=false")[0] == 0
+        finally:
+            os.chdir(HERE)
+        body = (d / "n.md").read_text()
+        assert f"({base}/ok) The quick brown fox" in body and "(jira INFRA-1) is open" in body, body  # not made into /cwd/https:/...
+        run = lambda i: bb.factcheck(file="n.md", id=i)["checked"][0]
+        assert run(1)["status"] == "checked" and "lazy dog" in bb.fact_rows("n.md")[0]["source"] or run(1)["status"] == "checked"
+        json.dumps(bb.factcheck(file="n.md"))  # the listing holds the stamped date as text, so it is JSON
+        for path, why in (("/tiny", "almost no text"), ("/redir", "redirected")):
+            r = bb.fact(file="n.md", kind="url", source=base + path, claim="The quick brown fox jumps over the lazy dog.", check=False)
+            got = run(r["id"])
+            assert got["status"] == "error" and why in got["method"], (path, got)  # an error is recorded nowhere: no drift, no ended reviews
+            assert bb.fact_rows("n.md")[-1]["status"] == "unchecked"
+        r = bb.fact(file="n.md", kind="url", source=base + "/ok", claim="A sentence that is not on the page at all, said plainly.", check=False)
+        assert run(r["id"])["status"] == "drifted"  # a real page, a real difference
+        # a `)` in a source, written %29, is a `)` when the file is read
+        (d / "a(b).txt").write_text("alpha beta\n")
+        r = bb.fact(file="n.md", kind="file", source="a(b).txt", claim="alpha beta")
+        assert r["checked"] == "checked" and "(a(b%29.txt)" in r["block"]
+        # no .mcp.json is a skipped check, not a traceback
+        r = bb.fact(file="n.md", kind="mcp", source="nosrv KEY-1", claim="is open", check=False)
+        got = bb.factcheck(file="n.md", id=r["id"])["checked"][0]
+        assert got["status"] == "skipped", got
+    finally:
+        srv.shutdown()
+in_vault("markdown", {"n.md": "x\n"}, realworld)
+
+# okf import: a block fact of any kind becomes a source with a resource that says what it is
+def okf_import_kinds(d):
+    (d / "src.txt").write_text("one two three\n")
+    w = bb.fact(file="a", kind="file", source="src.txt", claim="one two three")
+    assert w["written"]
+    import bowerbird_okf as O
+    O.import_(bb, str(d / "a.md"), True)
+    res = [s["resource"] for s in bb.meta((d / "a.md").read_text())[0]["sources"]]
+    assert res == ["file:src.txt"], res  # not mcp://src.txt/
+in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text that is long enough to not be a stub here.\n"}, okf_import_kinds)
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)

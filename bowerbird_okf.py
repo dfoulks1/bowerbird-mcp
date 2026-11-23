@@ -98,7 +98,7 @@ def import_(bb, arg: str, apply: bool) -> list:
                     e["fact_sha256"], touched = st["value"], touched + 1
             elif st.get("kind") != "source":  # a block fact: the page, or the tool's server and key, as a source
                 server, _, key = str(st.get("source", "")).partition(" ")
-                srcs.append({"id": fid, "resource": st["source"] if st.get("kind") == "url" else f"mcp://{server}/{key}", "retrieved_at": at})
+                srcs.append({"id": fid, "resource": st["source"] if st.get("kind") == "url" else f"mcp://{server}/{key}" if st.get("kind") == "mcp" else f"{st.get('kind')}:{st['source']}", "retrieved_at": at})
                 touched += 1
         new_text = text
         if touched:

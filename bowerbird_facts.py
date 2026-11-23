@@ -297,6 +297,7 @@ def parse(text: str, strict: bool = True) -> tuple:
                     meta = None
                 if not isinstance(meta, dict):
                     bad_meta, meta = "its {metadata} is not a JSON or YAML mapping that closes", {}
+                meta = {k: v.isoformat() if isinstance(v, (dt.date, dt.datetime)) else v for k, v in meta.items()}  # YAML reads 2026-11-23 as a date; JSON cannot hold one
                 span = (pos, stop) if stop > 0 and not bad_meta else (-1, -1)
                 pos = stop if stop > 0 else pos + 1
             src = SOURCE.match(masked, pos) if not bad_meta else None
@@ -484,20 +485,26 @@ class _Text(html.parser.HTMLParser):
             self.out.append(data)
 
 
-def page_text(url: str, timeout: int = 20, limit: int = 2_000_000) -> str:
-    """The text of the page at url (scripts, styles and markup dropped). http and https only; at most `limit` bytes.
-    shortcut: a page built by script in the browser has no text here, and one behind a login is not fetched; upgrade if that bites."""
+def page_fetch(url: str, timeout: int = 20, limit: int = 2_000_000) -> tuple:
+    """(the text of the page at url, the address it was finally served from): scripts, styles and markup dropped. http and https only; at most `limit` bytes. The final address
+    differs from url when the page redirected, which a caller may refuse (a login, a block).
+    shortcut: a page built by script in the browser has no text here, and one behind a login is not fetched; the caller says so when a page has almost no words."""
     if not re.match(r"https?://", url):
         raise ValueError(f"{url} is not an http or https address")
     req = urllib.request.Request(url, headers={"User-Agent": "bowerbird-mcp factcheck", "Accept": "text/html,text/plain,*/*"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        raw, kind = r.read(limit), r.headers.get("Content-Type", "")
+        raw, kind, final = r.read(limit), r.headers.get("Content-Type", ""), r.geturl()
     text = raw.decode("utf-8", errors="replace")
     if "html" not in kind and not text.lstrip().startswith("<"):
-        return text
+        return text, final
     p = _Text()
     p.feed(text)
-    return html.unescape(" ".join(p.out))
+    return html.unescape(" ".join(p.out)), final
+
+
+def page_text(url: str, timeout: int = 20, limit: int = 2_000_000) -> str:
+    """The text of the page at url: `page_fetch` without the address."""
+    return page_fetch(url, timeout, limit)[0]
 
 
 def paragraphs(claim: str) -> list:
