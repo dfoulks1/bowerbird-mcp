@@ -2329,6 +2329,7 @@ def adr_status(t: str, decision: str, who: str, on: str) -> str:
         t = put(t, "status-note", f"{decision} by {who} on {on}, in the seal dialog")
         if decision == "accepted":
             t = put(put(t, "ratified-by", who), "ratified-on", on)
+            t = re.sub(r"^(ratified-on:)[ \t]*['\"]?(\d{4}-\d{2}-\d{2})['\"]?[ \t]*$", r'\1 "\2"', t, count=1, flags=re.MULTILINE)  # a date in quotes: a string, as the ADR+ schema wants
         hist = re.search(r"^## History[ \t]*\n.*?(?=^## |\Z)", t, re.MULTILINE | re.DOTALL)
         if hist:
             line = (f"- {on}: {decision} by {who}, in the seal dialog. Earlier values, word for word: `status: {old}`"

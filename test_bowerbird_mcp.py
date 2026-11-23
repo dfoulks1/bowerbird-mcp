@@ -1258,7 +1258,7 @@ class Anyone(Ctx):
         return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
 asyncio.run(bb.seal("docs/adr/0042-plus.md", ctx=Anyone(), decision="accepted"))
 pt = plus.read_text()
-assert "status: accepted" in pt and "ratified-by: tester" in pt and "ratified-on:" in pt and "Earlier values, word for word: `status: proposed`, `status-note: \"drafted\"`" in pt, pt
+assert "status: accepted" in pt and "ratified-by: tester" in pt and re.search(r'^ratified-on: "\d{4}-\d{2}-\d{2}"$', pt, re.MULTILINE) and isinstance(bb.meta(pt)[0]["ratified-on"], str) and "Earlier values, word for word: `status: proposed`, `status-note: \"drafted\"`" in pt, pt
 plus.unlink()
 bb.ledger_apply({"docs/adr/0042-plus.md": None})
 h = bb.passages("zebra")["hits"][0]
