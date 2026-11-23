@@ -38,16 +38,17 @@ class FactType:
     valid: Callable[[str], str | None]
     plan: Callable | None = None
     check: Callable | None = None
-    local: bool = False  # the check only reads files here (no network, no command): an agent may run it, with no prompt
+    local: bool = False  # the check only reads files here (no network, no command)
+    person: bool = False  # the check asks a person (manual): only someone at a terminal can answer it, so an agent's run skips it
 
 
 FACT_TYPES: dict[str, FactType] = {}
 
 
 def register(name: str, sample: str, valid: Callable[[str], str | None], plan: Callable | None = None, check: Callable | None = None,
-             local: bool = False) -> FactType:
+             local: bool = False, person: bool = False) -> FactType:
     """Add a kind of fact (or replace one of that name). Everything that reads blocks, lint and the docs build included, then knows it."""
-    FACT_TYPES[name] = FactType(name, sample, valid, plan, check, local)
+    FACT_TYPES[name] = FactType(name, sample, valid, plan, check, local, person)
     return FACT_TYPES[name]
 
 

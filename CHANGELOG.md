@@ -19,6 +19,8 @@
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
+- **An agent may run any fact check.** `factcheck fetch=true` and `factcheck file=… id=…` no longer need a person at a terminal: a person is still shown the plan and asked, an agent or a script is not and gets
+  the plan back as `ran`. Only what `bower.yaml` declares can be called or run (a page cannot name a command), and a `manual` fact, which asks a person, is skipped for an agent.
 - **A fact has a number.** `id` is the first key of a block's metadata, a whole number unique in the document; `factcheck` takes it (`id=3`), `fact` takes the next one, and `fix` numbers the blocks that have none (a fact with no
   `id` is still known by a fingerprint of its words, as in 2.2.0, and what was checked under the fingerprint moves to the number). A fact edited since its last check shows as unchecked. A check now writes
   `last_checked` (the day) into the block's metadata; a seal does not see `id`, `last_checked` or an empty `{}`, so neither numbering nor checking breaks one. `lint` has `duplicate_fact_id`.

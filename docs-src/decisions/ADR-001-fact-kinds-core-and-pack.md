@@ -116,3 +116,12 @@ Drivers:
 - 2026-11-23: drafted from the owner's answers (question record `docs-src/prompts/2026-11-23-adr-fact-kinds.md`). Asks
   1 to 3 were defaulted as listed in the record's Defaulted table; the owner may veto.
 - 2026-11-23: ratified by dfoulks, as `decision: accepted` in the seal dialog (ledger entry at 2026-11-23T13:26Z). Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's answers; awaiting ratification"`. The header was updated here because the dialog records the decision in `.waxseals.yaml` only, not in the ADR header.
+
+## Amendment — 2026-11-23, dfoulks
+
+Touches the Decision (the pack's `script` and `manual`) and Consequences. The owner ruled that an agent should run anything it needs to check a fact. So `script` no longer runs only at a terminal, and
+`--fetch` is no longer refused over MCP: a person at a terminal is still shown the plan and asked, and an agent or a script is not, and gets the plan back as `ran`. What does not change: only a command
+declared in the root `bower.yaml` runs (a page never names one), and `manual`, which asks a person, is skipped for an agent. The ruled text above is left as it was.
+
+- 2026-11-23: amended (see the section above); the ruled text is unchanged.
+

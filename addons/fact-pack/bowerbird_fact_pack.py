@@ -108,7 +108,7 @@ def register(bb):
         if days and last.get("status") == "checked" and at and bb.now_dt() - at < dt.timedelta(days=days):
             return "skipped", f"confirmed {last['at']}; due after {days} days", old
         if not bb.at_terminal():
-            raise ValueError("a manual fact is confirmed by a person at a terminal")
+            return "skipped", "a manual fact is confirmed by a person at a terminal", old
         print(f"\n  {b.source}\n  {b.claim}", file=sys.stderr)
         who = bb.user_id()
         if input("Still true? [y/N] ").strip().lower() == "y":
@@ -140,11 +140,11 @@ def register(bb):
             return "skipped", f"{argv[0]} exited {r.returncode}: {r.stderr.strip()[:120]}", old
         return compare(old, r.stdout.strip())
 
-    for name, sample, valid, plan, check, local in (
-        ("key", "pyproject.toml project.version", valid_key, lambda b, d, p=None: f"read {b.source.split()[0]} at {b.source.split()[1]}", check_key, True),
-        ("git", "tag v2.3.0", valid_git, lambda b, d, p=None: f"git rev-parse {' '.join(git_ref(p, b))}", check_git, True),
-        ("until", "2026-12-31", valid_until, lambda b, d, p=None: f"compare today with {b.source}", check_until, True),
-        ("manual", "ops standup", lambda s: None if s.strip() else "needs who or where it came from", lambda b, d, p=None: "ask you: still true?", check_manual, False),
-        ("script", "uvver", valid_script, plan_script, check_script, False),
+    for name, sample, valid, plan, check, local, person in (
+        ("key", "pyproject.toml project.version", valid_key, lambda b, d, p=None: f"read {b.source.split()[0]} at {b.source.split()[1]}", check_key, True, False),
+        ("git", "tag v2.3.0", valid_git, lambda b, d, p=None: f"git rev-parse {' '.join(git_ref(p, b))}", check_git, True, False),
+        ("until", "2026-12-31", valid_until, lambda b, d, p=None: f"compare today with {b.source}", check_until, True, False),
+        ("manual", "ops standup", lambda s: None if s.strip() else "needs who or where it came from", lambda b, d, p=None: "ask you: still true?", check_manual, False, True),
+        ("script", "uvver", valid_script, plan_script, check_script, False, False),
     ):
-        F.register(name, sample, valid, plan, check, local)
+        F.register(name, sample, valid, plan, check, local, person)

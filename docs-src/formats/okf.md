@@ -185,7 +185,7 @@ The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
     `facts: {manual_days: 90}` in `bower.yaml` makes a fact skip the question for that many days after a yes; without it, it is asked each time you check.
   - **`[fact.script](name)`** or **`[fact.script](name key)`**: a command's output, compared as the first check recorded it. The command is declared in the root
     `bower.yaml` only, as an argument list run with no shell (`{key}` in it is replaced by the page's key, a word with no shell characters and no leading `-`); a page names
-    a script and never a command. A command that fails is skipped, not a drift. It runs only for a person at a terminal, after the plan shows the command.
+    a script and never a command. A command that fails is skipped, not a drift. A person at a terminal is shown the command and asked first; an agent runs it without being asked.
 - **`[fact.<name>](key)`**, for a name the root `bower.yaml` declares under `facts: types:`, is a fact from one tool of an MCP server the collection
   already has, so the source is just the key: `[fact.ticket](INFRA-27707) is open [fact.end]`. Only the root declares one (a page cannot add a kind,
   or choose what runs), and `lint` flags a kind nobody declared.
@@ -196,7 +196,7 @@ The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
   examples like the one above are safe.
 
 **Checking.** `factcheck` with no arguments lists every block and its state: *unchecked*, *checked* (with the date and how), or
-*drifted*. It runs nothing. `factcheck file=… id=…` checks one `file` or `internal` fact now, with no prompt, for a person or an agent: it only reads files here. `factcheck --fetch`, run by a person at a terminal, shows what it will fetch or call, asks, and
+*drifted*. It runs nothing. `factcheck file=… id=…` checks one fact now, with no prompt, for a person or an agent. `factcheck --fetch`, run by a person at a terminal, shows what it will fetch or call, asks, and
 then compares each block with a fresh result:
 
 - a **page** must still hold the block's words. Whitespace, case, backticks and emphasis are ignored: it is the content that is
@@ -251,7 +251,7 @@ fetches the page, shows its paragraphs and asks which to quote. An agent cannot 
 **The older form, for OKF.** `fact` with a `resource` and no `claim` records a fact as a `sources` entry in the frontmatter (a call as `via: {server, tool, args}`, and
 `result`, what it returned, as a `fact_sha256`) and prints the footnote marker for the claim; `factcheck file=... id=... result=...`
 compares a result an agent got by replaying the call with it. Same result: the check is noted in `.facts.yaml`. A different one is a
-drift. An agent runs no `--fetch` for `url` and `mcp`; `file`, `internal` and the pack's read-only kinds it may check itself.
+drift. An agent may run any check except a `manual` fact's, which asks a person.
 
 ### Bundles, `index.md` and `log.md`
 

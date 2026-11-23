@@ -41,7 +41,7 @@ A fact is a claim with what it rests on, so it can be checked again. Two ways to
   metadata, and never write `last_checked` yourself: a check writes it, and a seal does not see it.
 - In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, `[fact.mcp](jira INFRA-1) is open [fact.end]`,
   `[fact.file](src/app.py#L10-20) the words in those lines [fact.end]`, or `[fact.internal](docs/tools.md#links) the words in that section [fact.end]`.
-  With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. `manual` and `script` need a person at a terminal.
+  With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. Only `manual` needs a person.
   The kind, the source in parentheses, then the claim. `bower.yaml` may declare more kinds (`[fact.issue](INFRA-1)`); a kind it does not
   declare is a `lint` error. Never invent a source or paste words the source does not say.
 - `fact` writes the block for you: `fact file=notes/db.md kind=mcp source="jira INFRA-1" claim="is open" meta='{"by": "claude", "as_of": "2026-11-23"}' result=...`. `source` is the kind's own words and `claim`
@@ -55,8 +55,8 @@ Checking:
 - Read each `args`, run the call yourself, then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it
   breaks the human review of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with
   `fact`, and tell the user the file needs review. The same result just records the check.
-- `factcheck file=... id=3` with no result checks a `file` or `internal` fact yourself: it only reads files here, and the check is recorded.
-- `factcheck fetch=true` is for a person at a terminal. You cannot run it.
+- `factcheck fetch=true` (or `factcheck file=... id=...` for one) runs the checks, any kind: you are not asked, and the plan of what ran comes back with the result. Only what `bower.yaml` declares can be
+  called or run, a page cannot name a command, and a `manual` fact (a person's yes) is skipped for you. Run whatever you need to check a fact; a drift is a finding to report, not to hide.
 
 ## Review: `seal` and `accepted`
 

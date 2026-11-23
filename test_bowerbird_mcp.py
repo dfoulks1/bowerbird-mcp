@@ -1934,8 +1934,6 @@ bb.CFG = {"facts": {"mcp": {"jira": {"tool": "get_issue", "arg": "issue_key", "w
 try:
     assert [(r["line"], r["kind"], r["status"]) for r in bb.factcheck()["blocks"]] == [(3, "url", "unchecked"), (11, "mcp", "unchecked")]  # information only
     assert not (fk / ".facts.yaml").exists()
-    bb.at_terminal = lambda: False
-    assert "terminal-only" in raises(bb.factcheck, fetch=True)  # a pipe, a script or an agent cannot run it
     bb.at_terminal, builtins.input = (lambda: True), (lambda *a: "n")
     assert bb.factcheck(fetch=True)["note"] == "nothing run" and not (fk / ".facts.yaml").exists()  # shown, asked, declined
     builtins.input = lambda *a: "y"
@@ -1943,6 +1941,12 @@ try:
     assert [(x["kind"], x["status"], x["method"]) for x in r["checked"]] == [("url", "checked", "same words"), ("mcp", "checked", "baseline recorded")] and r["drifted"] == 0, r
     assert [x["status"] for x in bb.factcheck()["blocks"]] == ["checked", "checked"] and "value: Open" in (fk / ".facts.yaml").read_text()
     assert [x["method"] for x in bb.factcheck(fetch=True)["checked"]] == ["same words", "same value"]  # the result's other fields (updated) are not watched
+    # an agent (no terminal) runs the same checks: no question is asked, and the plan comes back with the result
+    bb.at_terminal, builtins.input = (lambda: False), (lambda *a: (_ for _ in ()).throw(AssertionError("an agent was asked")))
+    r = bb.factcheck(fetch=True)
+    assert [x["method"] for x in r["checked"]] == ["same words", "same value"] and len(r["ran"]) == 2 and "notes.md:3" in r["ran"][0], r
+    assert bb.factcheck(file="notes.md", id=bb.fact_rows("notes.md")[0]["id"])["checked"][0]["status"] == "checked"  # one fact by id, a page: fine for an agent too
+    bb.at_terminal, builtins.input = (lambda: True), (lambda *a: "y")
     # a seal on the file, then a drift: the seal stops holding; one made after the drift holds
     text = (fk / "notes.md").read_text()
     sealed = {"file": "notes.md", "sha256": bb.content_hash(text, False), "by": "human:t", "at": bb.now(), "bowerbird": bb.VERSION}
@@ -2488,7 +2492,7 @@ def pack_vault(d):
     saved_in, saved_term = builtins.input, bb.at_terminal
     try:
         bb.at_terminal = lambda: False
-        assert run("[fact.manual](ops standup) the rota moved to Tuesdays [fact.end]\n")["status"] == "error"
+        assert run("[fact.manual](ops standup) the rota moved to Tuesdays [fact.end]\n")["status"] == "skipped"  # asking a person is for a person: an agent's run leaves it
         bb.at_terminal = lambda: True
         builtins.input = lambda _="": "y"
         m = "[fact.manual](ops standup) the rota moved to Tuesdays [fact.end]\n"

@@ -60,15 +60,15 @@ Nine kinds. The first four are in `bowerbird-mcp`; the other five are the [fact 
 
 | Kind | Source | Holds while | An agent may check it |
 |---|---|---|---|
-| `url` | `https://example.com/page` | the page still holds the words (with `semantic: true`, or still means them) | no: needs a person at a terminal |
-| `mcp` | `jira INFRA-1` (a server, a key) | the call, declared in `bower.yaml`, still returns the value it did | no |
+| `url` | `https://example.com/page` | the page still holds the words (with `semantic: true`, or still means them) | yes |
+| `mcp` | `jira INFRA-1` (a server, a key) | the call, declared in `bower.yaml`, still returns the value it did | yes (only a call declared in `bower.yaml`) |
 | `file` | `src/app.py#L10-20` | the lines still hold the words (the whole file without `#L`) | yes |
 | `internal` | `docs/tools.md#Links` | the page, or that heading's section, still holds the words | yes |
 | `key` | `pyproject.toml project.version` | the value at that path in a JSON, YAML or TOML file is what it was | yes |
 | `git` | `tag v2.3.0` or `file main docs/x.md` | the tag, or the file at that revision, is what it was | yes |
 | `until` | `2026-12-31` | today is on or before the date | yes |
-| `manual` | `ops standup` | a person says it still holds | no: a person is asked |
-| `script` | `uvver` or `latest v2` | the command's output is what it was | no: a person, after the command is shown |
+| `manual` | `ops standup` | a person says it still holds | no: it asks a person, so an agent's run skips it |
+| `script` | `uvver` or `latest v2` | the command's output is what it was | yes (only a command declared in the root `bower.yaml`) |
 
 `file` and `key` read paths that are absolute, `~/`, or relative to the page's folder, and may lie outside the collection. `internal` reads another page of the collection, from its root, and
 does not look at whether that page is sealed. The first check of a `mcp`, `key`, `git` or `script` fact records the value; later ones compare. Each kind is explained in
@@ -104,8 +104,8 @@ bowerbird-mcp factcheck notes/deploy.md id=3         # check fact 3 (file, inter
 bowerbird-mcp factcheck --fetch                      # a person: show every fetch and call, ask, then check them all
 ```
 
-`--fetch` is a person's command. It lists what it will fetch, call or run (an address, a call, a command), asks `Run these? [y/N]`, then checks each block. A page is fetched, an `mcp` call is made
-(only one declared under `facts` in `bower.yaml`), a `manual` fact asks you `Still true?`, and a `script` runs. A check ends as checked, drifted, **skipped** (not declared, or the command failed:
+`--fetch` checks every block against a fresh result. For a person at a terminal it first lists what it will fetch, call or run (an address, a call, a command), asks `Run these? [y/N]`, then checks each block; an agent, or a script, is not asked, and the list comes back with the result as `ran`. A page is fetched, an `mcp` call is made
+(only one declared under `facts` in `bower.yaml`), a `manual` fact asks a person `Still true?` (skipped when no one is there), and a `script` runs (only one declared in the root `bower.yaml`). A check ends as checked, drifted, **skipped** (not declared, or the command failed:
 nothing is recorded) or **error** (the source could not be read: nothing is recorded). The command exits 1 if anything drifted.
 
 **Where the result goes.** Each check is recorded in a `.facts.yaml` beside the page (commit it, as you do `.waxseals.yaml`), and the day is written into the block as `last_checked`.

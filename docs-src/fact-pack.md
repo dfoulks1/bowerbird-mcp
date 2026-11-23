@@ -39,7 +39,7 @@ document. A tag that moved or was deleted, or a file that changed, is a drift. A
 **`until`.** A claim with an end date: a freeze, a deadline, a promise. Nothing is read. Once the date passes it drifts, and editing the date makes a new fact.
 
 **`manual`.** What no machine can read. `factcheck --fetch`, run by a person at a terminal, shows the source and the claim and asks `Still true? [y/N]`; no is a drift. An agent cannot
-answer it. Nothing forces a re-check: set `facts: {manual_days: 90}` in `bower.yaml` and a fact confirmed in the last 90 days is skipped, without it the question is asked each time.
+answer it, so its run skips a `manual` fact. Nothing forces a re-check: set `facts: {manual_days: 90}` in `bower.yaml` and a fact confirmed in the last 90 days is skipped, without it the question is asked each time.
 
 **`script`.** A command's output. The command is declared once, in the **root** `bower.yaml`, as an argument list that is run with no shell:
 
@@ -52,14 +52,14 @@ facts:
 
 A page names the script and may give one key (`[fact.script](latest main) ...`), which replaces `{key}` in the arguments. The key is one word of letters, digits and `. / : @ = + -`, and it
 cannot start with `-`, so it cannot become a second argument or a shell command; anything else is not a fact. A page can never name a command, and a script in a nested `bower.yaml` is
-ignored. It runs only for a person at a terminal, after `--fetch` shows the command and asks. A command that exits non-zero is skipped, not a drift.
+ignored. A person at a terminal is shown the command by `--fetch` and asked first; an agent runs it without being asked, and the command comes back with the result. A command that exits non-zero is skipped, not a drift.
 
 **Read the plan before you answer `y`.** A script runs with your privileges, and a collection you did not write can declare one in its root `bower.yaml`.
 
 ## What an agent can run
 
-`key`, `git` and `until` only read files or the repository, so an agent may check one: `factcheck file=... id=...` with no result runs it with no prompt and records it. `manual` and
-`script` need a person at a terminal, and `--fetch` is refused over MCP.
+An agent may check every kind except `manual`: `factcheck file=... id=...` with no result runs one fact, and `factcheck fetch=true` all of them, with no prompt, and the check is recorded. A `script` runs
+only if the root `bower.yaml` declares it, and a page cannot name a command. A `manual` fact asks a person, so an agent's run skips it.
 
 ## Tested against
 

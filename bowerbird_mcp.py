@@ -287,11 +287,18 @@ only the tools its `--role` and the collection's `format` switch on.
 
 A fact is a claim with what it rests on, so it can be checked again. Two ways to write one:
 
-- In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, or `[fact.mcp](jira INFRA-1) is open [fact.end]`.
+- The grammar is `[fact.KIND]{metadata}(source) the claim [fact.end]`: the `{metadata}` is optional (`{id: 3, by: claude, as_of: 2026-11-23, confidence: high}`), and you may write it as JSON, with the
+  source as a JSON string or array (`(["jira", "INFRA-1"])`). `id` is the fact's number, first in the mapping: `fact` and `fix` write it, and `factcheck file=... id=3` checks by it. Never put a result in the
+  metadata, and never write `last_checked` yourself: a check writes it, and a seal does not see it.
+- In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, `[fact.mcp](jira INFRA-1) is open [fact.end]`,
+  `[fact.file](src/app.py#L10-20) the words in those lines [fact.end]`, or `[fact.internal](docs/tools.md#links) the words in that section [fact.end]`.
+  With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. Only `manual` needs a person.
   The kind, the source in parentheses, then the claim. `bower.yaml` may declare more kinds (`[fact.issue](INFRA-1)`); a kind it does not
   declare is a `lint` error. Never invent a source or paste words the source does not say.
-- `fact` records a `sources` entry and returns the footnote marker to put after the claim. Pass `server`, `tool`, `args` (the exact call)
-  and `result` (what it returned): the call is the re-check recipe, and the result's `fact_sha256` is what a later result is compared with.
+- `fact` writes the block for you: `fact file=notes/db.md kind=mcp source="jira INFRA-1" claim="is open" meta='{"by": "claude", "as_of": "2026-11-23"}' result=...`. `source` is the kind's own words and `claim`
+  is what the source says. For a kind that only reads files (`file`, `internal`, `key`, `git`, `until`) it checks first and refuses a claim the source does not hold: never pass `check=false` to get one through.
+  Put your own id in `by` (the exact `<tool>/<model>` string, never invented). `result` is what the call returned; its watched value is the baseline for `mcp`.
+- The older form, `fact` with `resource` and no `claim`, records a frontmatter `sources` entry in an OKF concept and returns the footnote marker.
 
 Checking:
 
@@ -299,16 +306,25 @@ Checking:
 - Read each `args`, run the call yourself, then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it
   breaks the human review of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with
   `fact`, and tell the user the file needs review. The same result just records the check.
-- `factcheck fetch=true` is for a person at a terminal. You cannot run it.
+- `factcheck fetch=true` (or `factcheck file=... id=...` for one) runs the checks, any kind: you are not asked, and the plan of what ran comes back with the result. Only what `bower.yaml` declares can be
+  called or run, a page cannot name a command, and a `manual` fact (a person's yes) is skipped for you. Run whatever you need to check a fact; a drift is a finding to report, not to hide.
 
-## Review: `seal`
+## Review: `seal` and `accepted`
 
+A seal is how a human shows they looked at a file. `accepted` is how a human rules on a decision (an ADR, a proposal).
+They are the review, the only one. Do not ask the user in chat "does this look right?" or "shall I go ahead?", and do not
+wait for a spoken yes. Do the work, leave the file unsealed or `proposed`, and go on. The seal and the status are the answer.
+
+- A seal is cheap wax, not a lock. Breaking one is not a harm and needs no permission: you scrape it off to reach what is inside.
+  Edit a sealed file freely. The edit shows the seal stale, the file is unreviewed again, and the human re-seals it when they get to it.
+  Never skip, delay or ask about an edit because a file is sealed.
+- Draft as `proposed`. Never write `accepted`, and never seal for them: only a human can, and that is the point of both.
+- `seal check=true` is the queue of what waits. The human works it on their own time. Do not recite it, or ask them to review each file.
 - A human review binds to the file's exact bytes. Any later edit shows it stale.
 - Never pass `by=human:<id>`. Omit `by`. The human gets a prompt and types their own id. Show them the file first.
 - `by=<tool>/<version>` is a machine check, not a human review. Do not present it as one.
 - `promote=true` (draft to stable) is for a human review only.
 - `seal check=true` lists files with no review, or edited since. It changes nothing.
-- Tell the user which files need review. Do not seal on their behalf.
 
 ## Checking
 
@@ -4070,12 +4086,23 @@ def fact_plan_mcp(b, declared, p=None) -> str:
     return f"call {server} {d['tool']}({d['arg']}={key})" if d else f"skip {b.source}: {server!r} is not declared under facts.mcp in bower.yaml"
 
 
+def run_async(coro):
+    """The result of a coroutine, from a plain function: asyncio.run, or, when a loop is already running (an MCP server calling a tool), a thread of its own."""
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(1) as pool:
+        return pool.submit(asyncio.run, coro).result()
+
+
 def mcp_value(d: dict, key: str, old) -> tuple:
     """Call the tool bower.yaml declares (d: server, tool, arg, watch) for key: the watched value of its result must be what it was."""
     F = facts_mod()
     if not (spec := mcp_spec(d["server"])):
         return "skipped", f"{d['server']} is not in .mcp.json", old
-    value = F.watched(asyncio.run(F.call_mcp(spec, d["tool"], {d["arg"]: key})), d.get("watch", ""))
+    value = F.watched(run_async(F.call_mcp(spec, d["tool"], {d["arg"]: key})), d.get("watch", ""))
     if old is None:
         return "checked", "baseline recorded", value
     if old == value:
@@ -4102,6 +4129,8 @@ def fact_run(p: Path, b, declared: dict) -> dict:
     try:
         if ft.check is None:
             return row | {"status": "skipped", "method": f"{b.kind} facts have no check here"}
+        if ft.person and not at_terminal():
+            return row | {"status": "skipped", "method": f"a {b.kind} fact is confirmed by a person at a terminal"}
         status, method, value = ft.check(p, b, old, declared)
     except Exception as e:  # noqa: BLE001 (a failed fetch or call is reported, not a drift)
         return row | {"status": "error", "method": f"{type(e).__name__}: {str(e)[:160]}"}
@@ -4114,20 +4143,22 @@ def fact_run(p: Path, b, declared: dict) -> dict:
 
 def fact_fetch(file: str, id: str) -> dict:
     """factcheck --fetch: get a fresh result for each fact block (a page, or a declared MCP call), compare, record in .facts.yaml.
-    Each kind of fact checks itself (`bowerbird_facts.FACT_TYPES`). A person at a terminal only, who is shown every fetch and call first."""
-    if not CLI or not at_terminal():
-        raise ValueError("--fetch is terminal-only | fix: run `bowerbird-mcp factcheck --fetch` yourself; an agent passes `result=` for one fact")
+    Each kind of fact checks itself (`bowerbird_facts.FACT_TYPES`). A person at a terminal is shown every fetch, call and command first and asked; an agent, or a script, is not asked and
+    gets the plan back with the result. Only what `bower.yaml` declares can be called or run, and a fact that needs a person (manual) is skipped for anyone else."""
     F = facts_mod()
+    interactive = CLI and at_terminal()
     targets = [(p, b) for p, b in fact_blocks(file) if not id or b.id == id]
     if not targets:
         return {"checked": [], "drifted": 0, "note": "no fact blocks here"}
     declared = (CFG.get("facts") or {}).get("mcp", {})
     plan = [(p, b, (ft.plan(b, declared, p) if ft.plan else f"check {b.source}")) for p, b in targets for ft in [F.FACT_TYPES[b.kind]]]
-    print("factcheck --fetch will:\n" + "\n".join(f"  {os.path.relpath(p, ROOT)}:{b.line}  {what}" for p, b, what in plan), file=sys.stderr)
-    if input("Run these? [y/N] ").strip().lower() != "y":
-        return {"checked": [], "drifted": 0, "note": "nothing run"}
+    shown = [f"{os.path.relpath(p, ROOT)}:{b.line}  {what}" for p, b, what in plan]
+    if interactive:
+        print("factcheck --fetch will:\n" + "\n".join("  " + s for s in shown), file=sys.stderr)
+        if input("Run these? [y/N] ").strip().lower() != "y":
+            return {"checked": [], "drifted": 0, "note": "nothing run"}
     rows = [fact_run(p, b, declared) for p, b, _ in plan]
-    return {"checked": rows, "drifted": sum(r["status"] == "drifted" for r in rows)}
+    return {"checked": rows, "drifted": sum(r["status"] == "drifted" for r in rows)} | ({} if interactive else {"ran": shown})
 
 
 @expose(exit=lambda o: 1 if o.get("drifted") else 0)
@@ -4142,19 +4173,19 @@ def factcheck(file: str = "", id: str | int = "", result: str = "", older_than_d
     `fact`). A fact with no fact_sha256 yet has nothing to compare: the result becomes its baseline.
     The fact blocks in the documents (`[fact.KIND]{optional metadata}(<source>) <claim> [fact.end]`, such as `[fact.url](<address>) <claim> [fact.end]`, `[fact.mcp](<server> <key>) <claim> [fact.end]`, `[fact.file](<path>#L10-20) <claim> [fact.end]`, `[fact.internal](<page>#Heading) <claim> [fact.end]`) are
     listed under `blocks` with their last check (unchecked, checked, drifted; kept in `.facts.yaml` beside the document). fetch=true,
-    for a person at a terminal, shows what it will fetch or call, asks, then checks each block against a fresh result: a page
+    checks each block against a fresh result (a person at a terminal is shown what it will fetch, call or run, and asked; an agent or a script is not, and the plan comes back with the result): a page
     must still hold the block's words (same words, else similar meaning with `semantic: true`), an MCP call (only those declared
     under `facts.mcp` in bower.yaml) must still return the value it did. A drift ends the reviews of that file made before it, and
     the command exits 1. A `file` fact (a path that is absolute, `~/…` or relative to the document, optionally the lines `#L10-20`) must still hold its words in those
-    lines; an `internal` fact (a page of this collection from the root, optionally `#Heading`) must still hold them on the page or in that section. Both only read
-    files here, so with file and id and no result you may check one yourself: it is recorded like any other check."""
+    lines; an `internal` fact (a page of this collection from the root, optionally `#Heading`) must still hold them on the page or in that section. A `manual` fact
+    (a person's yes) is skipped for an agent. With file and id and no result, one fact is checked, whatever its kind, and recorded like any other check."""
     id = str(id)  # a fact's id is a number (the `id` first in its metadata), or an older block's fingerprint
     if fetch:
         return fact_fetch(file, id)
     F = facts_mod()
-    if file and id and not result and F:  # a fact whose check only reads files here (file, internal): run it, no prompt
+    if file and id and not result and F:  # one fact, by its id: run its check (anyone may: a person-only kind is skipped for an agent)
         hit = next(((p, b) for p, b in fact_blocks(file if file.endswith(".md") else file + ".md") if b.id == id), None)
-        if hit and F.FACT_TYPES[hit[1].kind].local:
+        if hit:
             row = fact_run(hit[0], hit[1], (CFG.get("facts") or {}).get("mcp", {}))
             return {"checked": [row], "drifted": int(row["status"] == "drifted")}
     if not result:

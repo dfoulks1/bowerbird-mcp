@@ -7,11 +7,9 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 ### Needs a decision from you
 
 - [ ] **Ratify ADR-003** (the fact grammar; `proposed`). Its open asks are settled (`fix` numbers old blocks, a check writes `last_checked`, and a seal ignores both), so it is ready.
-- [ ] **What may an agent run in `factcheck`?** Local kinds (`file`, `internal`, `key`, `git`, `until`) it runs now. `url` and `mcp` still need a person at a terminal (`--fetch`); decide
-      what an agent may run, and what the plan and the prompt look like.
-- [ ] **OKF through import and export** (decided 2026-11-23). OKF keeps in frontmatter what every other format keeps in a file of its own: `verified` (reviews, `.waxseals.yaml`) and `sources` (facts,
-      the blocks and `.facts.yaml`). It should use those files, with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect: so yes, seals as well as facts, and
-      anything else OKF puts in frontmatter that another format has a file for. Needs two answers, then ADR-004: how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
+- [ ] **OKF through import and export** (decided 2026-11-23, confirmed). OKF keeps in frontmatter what every other format keeps in a file of its own: `verified` (reviews, `.waxseals.yaml`) and `sources`
+      (facts, the blocks and `.facts.yaml`). It uses those files, with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect: seals as well as facts, and anything else OKF puts in
+      frontmatter that another format has a file for. Needs two answers, then ADR-004: how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
 
 ### Still to build
 
@@ -21,9 +19,10 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Documentation passes
 
-- [ ] **Facts pass.** Facts have their own page now (`docs-src/facts.md`). Left: trim the facts section of `docs-src/formats/okf.md` to what is OKF's (it still repeats the grammar and the kinds),
-      make every example in the docs use the one grammar, and read the new page against the code line by line. Check each command shown against the code, and the mentions in
-      `README.md`, `getting-started.md`, `cli.md`, `guide.md`, `BOWERBIRD.md` and the `tools.md` docstrings.
+- [ ] **Facts pass.** Facts have their own page (`docs-src/facts.md`). Left:
+  - trim the facts section of `docs-src/formats/okf.md` to what is OKF's (it still repeats the grammar and the kinds);
+  - make every example in the docs use the one grammar, and read the new page against the code line by line;
+  - check the facts mentions in `README.md`, `getting-started.md`, `cli.md`, `guide.md`, `BOWERBIRD.md` and the `tools.md` docstrings.
 - [ ] **Formats pass.** `formats.md` and each format page (the six formats and four add-ons) read as one set: the same sections in the same order, the same words for the same thing, the
       tool tables right for every format, and the README and getting-started in step. Check every example against the code.
 
@@ -40,8 +39,8 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 - [ ] **ADR-001's header** still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `landed`
       (it stales its seal, so do it with the re-seal below).
-- [ ] Re-seal the pages edited since they were sealed: ADR-001 and ADR-003, `TODO.md`, `BOWERBIRD.md`, the new pages (the fact pack and the four formats) and the other pages that changed
-      (`docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
+- [ ] Re-seal the pages edited since they were sealed: ADR-001 and ADR-003, `TODO.md`, `BOWERBIRD.md`, the new pages (`facts.md`, `fact-pack.md` and the four formats) and the other pages that
+      changed (`docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
 - [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack` and the four format add-ons, each at the release's version), then add the extras to
       `pyproject.toml` (`fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
 - [ ] Merge `2.3`. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
