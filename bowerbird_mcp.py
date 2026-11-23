@@ -560,6 +560,8 @@ CFG = {**CFG, **env_overrides(ENVIRON)}  # bower.yaml, then .env, then the envir
 
 
 OPTS = {**DEFAULTS, **{k: v for k, v in CFG.items() if k in DEFAULTS}}  # the settings in force at the root
+if OPTS["seal"].get("extensions") and SEAL_EXT is None:  # the setting is on and its add-on is not here: say so now, not at the first write
+    print("warning: seal.extensions is on but the seal-extensions add-on is not installed | fix: pip install 'bowerbird-mcp[seal-extensions]'", file=sys.stderr)
 
 PER_PATH = ("format", "seal", "about", "hubs", "min_similarity")  # what a bower.yaml below the root may override; the rest is the whole server's (one index, one embedding model, one role list)
 _SCOPES: dict = {}  # by collection root, read once per process: a new nested bower.yaml is seen after a restart

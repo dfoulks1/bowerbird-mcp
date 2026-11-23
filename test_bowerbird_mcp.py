@@ -2928,6 +2928,13 @@ assert bb.adr_named("0001-use-x.md") and bb.adr_named("adr-12.md") and bb.adr_na
 assert bb.adr_meta({}, "x\n", Path("/tmp/c/journals/2020_09_14.md")).get("type") is None and bb.adr_meta({}, "x\n", Path("/tmp/c/0001-x.md")).get("type") == "adr"
 
 
+# seal.extensions on without the add-on: said when the tool starts (a fresh interpreter, no add-on installed)
+_c = Path(tempfile.mkdtemp())
+(_c / "bower.yaml").write_text("format: markdown\nseal: {extensions: true}\n")
+_r = subprocess.run([sys.executable, "-c", "import bowerbird_mcp"], cwd=_c, capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(HERE)}, check=False)
+assert "seal.extensions is on but the seal-extensions add-on is not installed" in _r.stderr, _r.stderr[-300:]
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)
