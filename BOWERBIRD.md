@@ -36,7 +36,9 @@ only the tools its `--role` and the collection's `format` switch on.
 
 A fact is a claim with what it rests on, so it can be checked again. Two ways to write one:
 
-- In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, or `[fact.mcp](jira INFRA-1) is open [fact.end]`.
+- In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, `[fact.mcp](jira INFRA-1) is open [fact.end]`,
+  `[fact.file](src/app.py#L10-20) the words in those lines [fact.end]`, or `[fact.internal](docs/tools.md#links) the words in that section [fact.end]`.
+  With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. `manual` and `script` need a person at a terminal.
   The kind, the source in parentheses, then the claim. `bower.yaml` may declare more kinds (`[fact.issue](INFRA-1)`); a kind it does not
   declare is a `lint` error. Never invent a source or paste words the source does not say.
 - `fact` records a `sources` entry and returns the footnote marker to put after the claim. Pass `server`, `tool`, `args` (the exact call)
@@ -48,16 +50,25 @@ Checking:
 - Read each `args`, run the call yourself, then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it
   breaks the human review of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with
   `fact`, and tell the user the file needs review. The same result just records the check.
+- `factcheck file=... id=...` with no result checks a `file` or `internal` fact yourself: it only reads files here, and the check is recorded.
 - `factcheck fetch=true` is for a person at a terminal. You cannot run it.
 
-## Review: `seal`
+## Review: `seal` and `accepted`
 
+A seal is how a human shows they looked at a file. `accepted` is how a human rules on a decision (an ADR, a proposal).
+They are the review, the only one. Do not ask the user in chat "does this look right?" or "shall I go ahead?", and do not
+wait for a spoken yes. Do the work, leave the file unsealed or `proposed`, and go on. The seal and the status are the answer.
+
+- A seal is cheap wax, not a lock. Breaking one is not a harm and needs no permission: you scrape it off to reach what is inside.
+  Edit a sealed file freely. The edit shows the seal stale, the file is unreviewed again, and the human re-seals it when they get to it.
+  Never skip, delay or ask about an edit because a file is sealed.
+- Draft as `proposed`. Never write `accepted`, and never seal for them: only a human can, and that is the point of both.
+- `seal check=true` is the queue of what waits. The human works it on their own time. Do not recite it, or ask them to review each file.
 - A human review binds to the file's exact bytes. Any later edit shows it stale.
 - Never pass `by=human:<id>`. Omit `by`. The human gets a prompt and types their own id. Show them the file first.
 - `by=<tool>/<version>` is a machine check, not a human review. Do not present it as one.
 - `promote=true` (draft to stable) is for a human review only.
 - `seal check=true` lists files with no review, or edited since. It changes nothing.
-- Tell the user which files need review. Do not seal on their behalf.
 
 ## Checking
 

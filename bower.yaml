@@ -1,18 +1,18 @@
-# kbmcp.yaml: settings for this collection. Commit it: it is shared. It sits at the collection root (not in
+# bower.yaml: settings for this collection. Commit it: it is shared. It sits at the collection root (not in
 # a bundle), and any folder holding one is a collection. Every key is optional and shown at its default:
 # uncomment a line to change it. Personal or machine settings do not go here: copy env.example to .env (not committed)
-# or set KB_* environment variables; the environment wins over .env, and .env wins over this file, except for `format`.
+# or set BOWERBIRD_* environment variables; the environment wins over .env, and .env wins over this file, except for `format`.
 
 # What this collection holds. The agent is told, so several loaded collections can be told apart.
 about: Bowerbird MCP
 
-# Your id, prefilled in confirmation prompts. Personal: prefer KB_USER in .env (git user.email is the fallback).
+# Your id, prefilled in confirmation prompts. Personal: prefer BOWERBIRD_USER in .env (git user.email is the fallback).
 # user: your-id
 
-# Extra AI product names for the provenance check, besides the built-in ones (KB_AI_PRODUCERS overrides it).
+# Extra AI product names for the provenance check, besides the built-in ones (BOWERBIRD_AI_PRODUCERS overrides it).
 # ai_producers: [zed]
 
-# The MCP server may offer these roles (--role or KB_ROLE picks among them); drop one to turn it off.
+# The MCP server may offer these roles (--role or BOWERBIRD_ROLE picks among them); drop one to turn it off.
 # read finds and reads (changes nothing), structure reorganizes, write authors and checks, lifecycle keeps it current,
 # seal records a human's review of a file.
 # roles: [read, write, structure, lifecycle, seal]
@@ -52,11 +52,11 @@ format: seal-only
 # vector_index: scan
 
 # The passage index: one SQLite file (a cache; safe to delete). "" keeps it in memory.
-# index: .kbmcp/index.db
+# index: .bowerbird/index.db
 
 # auto: passages keeps the index current. manual: only `reindex` does (a hook, say) and passages just reads.
 # build: auto
 
-# The folders that carry their own kbmcp.yaml, each its own collection. They keep their own format, seal, about,
+# The folders that carry their own bower.yaml, each its own collection. They keep their own format, seal, about,
 # hubs and min_similarity; the rest is decided here.
 bowers: [docs-src]

@@ -90,3 +90,9 @@ pre.has-copy { position: relative; }
 .copy-btn { position: absolute; top: .5rem; right: .5rem; opacity: 0; transition: opacity .15s;
             font-family: var(--bs-body-font-family); border: 1px solid var(--bs-border-color); }
 pre.has-copy:hover .copy-btn, .copy-btn:focus { opacity: 1; }
+a.fact-badge { text-decoration: none; }
+.fact-bib { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); font-size: .9rem; }
+.fact-bib ol { padding-left: 1.2rem; }
+.fact-bib li { margin: 0 0 .9rem; }
+.fact-bib li:target { outline: 2px solid var(--bs-primary); outline-offset: 3px; }
+.fact-kind { font-weight: 700; margin-right: .3rem; }

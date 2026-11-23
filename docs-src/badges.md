@@ -30,7 +30,12 @@ hook, so both are yours to change. The hook is listed under `hooks:` in `mkdocs.
 page the generator has not recorded, or that was edited since, is not badged as derived.
 
 **Fact blocks** are drawn by the same hook as a quotation with a `fact-badge` (`data-state="unchecked|checked|drifted"`) that says
-when it was last checked and how. It reads the `.facts.yaml` beside the page, so commit that file.
+when it was last checked and how. It reads the `.facts.yaml` beside the page, so commit that file. The badge is a link: it goes to the page's **bibliography**, a
+`<section class="fact-bib">` the hook adds at the bottom of the page, with an entry (`id="fact-1"`, `fact-2`, ...) for each block: its kind, source, state, line and claim. A page with no fact blocks gets none.
+A page sealed by several people says so: `Human Reviewed at: <date> by ann, bo`.
+
+`bowerbird_facts.render(markdown, folder, name)` returns the page with its badges and the entries as data, and `bowerbird_facts.bibliography(entries)` the HTML. They are what the hook and
+[`serve`](serve.md) both call, so a script for another site generator can use them too.
 
 ## In another site generator
 

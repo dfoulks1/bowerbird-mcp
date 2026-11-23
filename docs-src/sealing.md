@@ -30,7 +30,7 @@ function.
 | Format | The review lives in |
 |---|---|
 | OKF | the concept's own frontmatter, as `verified: {by, at, sha256}` |
-| Markdown, ADR, SKOS, AsciiDoc, Seal-only | `.waxseals.yaml` at the collection root (commit it). The file itself is never edited |
+| Markdown, ADR, SKOS, AsciiDoc, Seal-only | a `.waxseals.yaml` in the file's own folder (commit it). The file itself is never edited |
 
 ```yaml
 # .waxseals.yaml: the latest review of each file (`seal`); an edit breaks it, git has the earlier ones. Commit it.
@@ -38,8 +38,11 @@ function.
 - {file: src/app.py, sha256: ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772, by: 'human:you', at: '2026-11-16T15:01:31Z', bowerbird: 2.0.0}
 ```
 
-There is one `.waxseals.yaml`, at the collection root beside `bower.yaml`, with one dense line per file (its path from that
-root). **Only the latest seal is kept**: sealing a file again replaces its line. That is deliberate. When an edit breaks a
+A ledger sits beside the files it covers, with one dense line per file (its name from that folder, so a folder keeps its seals when it moves). Sealing
+`docs/adr/0001.md` writes `docs/adr/.waxseals.yaml`, making it if the folder has none. A ledger at the collection root, from before 2.3, is still read:
+it covers any file with no line in a nearer ledger, and each file's line leaves it when that file is sealed again. `seal check` and `serve` merge every
+ledger; where two name the same file, the nearest wins. `move` carries a seal into the ledger of the file's new folder.
+**Only the latest seal is kept**: sealing a file again replaces its line. That is deliberate. When an edit breaks a
 seal, the line still names the version a person reviewed, and git shows what has changed since; the earlier reviews are in
 the file's history. `bowerbird` is the version of Bowerbird that wrote the line, so a review can be traced to the tool that recorded it.
 
@@ -77,7 +80,7 @@ seal: {extensions: true, quorum: 2}
 
 ## Decisions
 
-For an ADR, `decision=accepted` or `decision=rejected` goes into the ledger with the review and becomes the hit's `status`:
+A person sealing an ADR or MADR must say what they decided: `decision=accepted` or `decision=rejected` (the `serve` dialog requires the choice). It goes into the ledger with the review and is written into the file as its `status` before the seal, so the file, the ledger and any index agree. A record with the ADR+ header (`kind` or `built`) also gets `status-note`, `ratified-by`, `ratified-on` and a History line holding the old values. A machine's seal (`by=`) does not rule:
 
 ```sh
 bowerbird-mcp ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest
@@ -208,7 +211,7 @@ line only.
 
 A badge naming the reviewer cannot be written into the sealed file. The build can fill it in from the ledger instead; see
 [the website use case](formats/markdown.md#use-case-content-for-a-generated-website) and [Status badges](badges.md). The MkDocs hook,
-`hooks/seal_banner.py`, reads only `.waxseals.yaml`: a person's seal, an edit since, or a generator's `derived` line. It does not read
+`hooks/seal_banner.py`, reads only the ledgers (the `.waxseals.yaml` files, the file's own folder first): a person's seal, an edit since, or a generator's `derived` line. It does not read
 `bower.yaml` or apply any glob.
 
 ## Limits

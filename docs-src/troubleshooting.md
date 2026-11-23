@@ -4,11 +4,10 @@
 
 ## Names
 
-- **`warning: ... kbmcp.yaml is the old name of bower.yaml`** (or `KB_USER is the old name of BOWERBIRD_USER`). Before 2.2.0 the settings
-  file was `kbmcp.yaml`, the environment variables began `KB_`, the lint skip file was `kbmcp.nolint` and the index cache was `.kbmcp/`. The
-  old names still work, and the warning says what to rename: `git mv kbmcp.yaml bower.yaml`, `KB_X` to `BOWERBIRD_X` (in the environment or in
-  `.env`), `kbmcp.nolint` to `bower.nolint`. When both names exist, the new one is used. The old `.kbmcp/` cache folder can just be deleted.
-  A generated `index.md` written under the old `kb-index` markers is read as it was, and rewritten with the new markers the next time `index` runs.
+- **`error: ... kbmcp.yaml is no longer read`**. Before 2.2.0 the settings file was `kbmcp.yaml`, the environment variables began `KB_`, the lint skip file was
+  `kbmcp.nolint` and the index cache was `.kbmcp/`. 2.2.0 read both names; 2.3.0 reads only the new ones. Rename: `git mv kbmcp.yaml bower.yaml`, `KB_X` to
+  `BOWERBIRD_X` (in the environment or in `.env`), `kbmcp.nolint` to `bower.nolint`. The old `.kbmcp/` cache folder can be deleted. A generated `index.md`
+  under the old `kb-index` markers is no longer recognised: replace its marker comments with `bowerbird-index` ones (or delete the block) and run `index` again.
 
 ## Searching
 

@@ -156,17 +156,35 @@ The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
   checked: paste them from the page. A block holds one source and any number of claims, on one line or many. In a Markdown renderer
   that knows nothing of facts, `fact.url` shows as a link to the source.
 - **`[fact.url](address)`** is a page: its words must still appear there.
+- **`[fact.file](path#L10-20)`** is a file, read here with no network. The path is absolute, `~/…`, or relative to the document's folder, and may lie outside the
+  collection. `#L10-20` (or `#L10`) names the lines the claim rests on; leave it off for the whole file. The claim's words must still be in those lines, so a file
+  that shifted by a line drifts and is re-pointed by editing the range. A missing file, or a range past the end, is a drift. It is read only when a check is
+  asked for.
+- **`[fact.internal](docs/tools.md#links)`** is another page of this collection: a path from the collection root, optionally `#Heading` (matched by its anchor, so
+  `#Part Two` and `#part-two` are the same). The claim's words must still be on the page, or under that heading down to the next heading of the same or a higher
+  level. A missing page or heading is a drift. The page's seal is not consulted: this checks the words, not who reviewed them.
+- **The fact pack**, `pip install 'bowerbird-mcp[fact-pack]'`, brings five more kinds. Without it, a page that uses one is a `lint` error that says what to install.
+  - **`[fact.key](pyproject.toml project.version)`**: a value at a path in a JSON, YAML or TOML file (`a.b.0` for a list item; TOML needs Python 3.11 or `tomli`).
+    The first check records the value and later ones must match it, like an MCP fact. The file is found as for `file`. A missing file or key is a drift.
+  - **`[fact.git](tag v2.3.0)`** or **`[fact.git](file main docs/x.md)`**: a tag, or a file at a revision, in the repository around the document. The first check records
+    the commit (or file) and a moved or removed tag, or a changed file, is a drift. A name cannot start with `-`.
+  - **`[fact.until](2026-12-31)`**: the claim holds until that date, then it drifts. Nothing is read.
+  - **`[fact.manual](ops standup)`**: what only a person can say. `factcheck --fetch` at a terminal shows the claim and asks "Still true?"; no is a drift. Nothing is forced:
+    `facts: {manual_days: 90}` in `bower.yaml` makes a fact skip the question for that many days after a yes; without it, it is asked each time you check.
+  - **`[fact.script](name)`** or **`[fact.script](name key)`**: a command's output, compared as the first check recorded it. The command is declared in the root
+    `bower.yaml` only, as an argument list run with no shell (`{key}` in it is replaced by the page's key, a word with no shell characters and no leading `-`); a page names
+    a script and never a command. A command that fails is skipped, not a drift. It runs only for a person at a terminal, after the plan shows the command.
 - **`[fact.<name>](key)`**, for a name the root `bower.yaml` declares under `facts: types:`, is a fact from one tool of an MCP server the collection
   already has, so the source is just the key: `[fact.ticket](INFRA-27707) is open [fact.end]`. Only the root declares one (a page cannot add a kind,
   or choose what runs), and `lint` flags a kind nobody declared.
 - **`[fact.mcp](server key)`** is the general form, a fact from an MCP tool, for example `[fact.mcp](jira INFRA-27707) is open [fact.end]`. Which tool to
   call, with what, and which part of the result to watch is declared once in `bower.yaml`, under `facts` (see below).
-- The kinds are a registry (`bowerbird_facts.FACT_TYPES`): `url` and `mcp` are registered, and a new kind is one `register(name, sample, valid)` call plus a `check` for
+- The kinds are a registry (`bowerbird_facts.FACT_TYPES`): `url`, `mcp`, `file` and `internal` are registered, and a new kind is one `register(name, sample, valid)` call plus a `check` for
   `factcheck --fetch`. A block with no `[fact.end]`, an end with no start, or an unknown kind is a `lint` error. Blocks inside code are ignored, so
   examples like the one above are safe.
 
 **Checking.** `factcheck` with no arguments lists every block and its state: *unchecked*, *checked* (with the date and how), or
-*drifted*. It runs nothing. `factcheck --fetch`, run by a person at a terminal, shows what it will fetch or call, asks, and
+*drifted*. It runs nothing. `factcheck file=… id=…` checks one `file` or `internal` fact now, with no prompt, for a person or an agent: it only reads files here. `factcheck --fetch`, run by a person at a terminal, shows what it will fetch or call, asks, and
 then compares each block with a fresh result:
 
 - a **page** must still hold the block's words. Whitespace, case, backticks and emphasis are ignored: it is the content that is
@@ -182,6 +200,10 @@ facts:
     jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
   types:   # optional: a kind of fact for one tool, so the source is just the key
     ticket: {server: jira, tool: get_issue, arg: issue_key, watch: fields.status.name}
+  scripts: # the fact pack's `script` kind: a command as an argument list, run with no shell, 30 s unless `timeout` says otherwise
+    uvver: {cmd: [uv, --version]}
+    latest: {cmd: [git, describe, --tags, "{key}"], timeout: 10}
+  manual_days: 90   # the fact pack's `manual` kind: skip the question for 90 days after a yes (unset: ask every time)
 ```
 
 The document supplies only the key (`INFRA-27707`), never the tool, so a page cannot make `factcheck` call something it was not

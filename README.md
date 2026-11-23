@@ -125,9 +125,9 @@ To run the latest unreleased code instead of the PyPI release, give uv the repos
 
 ### Settings: bower.yaml
 
-*Renamed in 2.2.0.* The file was `kbmcp.yaml`, the variables began `KB_`, the lint skip file was `kbmcp.nolint`, and the index cache was
-`.kbmcp/`. The old names still work for now, with a one-line warning on stderr that names the new one (`git mv kbmcp.yaml bower.yaml`);
-where both exist, the new one wins. The cache is rebuilt on first use, so the old `.kbmcp/` folder can be deleted.
+*Renamed in 2.2.0; the old names were dropped in 2.3.0.* The file was `kbmcp.yaml`, the variables began `KB_`, the lint skip file was `kbmcp.nolint`, and the index cache was
+`.kbmcp/`. A `kbmcp.yaml` with no `bower.yaml` beside it now stops the run (`git mv kbmcp.yaml bower.yaml`); the `KB_*` variables, `kbmcp.nolint` and
+`kb-index` markers are no longer read. Delete the old `.kbmcp/` folder.
 
 A `bower.yaml` is the collection's configuration. Commit it. The collection's root is the outermost one at or above
 the current directory, inside the same git work tree (a repository inside another is its own collection), or you
@@ -186,7 +186,7 @@ uvx bowerbird-mcp reindex output=text     # first semantic run embeds everything
 repos:
   - repo: local
     hooks:
-      - id: kbmcp-reindex
+      - id: bowerbird-reindex
         name: Bowerbird reindex
         entry: uvx bowerbird-mcp reindex
         language: system

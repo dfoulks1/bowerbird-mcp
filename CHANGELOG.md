@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.3.0 (unreleased)
+
+### Removed
+- **The old names.** `kbmcp.yaml`, `KB_*`, `kbmcp.nolint`, the `.kbmcp/` cache and the `kb-index` markers, read with a warning since 2.2.0, are gone. A `kbmcp.yaml` with no
+  `bower.yaml` beside it stops the run with `git mv kbmcp.yaml bower.yaml`; the rest are ignored.
+
+### Changed
+- **Distributed ledgers.** A seal goes into a `.waxseals.yaml` in the file's own folder, with the file's name relative to that folder, so seals live
+  beside what they cover and move with the folder. A root `.waxseals.yaml` from before 2.3 is still read; a file's line leaves it when the file is sealed again.
+  Reading merges every ledger (the nearest wins), `move` carries a seal into the new folder's ledger, and the docs hook looks for the nearest one.
+
+- **A decision record's seal says what was decided.** Sealing an ADR or MADR (a person, in `serve` or by `seal`) now requires `decision=accepted|rejected`, and writes it into
+  the file as its `status` before sealing, so the file, the ledger and `INDEX.md` agree. A record with the ADR+ header also gets `status-note`, `ratified-by`, `ratified-on`
+  and a History line holding the old values. A machine's seal (`by=`) does not rule.
+
+### Added
+- **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
+  of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
+  Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
+- **The fact pack, `bowerbird-mcp[fact-pack]`** (`fact-pack/`): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
+  and `script` (a command declared in the root `bower.yaml`, an argument list with no shell, terminal only). It registers through the new `bowerbird.fact_types` entry point; `facts:` takes
+  `scripts:` and `manual_days:`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.
+- **Fact kinds `file` and `internal`.** `[fact.file](path#L10-20)` reads a file (absolute, `~/`, or relative to the document; no network), `[fact.internal](page.md#Heading)` reads a page or a section of
+  this collection. Their checks only read files, so `factcheck file=... id=...` runs one with no prompt, for an agent too, and records it beside the document.
+- **Format add-ons: `obsidian`, `foam`, `dendron`, `logseq`.** Each is its own package under `addons/` (`bowerbird-obsidian`, ...), found through the `bowerbird.formats` entry point and
+  selected with `format:` in `bower.yaml`; its files are markdown, read with that tool's rules for links (the alias side, how a name finds a file, the folders that are the tool's
+  own, stub and journal pages). `register_format` in core takes `about`, `skip`, `alias_first`, `page`, `clean`, `links`, `virtual`, `quiet` and `lint`. A format that fails to load is
+  said on stderr and left out. Each has a page under Formats.
+- **`lint` checks the links of markdown and ADR files** (a `dead_link` or `dead_anchor` warning); until now it checked only OKF concepts' links.
+- **Wikilinks, in every format.** `[[Note]]`, `[[Note#Heading]]`, `[[Note|alias]]` and `![[embed]]` are links: `links`, backlinks, `orphan` and `island` see
+  them, and `lint` warns (`dead_link`, `dead_anchor`) when one does not resolve. A name matches the file's path (`.md` optional, case ignored), the shortest path first,
+  then the nearest to the page. `#^block` ids are ignored. `move` keeps them; a rename leaves them behind for `lint` to report (they are not rewritten yet).
+
 ## 2.2.0 (2026-11-20)
 
 ### Added

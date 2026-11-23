@@ -58,9 +58,11 @@ server, so you never have to hunt for the process.
 
 - **Left:** the folder tree of the whole collection, with a dot on each page for its seal state (green sealed, amber
   unsealed, red broken by an edit, blue derived from the code and so never sealed). Every folder ends in **+ New file**. Under the root are **Lint all** and **Tags**.
-- **Middle:** the page, with a badge saying who sealed it and when, or that it is unsealed or edited since review.
-- **Right:** a pencil (edit) and a gear (Move, Delete, Seal), then the page's outline, the pages that link to it and the
-  pages it links to.
+- **Middle:** the page, with a badge saying who sealed it and when, or that it is unsealed or edited since review. With the seal extensions, it also says who
+  holds this exact version and how many the policy wants (`signed 2 of 3: ann (checked the steps), bo`). A [fact block](formats/okf.md#facts-what-a-claim-rests-on-and-drift)
+  shows as its claim and a badge (not yet checked, checked on a date, or drifted) that jumps to its entry on the Facts tab.
+- **Right:** a pencil (edit) and a gear (Move, Delete, Seal), then two tabs. **Page** is the outline, the pages that link to it and the pages it links to. **Facts** (only
+  on a page that has fact blocks) is the page's bibliography: for each fact its kind, source, state, line and claim.
 - **Top:** back and forward, a path, the search box with its type menu, a link to the repository (when `origin` has a web address), a theme button (system, light, dark) and **⏻**.
 
 **Seal-only collections.** A file that `seal.exempt` does not leave out (code, YAML, config) is a page here: read-only, as numbered
@@ -106,7 +108,7 @@ nothing is written until you confirm.
 ## Seal from the browser
 
 **Seal** (the gear) opens a dialog that shows what the MCP prompt shows: the file, its title, word count and
-full sha256, under the heading "Confirm seal: <file>". You tick that you reviewed it, type your id, optionally leave a one-line comment (kept with the seal), and Bowerbird records `human:<your id>` for
+full sha256, under the heading "Confirm seal: <file>", and, with the seal extensions, who has already sealed this version (`signed: 1 of 2 (ann)`). You tick that you reviewed it, type your id, optionally leave a one-line comment (kept with the seal), and Bowerbird records `human:<your id>` for
 exactly that text. A draft concept can be promoted to stable in the same step, and a decision record can be marked accepted
 or rejected. If the page changed while the dialog was open, nothing is written and you review it again.
 
