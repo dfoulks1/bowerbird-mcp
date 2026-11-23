@@ -67,6 +67,8 @@ Everything optional about sealing belongs to the `seal-extensions` add-on (`addo
       A denial writes nothing. Builds on the `rtc` branch, which stays off `main` until you say.
 - [ ] **Seal count as importance, what is left.** `seal.count` is built (`list`, `passages`, search rank, `seal check`'s `most_sealed`). Left: show N in the `serve` list and the docs badge's tree, rank `heatmap` by it
       (it ranks by git activity today), and show it for OKF (it counts ledger seals, so OKF waits for OKF to use the ledger).
+- [ ] **Move more into the add-on.** Today it holds four helpers (merge, collapse, signers, expand); the quorum logic, the count and the `serve` and docs displays are still in core. Put them behind a small
+      interface (who signed, is the quorum met, how many) so core only asks. Optional: it changes nothing a user sees.
 - [ ] **Optional, not core:** all of it lives in the `seal-extensions` add-on (`addons/seal-extensions`, which holds several signers and the quorum today), not in a separate
       `[tally]` extra. Each feature is off by default and switched on under `seal:` in `bower.yaml` (`seal.tally`: threshold, gate or inform). Plain seals work unchanged without it.
 - [ ] **Open:** does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote, by what identity;
