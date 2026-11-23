@@ -100,7 +100,7 @@ Which tools a server offers, by role. The role is what `roles:` in `bower.yaml` 
 | **[`fact`](tools.md#fact)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`factcheck`](tools.md#factcheck)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`fix`](tools.md#fix)** | CLI | CLI | ✓ | CLI | CLI | CLI |
-| **[`lint`](tools.md#lint)** | CLI | CLI | ✓ | CLI | CLI | CLI |
+| **[`lint`](tools.md#lint)** | ✓ | ✓ | ✓ | CLI | CLI | CLI |
 | **[`new`](tools.md#new)** | ✓ | ✓ | ✓ | CLI | CLI | CLI |
 | **[`record`](tools.md#record)** | CLI | CLI | ✓ | CLI | CLI | CLI |
 | **[`set`](tools.md#set)** | CLI | CLI | ✓ | CLI | CLI | CLI |

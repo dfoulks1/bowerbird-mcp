@@ -28,6 +28,7 @@
   selected with `format:` in `bower.yaml`; its files are markdown, read with that tool's rules for links (the alias side, how a name finds a file, the folders that are the tool's
   own, stub and journal pages). `register_format` in core takes `about`, `skip`, `alias_first`, `page`, `clean`, `links`, `virtual`, `quiet` and `lint`. A format that fails to load is
   said on stderr and left out. Each has a page under Formats.
+- **`lint` is offered to markdown and ADR servers** (and so to the four format add-ons), and a link to a heading that a MkDocs snippet (`--8<-- "README.md:run"`) pulls in is no longer called dead.
 - **`lint` checks the links of markdown and ADR files** (a `dead_link` or `dead_anchor` warning); until now it checked only OKF concepts' links.
 - **Wikilinks, in every format.** `[[Note]]`, `[[Note#Heading]]`, `[[Note|alias]]` and `![[embed]]` are links: `links`, backlinks, `orphan` and `island` see
   them, and `lint` warns (`dead_link`, `dead_anchor`) when one does not resolve. A name matches the file's path (`.md` optional, case ignored), the shortest path first,

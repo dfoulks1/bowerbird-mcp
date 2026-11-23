@@ -596,7 +596,7 @@ def formats_in_use() -> set:
 # and adr on top of markdown (it can also move a record).
 # Every other tool is written for OKF files; the command line still has them all.
 BASE = {"passages", "reindex", "seal"}
-MARKDOWN = BASE | {"get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new"}
+MARKDOWN = BASE | {"get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new", "lint"}
 ADOC = BASE | {"heatmap"}
 TIERS = {"seal-only": {"seal"}, "skos": BASE, "asciidoc": ADOC, "markdown": MARKDOWN, "adr": MARKDOWN | {"move"}}
 
@@ -1552,6 +1552,23 @@ def source_findings(f: str, d: dict, text: str, names) -> list:
     return out
 
 
+SNIPPET = re.compile(r'^[ \t]*(?:<!--\s*)?--8<--\s+"([^":]+)(?::(\w+))?"\s*(?:-->)?[ \t]*$', re.MULTILINE)  # a pymdownx.snippets include: --8<-- "README.md:run"
+
+
+def expanded(text: str, p: Path) -> str:
+    """text with the snippet includes of a MkDocs site replaced by the lines they pull in, so a heading that only exists in the built page still counts
+    as one. `--8<-- "file"` and `--8<-- "file:section"` (a section runs between `[start:section]` and `[end:section]` markers); the file is found from
+    the collection root, then from p's folder. An include that cannot be read stays as it is."""
+    def pull(m):
+        f = next((q for q in (ROOT / m.group(1), p.parent / m.group(1)) if q.is_file()), None)
+        body = (read(f) or "") if f else None
+        if body is None or not m.group(2):
+            return m.group(0) if body is None else body
+        s = re.search(rf"--8<--\s*\[start:{m.group(2)}\][^\n]*\n(.*?)^[^\n]*--8<--\s*\[end:{m.group(2)}\]", body, re.DOTALL | re.MULTILINE)
+        return s.group(1) if s else m.group(0)
+    return SNIPPET.sub(pull, text)
+
+
 def slug(h: str) -> str:
     """A heading as GitHub makes its anchor; a wikilink's #Heading is matched the same way."""
     return re.sub(r"[^\w\- ]", "", h.strip().lower()).replace(" ", "-")
@@ -1721,7 +1738,7 @@ def raw_findings(r: Path, docs, reserved, others=()) -> list:
                 out.append(finding("dead_link", x.rel, f"link to {link} does not resolve", "correct it, or leave it if the page is not written yet",
                                    "house", "warning"))
             elif t is not None and (frag := urllib.parse.unquote(link.partition("#")[2].removesuffix("]]"))) and t.suffix == ".md" and t.is_file() \
-                    and frag not in anchors(read(t) or ""):
+                    and frag not in anchors(expanded(read(t) or "", t)):
                 out.append(finding("dead_anchor", x.rel, f"link to {link}: no heading makes #{frag}", "point it at an existing heading, or drop the #anchor",
                                    "house", "warning"))
     for x in docs:
@@ -1798,7 +1815,7 @@ def raw_findings(r: Path, docs, reserved, others=()) -> list:
             dest = x.path if link.startswith("#") else t
             frag = urllib.parse.unquote(link.partition("#")[2].removesuffix("]]"))
             if frag and dest is not None and dest.suffix == ".md" and dest.is_file() and \
-                    frag not in anchors(texts.get(dest.resolve()) or read(dest) or ""):
+                    frag not in anchors(expanded(texts.get(dest.resolve()) or read(dest) or "", dest)):
                 out.append(finding("dead_anchor", f, f"link to {link}: no heading makes #{frag}",
                                    "point it at an existing heading, or drop the #anchor", "house", "warning"))
     out += [finding("orphan", x.rel, "no concept, source or index links here",
@@ -1904,7 +1921,8 @@ def changed(r: Path, ref: str) -> set:
 def lint(scope: str = "all", limit: int = 100, offset: int = 0, baseline: str = "", since: str = "",
          all: bool | None = None, file: str = "", files: list[str] | None = None, only: list[str] | None = None,
          ignore: list[str] | None = None, bundle: str = "") -> dict:
-    """Check the bundle against OKF v0.2. Run it before and after any change, and in CI.
+    """Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Files of the markdown family (markdown, ADR, Obsidian, Foam, Dendron,
+    Logseq) are not judged as OKF concepts: for them it checks fact blocks, and links (markdown and [[wikilinks]]) that lead nowhere, as warnings.
     Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file;
     message; fix (what to do); fixable (true: `fix` clears it). conformant: §11 holds for what was linted
     (frontmatter parses, `type` set, index.md and log.md well formed). ok: no errors in scope. scope: all |

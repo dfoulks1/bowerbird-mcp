@@ -29,8 +29,6 @@ Only what is open. What is done is in `CHANGELOG.md`.
     listed on each format's page (case rules, duplicate names, `title::`, what a tool does with links in code).
   - Inline `#tags`, frontmatter `tags` and `aliases`, `title::` and `alias::` (a page found by its alias), Dendron vault-scoped links and `@user` tags, Foam `./` and `/` path links,
     Logseq `config.edn` (`:file/name-format`, journal title format), block references `((uuid))`, `.canvas` and `.base` files.
-  - Offer `lint` to the markdown-family servers (`TIERS`): `lint` runs on them from the command line and checks facts and links, but the MCP server does not offer it outside OKF.
-- [ ] `lint` finds eight dead anchors in `docs-src` (`guide.md#ci`, `#extras`, `#run` and others): links to headings that no longer exist. Fix the links or the headings.
 
 ### Release
 
@@ -77,6 +75,8 @@ Only what is open. What is done is in `CHANGELOG.md`.
       (`register_format`, `bowerbird.formats`) is done; this one is for formats that are not markdown.
 - [ ] SKOS: count links across files for `hubs`.
 - [ ] The Obsidian plugin proper (`prompts/obsidian-plugin.md`), once the format is checked against a real vault.
+- [ ] `[gollum]`, GitHub wiki repos, as a candidate add-on: the label comes before the pipe (`[[label|Page]]`) and page names turn spaces into dashes. From memory, unchecked: read the Gollum docs first.
+      The base keeps label-after-pipe (`[[Note|label]]`) as its default; label-first stays a per-format setting (`alias_first`), not auto-detected.
 
 ### Other
 

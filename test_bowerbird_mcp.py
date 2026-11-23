@@ -1128,7 +1128,7 @@ assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-
     == ["Accepted", "superseded by ADR-0005", "proposed"], got
 assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
 assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
-assert bb.offered() == bb.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new"}
+assert bb.offered() == bb.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new", "lint"}
 for f, want in (("adr", bb.MARKDOWN | {"move"}), ("skos", bb.BASE), ("asciidoc", bb.ADOC), ("seal-only", {"seal"})):  # the tiers
     bb.OPTS["format"] = f
     assert bb.offered() == want, (f, bb.offered())
@@ -2518,6 +2518,15 @@ def seals_move(d):
         bb.OPTS["seal"] = saved
         bb._POLICY.clear()
 in_vault("markdown", {"a.md": "# A\n\nbody\n", "sub/keep.md": "# K\n"}, seals_move)
+
+
+# a heading that only exists once a MkDocs snippet is pulled in is still a heading (a link to it is not a dead anchor)
+def snippets(d):
+    got = {(f["file"], f["kind"]) for f in bb.lint(limit=0)["findings"]}
+    assert ("guide.md", "dead_anchor") not in got and ("other.md", "dead_anchor") not in got and ("bad.md", "dead_anchor") in got, got
+    assert bb.expanded('x\n--8<-- "src.md:part"\ny\n', d / "guide.md").count("## Pulled in") == 1 and "Other part" not in bb.expanded('--8<-- "src.md:part"', d / "guide.md")
+in_vault("markdown", {"src.md": "<!-- --8<-- [start:part] -->\n## Pulled in\n\ntext\n<!-- --8<-- [end:part] -->\n## Other part\n", "guide.md": "# G\n\n--8<-- \"src.md:part\"\n",
+                      "other.md": "[a](guide.md#pulled-in) [b](src.md#other-part)\n", "bad.md": "[c](guide.md#nope)\n"}, snippets)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
