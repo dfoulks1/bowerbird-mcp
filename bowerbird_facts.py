@@ -240,6 +240,23 @@ def assign_ids(text: str) -> tuple:
     return text, moved
 
 
+def blank_sources(text: str) -> str:
+    """text with the `(source)` of every fact block blanked out, newlines and offsets kept: right after `[fact.KIND]` it looks like the target of a markdown link, and is not one."""
+    masked, out = mask(text), text
+    for t in reversed(list(TAG.finditer(masked))):
+        if t.group(1) == "end":
+            continue
+        pos = t.end()
+        if masked[pos:pos + 1] == "{":
+            stop = brace_end(masked, pos)
+            if stop < 0:
+                continue
+            pos = stop
+        if src := SOURCE.match(masked, pos):
+            out = out[:src.start()] + " " * (src.end() - src.start()) + out[src.end():]
+    return out
+
+
 def mask(text: str) -> str:
     """text with code (fenced and inline) blanked out, newlines and offsets kept: an example of the syntax is not a fact."""
     return CODE.sub(lambda m: re.sub(r"[^\n]", " ", m.group()), text)

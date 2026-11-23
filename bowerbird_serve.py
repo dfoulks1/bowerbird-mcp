@@ -806,6 +806,11 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
                 out = [{"error": esc(err)}] if err else [
                     {"href": href(h["path"]), "title": esc(h["title"]), "sub": esc(f'{h["path"]}:{h["line"]} · {h["extra"]}')} for h in hits[:8]]
                 return self.send_bytes(json.dumps(out).encode(), "application/json")
+            if u.path == "/_api/status":  # read-only data for a tool that draws its own badges (the Obsidian plugin): the seal and the facts of one file
+                try:
+                    return self.send_bytes(json.dumps(bb.page_state(qs.get("f", [""])[0]), default=str).encode(), "application/json")
+                except (ValueError, OSError) as e:
+                    return self.send_bytes(json.dumps({"error": str(e)}).encode(), "application/json", 400)
             docs = scan()
             if u.path == "/_search":
                 hits, err = ask(q, mode) if q else ([], "")

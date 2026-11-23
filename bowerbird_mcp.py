@@ -96,6 +96,15 @@ class Profile(typing.NamedTuple):
 PROFILES: dict = {}  # format name -> Profile, filled by add-ons (entry point group `bowerbird.formats`)
 
 
+SEAL_EXT = None  # the seal extensions' helpers (merge, collapse, signers), registered by the `bowerbird-mcp[seal-extensions]` add-on through the `bowerbird.seal` entry point
+
+
+def register_seal_extension(mod) -> None:
+    """Called by the seal-extensions add-on: it hands over its helpers (see addons/seal-extensions). Defined before the entry points are loaded, which happens as this module is imported."""
+    global SEAL_EXT
+    SEAL_EXT = mod
+
+
 def register_format(name: str, **kw) -> Profile:
     """Add a format of the markdown family, or replace one of that name. An add-on calls this from its entry point."""
     PROFILES[name] = Profile(name, **kw)
@@ -910,6 +919,8 @@ def hrefs(text: str) -> list:
     """Link targets in the body, outside code: markdown links, then wikilinks as `[[Note#heading]]` (the heading in the markdown anchor
     form; a `^block` id is dropped; `[[#Heading]]` is the anchor `#heading`)."""
     body, wiki, pr = CODE.sub("", split(text)[1]), [], profile()
+    if (F := facts_mod()) and "[fact." in body:
+        body = F.blank_sources(body)  # `[fact.until](2999-01-01)` and `[fact.file](a.txt)` hold a source, not a link
     if pr and pr.clean:
         body = pr.clean(body)
     if pr and pr.alias_first:
@@ -3295,15 +3306,6 @@ def content_hash(text: str, okf: bool) -> str:
     return hashlib.sha256(t.replace("\r\n", "\n").removeprefix("\ufeff").encode("utf-8")).hexdigest()
 
 
-SEAL_EXT = None  # the seal extensions' helpers (merge, collapse, signers), registered by the `bowerbird-mcp[seal-extensions]` add-on through the `bowerbird.seal` entry point
-
-
-def register_seal_extension(mod) -> None:
-    """Called by the seal-extensions add-on: it hands over its helpers (see addons/seal-extensions)."""
-    global SEAL_EXT
-    SEAL_EXT = mod
-
-
 def seal_mod():
     """The seal extensions' helpers, or None when the add-on is not installed."""
     return SEAL_EXT
@@ -3455,6 +3457,29 @@ def reviews(d: dict, key: str, text: str, ledger: dict) -> tuple:
     if dr := drift_of(key, d):  # a fact drifted (factcheck): only a review made after it holds
         valid = [e for e in valid if (a := when(e.get("at"))) and a > dr]  # strictly after: a seal in the drift's own second does not count
     return es, valid
+
+
+def page_state(file: str) -> dict:
+    """The review and the facts of one file as data, for a tool that draws its own badges (the Obsidian plugin, a site generator). seal: the state (`sealed`, `broken-seal` when it was edited
+    since, `unsealed`, `derived`), who and when, every person whose seal of this version holds (with their comments), the quorum the policy asks for and the count when `seal.count` is on. facts:
+    one entry for each fact block, as `bowerbird_facts.render` gives them (kind, source, claim, line, state, metadata, due). Read-only; a hidden file or one outside the collection is refused."""
+    p = confined(ROOT, file)
+    key = os.path.relpath(p, ROOT)
+    if not p.is_file() or p.is_symlink() or any(x.startswith(".") for x in Path(key).parts):
+        raise ValueError(f"{file} is not a file of the collection | fix: pass its path from the collection root")
+    if (text := read(p)) is None:
+        raise ValueError(f"{file} is not UTF-8 text")
+    led = ledger_by_file()
+    es, valid = reviews(meta(text)[0] or {}, key, text, led)
+    last = (valid or es or [{}])[-1]
+    humans = {str(e["by"]): e for e in valid if str(e.get("by", "")).startswith("human:")}
+    ext, quorum = seal_ext(p)
+    seal = {"state": "derived" if derived(p, led) else "unsealed" if not es else "sealed" if valid else "broken-seal",
+            "by": last.get("by"), "at": last.get("at"), "decision": last.get("decision"),
+            "signers": [{"by": b, "at": e.get("at"), "comment": e.get("comment")} for b, e in humans.items()],
+            "quorum": quorum if ext else None, "count": seal_n(valid) if seal_count_on(p) else None}
+    F = facts_mod()
+    return {"file": key, "seal": seal, "facts": F.render(split(text)[1], p.parent, p.name)[1] if F and "[fact." in text else []}
 
 
 def live_meta(x, led: dict) -> dict:

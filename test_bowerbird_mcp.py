@@ -1586,6 +1586,10 @@ else:
     fpg_ = hit("GET", "/facts.md")[1]
     assert 'class="fact-badge" data-state="unchecked" href="#fact-1"' in fpg_ and "Facts (2)" in fpg_ and 'id=t-facts' in fpg_ and 'id="fact-2"' in fpg_ and "not yet checked" in fpg_
     assert "[fact." not in fpg_.split("<aside>")[0].split("<main>")[1] and "Facts (" not in pg  # no tag shows, and no tab on a page with no facts
+    st_, js_, _ = hit("GET", "/_api/status?f=facts.md")  # the same as data, for a tool that draws its own badges
+    api = json.loads(js_)
+    assert st_ == 200 and api["file"] == "facts.md" and api["seal"]["state"] == "unsealed" and [f["kind"] for f in api["facts"]] == ["url", "until"]
+    assert hit("GET", "/_api/status?f=../x.md")[0] == 400 and hit("GET", "/_api/status?f=.env")[0] == 400 and hit("GET", "/_api/status", host="evil.example:80")[0] == 403
     (sv / "signed.md").write_text("---\ntype: Note\ndescription: S.\nverified:\n  - {by: human:ann, at: '2026-11-23T10:00:00Z', comment: checked the steps}\n"
                                   "  - {by: human:bo, at: '2026-11-23T10:00:05Z'}\n---\n# S\n\nBody.\n")
     saved_seal = dict(bb.OPTS["seal"])
@@ -2811,6 +2815,45 @@ def okf_stale(d):
     (d / "a.md").write_text((d / "a.md").read_text().replace("Body text", "Changed body text"))
     assert tier() == "unverified" and [h["tier"] for h in bb.passages("changed")["hits"]] == ["unverified"] and bb.status()["by_tier"].get("human-reviewed", 0) == 0
 in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text that is long enough to not be a stub here.\n"}, okf_stale)
+
+
+# the review and the facts of one file as data (page_state; /_api/status in serve)
+def state_vault(d):
+    (d / "a.md").write_text("# A\n\nbody\n\n[fact.url]{id: 1, by: ann}(https://x.test/a) The words. [fact.end]\n")
+    (d / ".hidden.md").write_text("x\n")
+    s = bb.page_state("a.md")
+    assert s["file"] == "a.md" and s["seal"]["state"] == "unsealed" and s["seal"]["signers"] == [] and s["seal"]["quorum"] is None
+    assert [(f["id"], f["kind"], f["status"], f["meta"]["by"]) for f in s["facts"]] == [("1", "url", "unchecked", "ann")]
+    bb.ledger_put("a.md", {"file": "a.md", "sha256": bb.content_hash((d / "a.md").read_text(), False), "by": "human:ann", "at": "2026-11-23T10:00:00Z", "comment": "read it"})
+    s = bb.page_state("a.md")
+    assert s["seal"]["state"] == "sealed" and s["seal"]["by"] == "human:ann" and s["seal"]["signers"] == [{"by": "human:ann", "at": "2026-11-23T10:00:00Z", "comment": "read it"}]
+    (d / "a.md").write_text((d / "a.md").read_text() + "edited\n")
+    assert bb.page_state("a.md")["seal"]["state"] == "broken-seal" and bb.page_state("a.md")["seal"]["signers"] == []
+    for bad in (".hidden.md", "../x.md", "nope.md"):
+        raises(bb.page_state, bad)
+in_vault("markdown", {"a.md": "x\n"}, state_vault)
+
+
+# an add-on found through its entry point as the module is imported, in a fresh interpreter (a hand registration in a test does not prove the loader works)
+def entry_points_really():
+    site = Path(tempfile.mkdtemp())
+    (site / "fakeseal.py").write_text("import types\ndef register(bb):\n    bb.register_seal_extension(types.SimpleNamespace(merge=None, collapse=None, signers=lambda v: set(), expand=None, marker='real'))\n")
+    di = site / "fakeseal-1.0.dist-info"
+    di.mkdir()
+    (di / "METADATA").write_text("Metadata-Version: 2.1\nName: fakeseal\nVersion: 1.0\n")
+    (di / "entry_points.txt").write_text("[bowerbird.seal]\nfakeseal = fakeseal:register\n")
+    r = subprocess.run([sys.executable, "-c", "import bowerbird_mcp as b; print(getattr(b.seal_mod(), 'marker', None))"], cwd=HERE, capture_output=True, text=True,
+                       env={**os.environ, "PYTHONPATH": str(site)}, check=False)
+    assert r.stdout.strip() == "real" and "did not load" not in r.stderr, (r.stdout, r.stderr[-300:])  # the add-on registered while the module was still being imported
+entry_points_really()
+
+
+def fact_sources(d):
+    (d / "n.md").write_text("# N\n\n[fact.until](2999-01-01) the freeze is on [fact.end]\n\n[fact.url]{id: 2}(https://x.test/a) words [fact.end]\n\n[fact.file]{id: 3}(gone.txt#L1) words [fact.end]\n\nSee [real](nope.md).\n")
+    got = [(f["kind"], f["message"]) for f in bb.lint(limit=0)["findings"] if f["kind"] == "dead_link"]
+    assert got == [("dead_link", "link to nope.md does not resolve")], got  # a fact's source is not a link: only the real broken link is said
+    assert bb.hrefs((d / "n.md").read_text()) == ["nope.md"]
+in_vault("markdown", {"n.md": "x\n"}, fact_sources)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.

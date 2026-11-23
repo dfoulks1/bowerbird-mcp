@@ -6,14 +6,9 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Needs a decision from you
 
-- [ ] **OKF through import and export** (decided 2026-11-23, confirmed). OKF keeps in frontmatter what every other format keeps in a file of its own: `verified` (reviews, `.waxseals.yaml`) and `sources`
-      (facts, the blocks and `.facts.yaml`). It uses those files, with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect: seals as well as facts, and anything else OKF puts in
-      frontmatter that another format has a file for. Needs two answers, then ADR-004: how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
-
-### Still to build
-
-- [ ] **Seal and fact state as data** for other tools (a JSON function, or `/_api/status` for the Obsidian plugin): `bowerbird_facts.render` returns the facts' side; the seals'
-      side is still in the hook and `serve`.
+- [ ] **Ratify ADR-004** (OKF keeps its reviews and facts in the shared files; `proposed`, with a setting `okf: {records: files}` off by default in 2.3). Its two asks: when the default flips, and whether
+      `okf import` runs by itself when a bundle is shipped. The build is not started: `seal` and `fact` need an OKF branch for the setting, and `okf export` and `import` need tests both ways. It can wait for 2.4 if
+      you want 2.3 out first.
 
 ### Documentation passes
 

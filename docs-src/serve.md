@@ -105,6 +105,21 @@ nothing is written until you confirm.
 - **Lint all** lists every finding in the collection, with what to do about each, and previews `fix` for the ones it can
   clear.
 
+## Data for other tools
+
+`GET /_api/status?f=<file>` returns the review and the facts of one file as JSON, for a tool that draws its own badges (the Obsidian plugin, a site generator). It is read-only and takes the same
+host check as every page; a hidden file or one outside the collection is a 400 with `{"error": ...}`.
+
+```json
+{"file": "notes/deploy.md",
+ "seal": {"state": "sealed", "by": "human:ann", "at": "2026-11-23T10:00:00Z", "decision": null,
+          "signers": [{"by": "human:ann", "at": "2026-11-23T10:00:00Z", "comment": "read it"}], "quorum": null, "count": null},
+ "facts": [{"n": 1, "id": "1", "kind": "file", "source": "deploy.sh#L10-14", "claim": "...", "line": 12, "status": "checked", "at": "...", "method": "same words", "meta": {"id": 1}, "due": false, "label": "checked ..."}]}
+```
+
+`state` is `sealed`, `broken-seal` (edited since), `unsealed` or `derived`. `quorum` and `count` are set only where the [seal extensions](sealing.md#several-signers-and-a-quorum-the-seal-extensions-add-on) are on. The same
+data is `page_state(file)` in `bowerbird_mcp.py`, and `bowerbird_facts.render` gives the facts' side without the server.
+
 ## Seal from the browser
 
 **Seal** (the gear) opens a dialog that shows what the MCP prompt shows: the file, its title, word count and

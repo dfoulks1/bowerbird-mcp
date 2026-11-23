@@ -5,8 +5,8 @@ ratified-by: dfoulks
 ratified-on: "2026-11-23"
 owner: dfoulks
 kind: architecture
-built: not started
-proof: "queued in TODO.md (2.3, Facts and seals)"
+built: landed
+proof: test_bowerbird_mcp.py
 supersedes: nothing
 amends: nothing
 consulted: "Claude Sonnet 5.5 (options and drafting)"

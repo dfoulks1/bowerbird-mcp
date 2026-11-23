@@ -31,6 +31,8 @@
 - **A fact has a number.** `id` is the first key of a block's metadata, a whole number unique in the document; `factcheck` takes it (`id=3`), `fact` takes the next one, and `fix` numbers the blocks that have none (a fact with no
   `id` is still known by a fingerprint of its words, as in 2.2.0, and what was checked under the fingerprint moves to the number). A fact edited since its last check shows as unchecked. A check now writes
   `last_checked` (the day) into the block's metadata; a seal does not see `id`, `last_checked` or an empty `{}`, so neither numbering nor checking breaks one. `lint` has `duplicate_fact_id`.
+- **The review and the facts of a file as data.** `page_state(file)` and `GET /_api/status?f=<file>` in `serve` return the seal (state, who, signers, quorum, count) and the facts (kind, source, state, metadata, due) as JSON,
+  for a tool that draws its own badges.
 - **`fact` writes the block.** `fact` with `kind`, `source` and `claim` writes `[fact.KIND]{metadata}(source) claim [fact.end]` into a document of any format (`after` a heading or a line; the end by default), checks a
   file-reading kind first and refuses a claim its source does not hold, records an `mcp` baseline from `result` (`-` or `@file` at a terminal), and with `harvest=true` lets a person pick a passage of a page. `fact` and `factcheck` are now
   offered to markdown and ADR servers. Without `claim` it is the older `sources` form.
