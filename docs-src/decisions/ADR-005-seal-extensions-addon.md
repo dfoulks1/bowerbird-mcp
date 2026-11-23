@@ -1,6 +1,6 @@
 ---
-status: proposed
-status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"
+status: accepted
+status-note: accepted by dfoulks on 2026-11-23, in the seal dialog
 owner: dfoulks
 kind: architecture
 built: partial
@@ -9,6 +9,8 @@ owed: "the tally, break on purpose and strict-seal (the seal count is built)"
 supersedes: nothing
 amends: nothing
 consulted: "Claude Sonnet 5.5 (drafting)"
+ratified-by: dfoulks
+ratified-on: "2026-11-23"
 ---
 # ADR-005 — The optional parts of sealing are the seal-extensions add-on
 
@@ -58,3 +60,4 @@ Drivers:
 ## History
 
 - 2026-11-23: drafted from the owner's words: "the seal-extensions are an addon so they go in addons/seal-extensions". Several signers and the quorum moved; the rest is to build.
+- 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"`.

@@ -1,3 +1,4 @@
 # .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
 # an edit breaks them, git has the earlier ones. Commit it.
 - {file: ADR-003-fact-block-grammar.md, sha256: 91bc46b47c8586a7d8fc1117899974022aa395bbb63a0cc09bb3c48fc178c8a6, by: 'human:dfoulks', at: '2026-11-23T17:09:54Z', bowerbird: 2.2.0, decision: accepted}
+- {file: ADR-005-seal-extensions-addon.md, sha256: 16a839cf275cf9a98aba23ba2c9c0186708b0cca5e2a335bf9773f8c8acb7d65, by: 'human:dfoulks', at: '2026-11-23T17:33:07Z', bowerbird: 2.2.0, decision: accepted, comment: who may break what is irrelevant. the signal is for humans. there are 5 signals here.}

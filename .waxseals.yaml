@@ -11,9 +11,9 @@
 - {file: addons/foam/bowerbird_foam.py, sha256: 8428aa252a4edc57477044236678fa3bc1bdbfb3a20e8502e06660d0d486f71e, by: 'human:dfoulks', at: '2026-11-23T15:20:27Z', bowerbird: 2.2.0}
 - {file: addons/logseq/bowerbird_logseq.py, sha256: bff64091b8762b8d30d9461e645d787cb8afabf77cb87da6ddf2adfaedcfe1b8, by: 'human:dfoulks', at: '2026-11-23T15:20:35Z', bowerbird: 2.2.0}
 - {file: addons/obsidian/bowerbird_obsidian.py, sha256: 03e10be17f05faf275e5c026e8392734003eff0118872c88a7c72a96061cb667, by: 'human:dfoulks', at: '2026-11-23T15:20:43Z', bowerbird: 2.2.0}
-- {file: bowerbird_facts.py, sha256: 0af1ed64eb0cb62193c9f2d68f666b37d666db850d188614dd33dc0642ab852b, by: 'human:dfoulks', at: '2026-11-23T15:12:32Z', bowerbird: 2.2.0}
+- {file: bowerbird_facts.py, sha256: 41348cf8adee757066a74b8f0a867059670b709d2bef7de06e7e19b39c2ac94d, by: 'human:dfoulks', at: '2026-11-23T17:31:51Z', bowerbird: 2.2.0}
 - {file: bowerbird_logo.py, sha256: 1f0d64c51f23f645faf2f977c5fe7bebb730efba188823b7192b60f273df1950, by: 'human:dfoulks', at: '2026-11-20T13:41:28Z', bowerbird: 2.2.0}
-- {file: bowerbird_mcp.py, sha256: 5aeabcfedc2d9072541147e454695b2a4521a1d94c45c816a9d422b11360d9b1, by: 'human:dfoulks', at: '2026-11-20T17:34:13Z', bowerbird: 2.2.0}
+- {file: bowerbird_mcp.py, sha256: fae71f5d6940fbc182965fc989ed705e654e4eac2cf14a742c5f9b2d959df710, by: 'human:dfoulks', at: '2026-11-23T17:32:06Z', bowerbird: 2.2.0}
 - {file: bowerbird_okf.py, sha256: 8841bc7f991a679d44949d5d11dfaa3ed0dbd23ffb040e8e5d6f51a3e3fb02d2, by: 'human:dfoulks', at: '2026-11-23T13:53:04Z', bowerbird: 2.2.0}
 - {file: bowerbird_seal.py, sha256: 2a6ae4aafc908a7bf375d3ef8011284c7f683caa7905f1c70a46b4a92415099b, by: 'human:dfoulks', at: '2026-11-20T16:06:16Z', bowerbird: 2.2.0}
 - {file: bowerbird_serve.py, sha256: e2e567b137c302fe71b2e0dbcdb931f22df4699c5520e95795d5412dc89c93d3, by: 'human:dfoulks', at: '2026-11-23T17:12:04Z', bowerbird: 2.2.0, comment: Updated to fix teh seal issue that arose after the distributed wax seal file change.}

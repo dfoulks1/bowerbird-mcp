@@ -37,10 +37,10 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 - [ ] **ADR-001's header** still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `landed`
       (it stales its seal, so do it with the re-seal below).
-- [ ] Re-seal the pages edited since they were sealed: ADR-001 and ADR-003, `TODO.md`, `BOWERBIRD.md`, the new pages (`facts.md`, `fact-pack.md` and the four formats) and the other pages that
-      changed (`docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
-- [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack` and the four format add-ons, each at the release's version), then add the extras to
-      `pyproject.toml` (`fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
+- [ ] Re-seal the pages edited since they were sealed: ADR-001 (its header and amendment) and ADR-005, `TODO.md`, `BOWERBIRD.md`, the new pages (`facts.md`, `fact-pack.md` and the four formats) and every other page
+      changed on the branch (`git diff --stat main..2.3 -- docs-src` lists them; `docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
+- [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons, each at the release's version), then add the extras to
+      `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
 - [ ] Merge `2.3`. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
 
 ## Later
@@ -51,11 +51,13 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Seals
 
-Everything optional about sealing belongs to the `seal-extensions` add-on (`addons/seal-extensions`): several signers and a quorum are there now; the rest below joins them.
+Everything optional about sealing belongs to the `seal-extensions` add-on (`addons/seal-extensions`), each feature off by default and switched on under `seal:` in `bower.yaml`; plain seals work unchanged
+without it. Built there: several signers, a quorum and `seal.count`. The rest joins them:
 
-- [ ] Vote tally. Several signers and a quorum exist (`seal-extensions`); still open: a seal as a vote, a break-on-purpose and a strict-seal mode,
-      seal count as importance, `seal.tally`. A tally counts distinct human sealers per file or ADR from the ledger, each only while the sha256
+- [ ] **Vote tally** (`seal.tally`: threshold, gate or inform). A seal as a vote. A tally counts distinct human sealers per file or ADR from the ledger, each only while the sha256
       still matches (an edit voids the votes, like a stale seal).
+  - **Open, for the tally, break on purpose and strict-seal:** does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote, by what identity;
+    threshold or quorum (ratify at N); approve only, or also object and abstain; where it shows. Each sealer also needs a way to find out (`seal check` in CI, or a notice on their next pull).
 - [ ] **Break on purpose.** A file with N seals costs N to change: before an edit the tool warns "this was reviewed (N seals); once you change it, it
       must be resealed before you can commit", and each seal is broken as a named, ledgered act, not by silent hash drift. A pre-commit hook
       enforces the second half: no commit of a file whose seals are broken or stale until it is sealed again.
@@ -65,15 +67,10 @@ Everything optional about sealing belongs to the `seal-extensions` add-on (`addo
       sealer. Useful for ratified ADRs, charters, policy, security docs and release notes; pointless at N=1. Break as review-then-change: the
       person sees the proposed change and the seal it would break (the `review_ui` dialog, as RTC), approves, and only then does the edit apply.
       A denial writes nothing. Builds on the `rtc` branch, which stays off `main` until you say.
-- [ ] **Seal count as importance, what is left.** `seal.count` is built (`list`, `passages`, search rank, `seal check`'s `most_sealed`). Left: show N in the `serve` list and the docs badge's tree, rank `heatmap` by it
+- [ ] **Seal count, what is left.** `seal.count` is built (`list`, `passages`, search rank, `seal check`'s `most_sealed`). Left: show N in the `serve` tree, rank `heatmap` by it
       (it ranks by git activity today), and show it for OKF (it counts ledger seals, so OKF waits for OKF to use the ledger).
-- [ ] **Move more into the add-on.** Today it holds four helpers (merge, collapse, signers, expand); the quorum logic, the count and the `serve` and docs displays are still in core. Put them behind a small
+- [ ] **Move more into the add-on.** It holds four helpers (merge, collapse, signers, expand); the quorum logic, the count and the `serve` and docs displays are still in core. Put them behind a small
       interface (who signed, is the quorum met, how many) so core only asks. Optional: it changes nothing a user sees.
-- [ ] **Optional, not core:** all of it lives in the `seal-extensions` add-on (`addons/seal-extensions`, which holds several signers and the quorum today), not in a separate
-      `[tally]` extra. Each feature is off by default and switched on under `seal:` in `bower.yaml` (`seal.tally`: threshold, gate or inform). Plain seals work unchanged without it.
-- [ ] **Open:** does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote, by what identity;
-      threshold or quorum (ratify at N); approve only, or also object and abstain; where it shows. Each sealer also needs a way to find out
-      (`seal check` in CI, or a notice on their next pull).
 
 ### Formats
 
