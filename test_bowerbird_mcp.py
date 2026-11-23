@@ -27,8 +27,9 @@ os.environ.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
 (coll / "bower.yaml").write_text("")  # the config file marks the collection root
 sys.argv[1:] = ["--config", str(coll / "bower.yaml")]
 sys.path.insert(0, str(HERE))
-import bowerbird_mcp as bb
 import importlib.util as _iu0
+
+import bowerbird_mcp as bb
 
 _se = _iu0.spec_from_file_location("bowerbird_seal_extensions", HERE / "addons" / "seal-extensions" / "bowerbird_seal_extensions.py")
 seal_extensions = _iu0.module_from_spec(_se)
@@ -2631,9 +2632,9 @@ def writer(d):
     assert "(https://x.test/a_(b%29) The words. [fact.end]" in bb.fact(file="n.md", kind="url", source="https://x.test/a_(b)", claim="The words.", after="line:1")["block"]  # a `)` is written %29
     w = bb.fact(file="n.md", kind="mcp", source=["jira", "INFRA-1"], claim="is open")
     assert w["block"].startswith("[fact.mcp]{") and "(jira INFRA-1) is open [fact.end]" in w["block"] and (d / "n.md").read_text().rstrip().endswith("[fact.end]")
-    for bad, why in ((dict(kind="nope", source="x", claim="c"), "not a kind of fact"), (dict(kind="key", source="a b", claim="c"), "fact pack"), (dict(kind="url", source="no", claim="c"), "address"),
-                     (dict(kind="url", source="https://x.test", claim="a [fact.end] b"), "claim"), (dict(kind="url", source="https://x.test", claim="c", meta={"confidence": 9}), "metadata confidence"),
-                     (dict(kind="url", source="https://x.test", claim="c", after="Nope"), "no heading")):
+    for bad, why in (({"kind": "nope", "source": "x", "claim": "c"}, "not a kind of fact"), ({"kind": "key", "source": "a b", "claim": "c"}, "fact pack"), ({"kind": "url", "source": "no", "claim": "c"}, "address"),
+                     ({"kind": "url", "source": "https://x.test", "claim": "a [fact.end] b"}, "claim"), ({"kind": "url", "source": "https://x.test", "claim": "c", "meta": {"confidence": 9}}, "metadata confidence"),
+                     ({"kind": "url", "source": "https://x.test", "claim": "c", "after": "Nope"}, "no heading")):
         assert why in raises(bb.fact, file="n.md", **bad), (bad, why)
     assert "is not a file here" in raises(bb.fact, file="gone.md", kind="url", source="https://x.test", claim="c")
     # an mcp fact with its result: the watched value is the baseline, so a later check compares with it
@@ -2700,7 +2701,7 @@ def numbered(d):
     assert "{last_checked: " + bb.now()[:10] + "}(data.txt#L1)" in stamped and "{by: ann}" in stamped  # the day is written in the block's own metadata, in its style
     assert bb.content_hash(stamped, False) == h0  # and a seal does not see it
     # fix numbers them, in the first place of the metadata, moves what was checked, and still no seal sees it
-    out = bb.fix(apply=True)
+    bb.fix(apply=True)
     numbered_text = (d / "n.md").read_text()
     assert "{id: 1, last_checked: " in numbered_text and "{id: 2, by: ann}" in numbered_text, numbered_text
     assert [b.id for b in F.parse(numbered_text)[0]] == ["1", "2"] and bb.content_hash(numbered_text, False) == h0

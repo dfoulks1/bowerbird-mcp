@@ -18,7 +18,7 @@ import re
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import yaml
 
@@ -95,7 +95,7 @@ class Block(NamedTuple):
     id: str  # derived from the kind, the source and the words: edit the words and it is a new, unchecked fact
     start: int  # offsets of the whole block (both tags) in the text
     end: int
-    meta: dict = {}  # the optional `{...}` after the opening tag: who wrote it, when, how sure; free keys are kept. It is not part of the id.
+    meta: dict = {}  # noqa: RUF012 (a NamedTuple default; never changed) the optional `{...}` after the opening tag: who wrote it, when, how sure; free keys are kept. It is not part of the id.
     meta_span: tuple = (-1, -1)  # where that `{...}` is in the text, braces included; (-1, -1) when the block has none
     fp: str = ""  # a fingerprint of the kind, the source and the words: when it differs from the one a check recorded, the fact was edited since
 
@@ -109,7 +109,7 @@ def brace_end(text: str, pos: int) -> int:
     while i < len(text):
         c = text[i]
         if quoted:
-            quoted = not (c == '"') or text[i - 1] == "\\"
+            quoted = c != '"' or text[i - 1] == "\\"
         elif c == '"':
             quoted = True
         elif c == "{":
@@ -217,7 +217,7 @@ def assign_ids(text: str) -> tuple:
         return text, {}
     blocks = parse(text, strict=False)[0]
     nxt = max([int(b.id) for b in blocks if b.id.isdigit() and b.meta.get("id") == int(b.id)] or [0]) + 1
-    moved = {}
+    moved: dict = {}
     for b in sorted(blocks, key=lambda b: -b.start):
         if b.id.isdigit() and b.meta.get("id") == int(b.id):
             continue
@@ -277,7 +277,10 @@ def parse(text: str, strict: bool = True) -> tuple:
     source in parentheses (it ends at the first `)`, so a `)` in an address is written %29; an agent may write it as a JSON string or array of strings); then
     the words that are checked, up to `[fact.end]`. strict=False also takes a kind nobody registered (the docs
     build shows a block by its recorded state without knowing the kind); `lint` is the strict one."""
-    masked, blocks, problems, opened = mask(text), [], [], None
+    masked = mask(text)
+    blocks: list = []
+    problems: list = []
+    opened: tuple | None = None
     line = lambda pos: text.count("\n", 0, pos) + 1
     for t in TAG.finditer(masked):
         name = t.group(1)
@@ -288,7 +291,8 @@ def parse(text: str, strict: bool = True) -> tuple:
             if ft is None and strict:
                 fix = ("install the fact pack: pip install 'bowerbird-mcp[fact-pack]'" if name in PACK else ", ".join("fact." + k for k in FACT_TYPES))
                 problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {fix}"))
-            pos, meta, bad_meta, span = t.end(), {}, None, (-1, -1)
+            pos, bad_meta, span = t.end(), None, (-1, -1)
+            meta: Any = {}
             if masked[pos:pos + 1] == "{":
                 stop = brace_end(masked, pos)
                 try:
@@ -326,7 +330,8 @@ def parse(text: str, strict: bool = True) -> tuple:
             problems.append((where, "bad_fact", f"[fact.{kind}] has no words to check | fix: put the claim between the source and [fact.end]"))
             continue
         fp = fact_id(kind, source, claim)
-        num = meta.get("id") if isinstance(meta.get("id"), int) and not isinstance(meta.get("id"), bool) and meta.get("id") >= 1 else None
+        mid = meta.get("id")
+        num = mid if isinstance(mid, int) and not isinstance(mid, bool) and mid >= 1 else None
         if num is not None and any(x.id == str(num) for x in blocks):
             problems.append((where, "duplicate_fact_id", f"[fact.{kind}] id {num} is already used by another fact in this document | fix: give it the next number (`fix` does)"))
         blocks.append(Block(kind, source, claim, where, line(t.start()), str(num) if num is not None else fp, o.start(), t.end(), meta, span, fp))

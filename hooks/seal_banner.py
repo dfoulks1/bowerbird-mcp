@@ -6,7 +6,6 @@ or that it changed since. It reads only the ledgers, the `.waxseals.yaml` files:
 rendering cannot make a seal stale. A page without the line is left alone.
 """
 import hashlib
-import html
 import re
 import sys
 from pathlib import Path

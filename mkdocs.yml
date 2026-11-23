@@ -63,6 +63,8 @@ markdown_extensions:
 # AI source material and the release steps live in docs-src/ for the repository, not for the website.
 exclude_docs: |
   prompts/
+  decisions/README.md
+  decisions/TEMPLATE.md
   releasing.md
   bower.yaml
   .env
@@ -84,6 +86,13 @@ nav:
   - Facts: facts.md
   - Fact pack: fact-pack.md
   - Sealing: sealing.md
+  - Decisions:
+      - Index: decisions/INDEX.md
+      - "ADR-001: fact kinds": decisions/ADR-001-fact-kinds-core-and-pack.md
+      - "ADR-002: format plugins": decisions/ADR-002-format-plugins.md
+      - "ADR-003: fact grammar": decisions/ADR-003-fact-block-grammar.md
+      - "ADR-004: OKF records": decisions/ADR-004-okf-records-in-shared-files.md
+      - "ADR-005: seal extensions": decisions/ADR-005-seal-extensions-addon.md
   - Serve: serve.md
   - Docs:
       - Guide: guide.md

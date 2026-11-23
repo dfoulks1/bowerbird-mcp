@@ -557,7 +557,7 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
             extra = '<label>decision <small>(optional)</small><select name=decision><option value="">none<option>accepted<option>rejected</select></label>'
         msg = bb.review_message(label, okf, t, d, "", False)
         try:  # who already holds this exact version, and how many the seal policy wants
-            es, valid = bb.reviews(d, key, t, bb.ledger_by_file())
+            _, valid = bb.reviews(d, key, t, bb.ledger_by_file())
             ext, quorum = bb.seal_ext(ROOT / key)
             names = sorted({str(e["by"]).removeprefix("human:") for e in valid if str(e.get("by", "")).startswith("human:")})
             if ext or names:

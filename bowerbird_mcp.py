@@ -2126,7 +2126,7 @@ def list_(type: str = "", tag: str = "", status: str = "", tier: str = "", stale
                "status": d.get("status") or "stable" if okf else adr_state(d), "tier": trust_tier(d), "stale": is_stale(d),
                **({} if okf else {"state": adr_phase(d)}), **({"seals": d.get("seal_count", 0)} if seal_count_on(x.path) else {}),
                "description": describe(d, x.text)}
-        tags = d.get("tags") if isinstance(d.get("tags"), list) else []
+        tags = d["tags"] if isinstance(d.get("tags"), list) else []
         if ((not type or row["type"] == type) and (not tag or tag in map(str, tags))
                 and (not status or status.lower() in (str(row["status"]).lower(), str(row.get("state")).lower(), str(d.get("status") or "").strip().lower())) and (not tier or row["tier"] == tier)
                 and (not stale or row["stale"])):
@@ -3807,10 +3807,9 @@ async def seal(file: str = "", by: str = "", promote: bool = False, decision: st
         t, d = (loaded(p, r) if okf else (now_text, d))
         by = f"human:{rid}"
     if not okf:
-        if decision and d.get("type") == "adr" and by.startswith("human:"):  # the person's ruling is written into the record, then sealed as written
-            if (new := adr_status(t, decision, by.removeprefix("human:"), now()[:10])) != t:
-                write(p, new)
-                t = new
+        if decision and d.get("type") == "adr" and by.startswith("human:") and (new := adr_status(t, decision, by.removeprefix("human:"), now()[:10])) != t:
+            write(p, new)  # the person's ruling is written into the record, then sealed as written
+            t = new
         ent = {"file": os.path.relpath(p, ROOT), "sha256": content_hash(t, False), "by": by, "at": now(),
              "bowerbird": VERSION, **({"decision": decision} if decision else {}), **({"comment": comment} if comment else {})}
         written = ledger_put(ent["file"], ent)

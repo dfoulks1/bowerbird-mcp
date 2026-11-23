@@ -1,5 +1,4 @@
 """bowerbird-mcp[dendron]: a Dendron workspace as a collection. Sources: wiki.dendron.so (wiki links, hierarchies, note references, vaults, tags)."""
-import os
 import re
 from pathlib import Path
 
