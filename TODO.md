@@ -37,7 +37,7 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 - [ ] **ADR-001's header** still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `landed`
       (it stales its seal, so do it with the re-seal below).
-- [ ] Re-seal the pages edited since they were sealed: ADR-001 (its header and amendment) and ADR-005, `TODO.md`, `BOWERBIRD.md`, the new pages (`facts.md`, `fact-pack.md` and the four formats) and every other page
+- [ ] Re-seal the pages edited since they were sealed: ADR-001 (its header and amendment), `TODO.md`, `BOWERBIRD.md`, the new pages (`facts.md`, `fact-pack.md` and the four formats) and every other page
       changed on the branch (`git diff --stat main..2.3 -- docs-src` lists them; `docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
 - [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons, each at the release's version), then add the extras to
       `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
