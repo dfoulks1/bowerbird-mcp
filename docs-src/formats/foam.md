@@ -48,18 +48,19 @@ By path suffix, as Foam does: `[[todo]]` finds any `todo.md`, `[[house/todo]]` f
 notes match, the shortest path wins, then the nearest to the linking page. Foam itself picks alphabetically and warns; this differs when two
 paths are the same length.
 
-Foam's documentation also treats a name that starts with `/` or `.` as a path (`[[./a]]`, `[[../b]]`, `[[/from/root]]`). Bowerbird reads these as a
-name, so they are reported as broken. It does not settle case rules either: Foam's documentation does not say.
+A name that starts with `/` or `.` is a path, as Foam's documentation says: `[[./a]]` and `[[../b]]` from the citing note, `[[/from/root]]` from the workspace root. A path that finds no file is a broken link.
+Foam's documentation does not settle case rules, so the case is ignored here.
 
 ## Reviews and lint
 
-As in [Markdown](markdown.md): seals live in a `.waxseals.yaml` beside the note, and `lint` warns of a wikilink that leads nowhere.
+Seal a note as in [Sealing](../sealing.md); the review goes in a `.waxseals.yaml` in the note's folder, and the note is never edited. `lint` is offered here as in [Markdown](markdown.md): it checks fact blocks and warns of a wikilink that leads nowhere (`dead_link`) or to a heading that is not there (`dead_anchor`).
 
-## What it does not do yet
+## Limits
 
 - `foam.files.exclude` and `foam.files.include` are not read; `.gitignore` decides what is left out, as in every format. `.foam/` and `.vscode/` are always left out.
 - The `type` property and a note's `title` are not used for links (Foam finds a note by its file name or alias).
 - The inline tag rule is Obsidian's, because Foam's documentation does not give one.
+- A file with a numbered or dated name (`2024-05-01.md`) is read as an ADR record, as in [Markdown](markdown.md), so sealing it asks for a `decision`.
 
 ## Tested against
 

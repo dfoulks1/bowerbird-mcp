@@ -54,14 +54,14 @@ the warnings will show it.
 
 ## Reviews and lint
 
-Seal a note as in [Sealing](../sealing.md); the review lives in a `.waxseals.yaml` in the note's folder. `lint` reports a wikilink that
-leads nowhere or to a heading that is not there, both as warnings.
+Seal a note as in [Sealing](../sealing.md); the review goes in a `.waxseals.yaml` in the note's folder, and the note is never edited. `lint` is offered here as in [Markdown](markdown.md): it checks fact blocks and warns of a wikilink that leads nowhere (`dead_link`) or to a heading that is not there (`dead_anchor`).
 
-## What it does not do yet
+## Limits
 
 - `.canvas` and `.base` files are found as the target of a link (`[[board.canvas]]`), but the links inside them are not followed.
 - `[[## text]]` and `[[^text]]` are searches in Obsidian, not links; they are reported as broken.
 - A comma-separated `tags: a, b` string is read as a list, though Obsidian's documentation does not say it is one.
+- A file with a numbered or dated name (`2024-05-01.md`) is read as an ADR record, as in [Markdown](markdown.md), so sealing it asks for a `decision`.
 
 ## Tested against
 

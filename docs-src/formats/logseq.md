@@ -32,11 +32,10 @@ backups) and `.recycle/`.
 | `[[Page]]`, `[[Page/Sub]]` | a link to the page with that name |
 | `[text]([[Page]])` | a link to the page |
 | `{{embed [[Page]]}}` | an embed, read as a link |
-| `((uuid))` | a block reference: not followed |
 | `a___b.md` (or `a%2Fb.md`) | the page `a/b`: `___` and `%2F` in a file name are a namespace's `/` |
 | `[[Sep 14th, 2020]]` | a journal page: it exists with no file of its own |
 | `title:: A Better Title`, `alias:: tl, [[tt]]` | the page also answers to those names (the first lines of the file) |
-| `((6700a8c1-...))` | a link to the page that holds the block `id:: 6700a8c1-...` |
+| `((6700a8c1-...))` | a block reference: a link to the page that holds the block `id:: 6700a8c1-...` |
 | `#tag`, `#[[two words]]`, `tags:: x, y` | tags of the page |
 
 Logseq creates a page the moment you link to it, so **a link to a page with no file is not reported as broken**. It is how a page is born.
@@ -44,20 +43,21 @@ The files you see are only the pages that have content.
 
 ## How a name finds its page
 
-By the page's file name with the encoding undone, case ignored (Logseq lowercases page names). The `title::` property, which can give a page a
-name different from its file's, is not read, so `[[A Title]]` for a file `foo.md` with `title:: A Title` finds nothing.
-Journal titles are read in Logseq's default format, `MMM do, yyyy`.
+By the page's file name with the encoding undone, case ignored (Logseq lowercases page names), or by a name the page gives itself with `title::` or `alias::`, so `[[A Title]]` finds a file `foo.md` that starts with `title:: A Title`.
+The file name format comes from `:file/name-format` in `logseq/config.edn`: `___` is `/` (the default, and what a graph with no `config.edn` is read as), or, when the file has no `:file/name-format`, `.`.
+Journal titles are read in Logseq's default format, `MMM do, yyyy`, or the `:journal/page-title-format` of `config.edn`.
 
 ## Reviews and lint
 
-As in [Markdown](markdown.md): seals live in a `.waxseals.yaml` beside the file. Because every page exists, `lint` says nothing about links to
-pages that have no file; headings in `[[Page#Heading]]` are not checked either.
+Seal a file as in [Sealing](../sealing.md); the review goes in a `.waxseals.yaml` in the file's folder, and the file is never edited. `lint` is offered here as in [Markdown](markdown.md) and checks fact blocks. Because every page exists, it says nothing about links to
+pages that have no file (`links` still shows them with `exists: false`); headings in `[[Page#Heading]]` are not checked either.
 
-## What it does not do yet
+## Limits
 
 - The outliner structure is not used: a page is searched as the markdown it is, with its bullets.
 - Only the first lines of a file are read for `title::` and `alias::`; a property after the first few lines is missed.
 - A journal page's file name (`journals/2020_09_14.md`) is a page named by the title format; the title format is read from `config.edn`, but other `config.edn` keys (`:hidden`, `:pages-directory`) are not.
+- A journal file's name is numbered, so it is read as an ADR record, as in [Markdown](markdown.md), and sealing it asks for a `decision`.
 - Queries (`{{query ...}}`) and the database version of Logseq are not read.
 
 ## Tested against
