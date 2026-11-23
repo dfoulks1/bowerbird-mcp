@@ -26,7 +26,7 @@
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
-- **An agent may run any fact check.** `factcheck fetch=true` and `factcheck file=… id=…` no longer need a person at a terminal: a person is still shown the plan and asked, an agent or a script is not and gets
+- **An agent may run any fact check.** `factcheck fetch=true` and `factcheck file=… id=…` no longer need a person at a terminal: a person at a terminal is still shown the plan and asked (for `fetch=true`, and for one fact by `id=` when it fetches, calls or runs something), an agent or a script is not and gets
   the plan back as `ran`. Only what `bower.yaml` declares can be called or run (a page cannot name a command), and a `manual` fact, which asks a person, is skipped for an agent.
 - **A fact has a number.** `id` is the first key of a block's metadata, a whole number unique in the document; `factcheck` takes it (`id=3`), `fact` takes the next one, and `fix` numbers the blocks that have none (a fact with no
   `id` is still known by a fingerprint of its words, as in 2.2.0, and what was checked under the fingerprint moves to the number). A fact edited since its last check shows as unchecked. A check now writes
@@ -40,7 +40,7 @@
   `confidence`, `note`, `tags` and `stale_after` (any other key is kept), shown in the bibliography; `stale_after` makes `factcheck` list a fact as due. An agent may write the metadata as JSON and the
   source as a JSON string or array of strings. The metadata is not part of the fact's id. `lint` has a new `bad_fact_meta` warning, and a mapping that never closes is a `bad_fact` error.
 - **The fact pack, `bowerbird-mcp[fact-pack]`** (`addons/fact-pack/`): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
-  and `script` (a command declared in the root `bower.yaml`, an argument list with no shell, terminal only). It registers through the new `bowerbird.fact_types` entry point; `facts:` takes
+  and `script` (a command declared in the root `bower.yaml`, an argument list with no shell; a person at a terminal is shown the command first, an agent is not). It registers through the new `bowerbird.fact_types` entry point; `facts:` takes
   `scripts:` and `manual_days:`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.
 - **Fact kinds `file` and `internal`.** `[fact.file](path#L10-20)` reads a file (absolute, `~/`, or relative to the document; no network), `[fact.internal](page.md#Heading)` reads a page or a section of
   this collection. Their checks only read files, so `factcheck file=... id=...` runs one with no prompt, for an agent too, and records it beside the document.
@@ -53,7 +53,7 @@
   said on stderr and left out. Each has a page under Formats.
 - **`lint` is offered to markdown and ADR servers** (and so to the four format add-ons), and a link to a heading that a MkDocs snippet (`--8<-- "README.md:run"`) pulls in is no longer called dead.
 - **`lint` checks the links of markdown and ADR files** (a `dead_link` or `dead_anchor` warning); until now it checked only OKF concepts' links.
-- **Wikilinks, in every format.** `[[Note]]`, `[[Note#Heading]]`, `[[Note|alias]]` and `![[embed]]` are links: `links`, backlinks, `orphan` and `island` see
+- **Wikilinks, in markdown, ADR, OKF and the add-on formats.** `[[Note]]`, `[[Note#Heading]]`, `[[Note|alias]]` and `![[embed]]` are links: `links`, backlinks, `orphan` and `island` see
   them, and `lint` warns (`dead_link`, `dead_anchor`) when one does not resolve. A name matches the file's path (`.md` optional, case ignored), the shortest path first,
   then the nearest to the page. `#^block` ids are ignored. `move` keeps them; a rename leaves them behind for `lint` to report (they are not rewritten yet).
 

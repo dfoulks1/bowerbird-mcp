@@ -300,7 +300,7 @@ hits:
 
 - **Matching is by substring, ignoring case.** A word matches anywhere inside the text, so `roll` finds `rollback`, and
   `search 'roll back'` also lists `deploy.md`, which links to `rollback.md`.
-- **The score says where the words landed.** Each field a word matches adds its weight: title 5, file path 4, tags 3,
+- **The score says where the words landed.** Each field a word matches adds its weight: title 5, id (the file's path) 4, tags 3,
   type 2, description 2, body 1. `matched` lists the fields, so a hit explains itself.
 - **The same query on the same files always gives the same answer.** There is no index and no model, and ties come out in a
   fixed order. That makes it the one to script and to test against.

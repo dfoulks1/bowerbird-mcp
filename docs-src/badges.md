@@ -89,7 +89,7 @@ For facts, count the `status` values in `factcheck -O json` the same way, for a 
 
 ## What a badge does not say
 
-- A badge shows the state **when it was made**. A fact's state changes only when someone runs `factcheck --fetch`, so a badge is as
+- A badge shows the state **when it was made**. A fact's state changes only when someone runs a check (`factcheck --fetch`, or `factcheck id=`), so a badge is as
   fresh as the last run.
 - *Reviewed* means a person reviewed that exact version, not that it is correct. *Checked* means the source still says what the block
   says, not that the source is right.

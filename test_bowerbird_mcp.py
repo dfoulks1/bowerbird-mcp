@@ -2922,6 +2922,11 @@ def okf_import_kinds(d):
 in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text that is long enough to not be a stub here.\n"}, okf_import_kinds)
 
 
+# a file named only for a date is a journal or a daily note, not a decision record (and sealing it does not ask for a decision)
+assert bb.adr_named("0001-use-x.md") and bb.adr_named("adr-12.md") and bb.adr_named("2024-05-01-use-x.md") and not bb.adr_named("2024-05-01.md") and not bb.adr_named("2020_09_14.md") and not bb.adr_named("notes.md")
+assert bb.adr_meta({}, "x\n", Path("/tmp/c/journals/2020_09_14.md")).get("type") is None and bb.adr_meta({}, "x\n", Path("/tmp/c/0001-x.md")).get("type") == "adr"
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)

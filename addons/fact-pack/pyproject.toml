@@ -4,11 +4,21 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bowerbird-fact-pack"
-version = "2.2.0"  # lockstep with bowerbird-mcp: set to the release's number when it is cut
+version = "2.3.0"  # lockstep with bowerbird-mcp
 description = "More kinds of fact for bowerbird-mcp: key, git, manual, until and script. Install it with `pip install 'bowerbird-mcp[fact-pack]'`."
 requires-python = ">=3.10"
 license = "Apache-2.0"
-dependencies = ["bowerbird-mcp", "pyyaml", "tomli; python_version < '3.11'"]
+license-files = ["LICENSE", "NOTICE"]
+readme = "README.md"
+authors = [{name = "Bowerbird contributors"}]
+maintainers = [{email = "dfoulks@voltpop.com"}]
+dependencies = ["bowerbird-mcp>=2.3,<3", "pyyaml", "tomli; python_version < '3.11'"]
+
+[project.urls]
+Homepage = "https://bowerbird.voltpop.com/"
+Documentation = "https://bowerbird.voltpop.com/fact-pack/"
+Repository = "https://github.com/dfoulks1/bowerbird-mcp"
+Issues = "https://github.com/dfoulks1/bowerbird-mcp/issues"
 
 [project.entry-points."bowerbird.fact_types"]
 fact-pack = "bowerbird_fact_pack:register"

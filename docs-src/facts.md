@@ -76,7 +76,7 @@ The first check of a `mcp`, `key`, `git` or `script` fact records the value; lat
 
 - **`url`**: a page, fetched when a check runs (`http` and `https` only, 2 MB at most). Whitespace, case, backticks and emphasis are ignored: the content is compared, not the shape. A claim of
   several paragraphs holds when each one is on the page. With `semantic: true` and the `semantic` extra, a page that no longer says it word for word but still means it counts too,
-  scored against `min_similarity` (as in semantic search), and the check says `similar meaning` instead of `same words`. A page built by script in the browser has no text here.
+  scored against `min_similarity` (as in semantic search), and the check says `similar meaning` instead of `same words`. A page built by script in the browser has no text here, and a page that redirects to another host or has almost no words (a login, a captcha, a block) is reported as an **error**, not a drift: a drift would end the reviews of the page. Semantic mode matches by meaning, which a paraphrase passes and a contradiction can too (it misses negation and swapped nouns): do not rely on it alone, and quote the words that matter.
 - **`file`**: a file, read here with no network. The path is absolute, `~/`, or relative to the page's folder, and may lie outside the collection. `#L10-20` (or `#L10`) names the lines
   the claim rests on; leave it off for the whole file. A file that shifted by a line drifts, and you re-point the fact by editing the range. A missing file, or a range past the end, is a drift.
 - **`internal`**: another page of this collection: a path from the collection root, then optionally `#Heading` (matched by its anchor, so `#Part Two` and `#part-two` are the same). The claim must

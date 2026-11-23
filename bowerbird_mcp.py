@@ -651,7 +651,7 @@ def user_id() -> str:
     return envvar("USER") or str(CFG.get("user") or "")
 
 
-VERSION = "2.2.0"  # keep equal to `version` in pyproject.toml (a test checks)
+VERSION = "2.3.0"  # keep equal to `version` in pyproject.toml (a test checks)
 OKF_VERSION = "0.2"
 RESERVED = ("index.md", "log.md")  # §3.1
 ARCHIVE = "archive"  # archive/: a collection within the collection, read-only, set apart from the live one
@@ -2322,6 +2322,12 @@ def adr_phase(d: dict) -> str:
     return st if st != "stable" or d.get("type") != "adr" else ("accepted" if trust_tier(d) == "human-reviewed" else "proposed")
 
 
+def adr_named(name: str) -> bool:
+    """Is this file name a decision record's: numbered (`0001-use-x.md`, `adr-12.md`, or dated with a title, `2024-05-01-use-x.md`)? A name that is only a date (`2024-05-01.md`, `2020_09_14.md`) is a
+    journal or a daily note (Logseq, Foam, Obsidian), not a decision."""
+    return bool(re.match(r"(adr[-_ ]?)?\d{2,}[-_. ]", name, re.IGNORECASE)) and not re.fullmatch(r"\d{4}[-_.]\d{2}[-_.]\d{2}", Path(name).stem)
+
+
 def adr_meta(d: dict, text: str, p: Path, every: bool = False) -> dict:
     """Frontmatter for a plain markdown file (format markdown or adr). An ADR or MADR record gets type adr and its
     status: the `status` key (MADR 3), a `## Status` section (Nygard) or a `* Status:` line (MADR 2), as written.
@@ -2329,7 +2335,7 @@ def adr_meta(d: dict, text: str, p: Path, every: bool = False) -> dict:
     every file is, except README.md and index.md. Anything the file already declares wins."""
     d = dict(d)
     body = split(text)[1]
-    if (every and p.name.lower() not in ("readme.md", "index.md")) or re.match(r"(adr[-_ ]?)?\d{2,}[-_. ]", p.name, re.IGNORECASE) \
+    if (every and p.name.lower() not in ("readme.md", "index.md")) or adr_named(p.name) \
             or {"adr", "adrs", "decisions"} & {x.lower() for x in p.parent.parts}:
         d.setdefault("type", "adr")
         if not d.get("status") and (m := re.search(r"^#{1,6}[ \t]+Status[ \t]*\n\s*(\S[^\n]*)|^[ \t]*[*-][ \t]+Status:[ \t]*(\S[^\n]*)",
@@ -2753,7 +2759,7 @@ def detect_holds(d: Path) -> str:
         return "asciidoc"
     if mds and any((meta(read(p))[0] or {}).get("type") for p in mds[:200]):
         return "okf"
-    adrs = [p for p in mds if re.match(r"(adr[-_ ]?)?\d{2,}[-_. ]", p.name, re.IGNORECASE) or {"adr", "adrs", "decisions"} & {x.lower() for x in p.parent.parts}]
+    adrs = [p for p in mds if adr_named(p.name) or {"adr", "adrs", "decisions"} & {x.lower() for x in p.parent.parts}]
     return ("adr" if len(adrs) * 2 > len(mds) else "markdown") if mds else "okf"
 
 
