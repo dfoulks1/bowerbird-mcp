@@ -39,6 +39,8 @@ as an extra:
 | `dendron` | `pip install 'bowerbird-mcp[dendron]'` | [Dendron](formats/dendron.md) |
 | `logseq` | `pip install 'bowerbird-mcp[logseq]'` | [Logseq](formats/logseq.md) |
 
+(The [fact pack](formats/fact-pack.md) is an add-on too: five more kinds of fact, not a format.)
+
 An add-on's files are markdown, so each format behaves as [Markdown](formats/markdown.md) (same tools, same sealing) with its own reading of links.
 
 **Writing one.** An add-on is a Python package with an entry point in the group `bowerbird.formats`, naming a function that takes the `bowerbird_mcp`

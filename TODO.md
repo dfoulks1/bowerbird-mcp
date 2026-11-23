@@ -1,42 +1,40 @@
 # TODO
 
-Only what is open. What is done is in `CHANGELOG.md`.
+Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the branch `2.3` (not pushed or merged).
 
 ## 2.3
 
-### Facts and seals
+### Still to build
 
-- [ ] Writing a fact: `fact` writes the `[fact.*]` block into the document (it records a frontmatter `sources` entry today), for a person and an agent alike;
+- [ ] **`fact` writes blocks.** `fact` writes the `[fact.*]` block into the document (it records a frontmatter `sources` entry today), for a person and an agent alike;
       `result=-` and `result=@file`; a `--harvest` capture of a page's words into a block.
-- [ ] Agent-run `factcheck` beyond the local kinds: `url` and `mcp` still need a person at a terminal (`--fetch`). Decide what an agent may run, and what the plan and
+- [ ] **Agent-run `factcheck` beyond the local kinds.** `url` and `mcp` still need a person at a terminal (`--fetch`). Decide what an agent may run, and what the plan and
       prompt look like.
-- [ ] The branch `2.3` holds the work so far, committed in pieces; it is not merged or pushed. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
-- [ ] ADR-001's header still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `partial` or `landed`; `fact` writing blocks is the part left. Editing it stales its seal.
-- [ ] OKF through import and export (decided 2026-11-23): OKF is the odd format, keeping facts (`sources`) and reviews (`verified`) in frontmatter. It should use the
-      records every other format uses (`.facts.yaml`, `.waxseals.yaml`), and `okf export` and `okf import` convert to and from the frontmatter OKF readers expect.
-      Open: does it cover seals as well as facts; how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile. Write the ADR first (ADR-003).
-- [ ] `factcheck --fetch` against real pages that block it (StackOverflow, say); semantic mode against the real embedder.
-- [ ] A look at the new badges and the Facts tab in a real browser, and at the bibliography in the built site (`tools/QA.sh --rebuild`); the tests cover the HTML, not how it looks.
-- [ ] The seal and fact state as data for other tools (a JSON function, or `/_api/status` for the Obsidian plugin): `bowerbird_facts.render` returns the facts' side; the seals' side is still in the hook and `serve`.
-- [ ] The quorum's M in the docs hook: the hook reads only the ledger, so a badge says who signed (`by ann, bo`) but not "2 of 3".
+- [ ] **OKF through import and export** (decided 2026-11-23). OKF keeps facts (`sources`) and reviews (`verified`) in frontmatter; it should use the records every other format
+      uses (`.facts.yaml`, `.waxseals.yaml`), with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect. Write the ADR first (ADR-003).
+      Open: does it cover seals as well as facts; how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
+- [ ] **Seal and fact state as data** for other tools (a JSON function, or `/_api/status` for the Obsidian plugin): `bowerbird_facts.render` returns the facts' side; the seals'
+      side is still in the hook and `serve`.
+- [ ] **The quorum's M in the docs hook.** The hook reads only the ledger, so a badge says who signed (`by ann, bo`) but not "2 of 3".
+- [ ] **ADR-001's header** still says `built: not started`. The loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`); make it
+      `partial` until `fact` writes blocks, then `landed`. Editing it stales its seal.
 
-### Formats
+### Needs a person or a real environment
 
-- [ ] Format add-ons, left to do (`addons/obsidian`, `foam`, `dendron`, `logseq`, `fact-pack`):
-  - Add the extras to `pyproject.toml` (`obsidian = ["bowerbird-obsidian"]`, and the rest, `fact-pack` included) and set each add-on's version to the release's. Left out so far:
-    `uv.lock` cannot resolve a package that is not on PyPI yet. Build and upload the add-on distributions first.
-  - Run each format against a real vault (Obsidian, Foam, Dendron, Logseq). Only made-up collections have been tested (each format's page says which); the rules came from each
-    tool's documentation, read second-hand, and the unconfirmed ones are listed on the page (case rules, duplicate names, what a tool does with links in code).
-  - What is read but not followed: links inside Obsidian `.canvas` and `.base` files; Dendron schemas, wildcard and range references; Logseq `{{query}}` and `config.edn` keys other than
-    the file name format and the journal title format; the Logseq database version. Take one when a real vault needs it.
-- [ ] `[gollum]`, GitHub wiki repos, is a candidate (see Later).
+- [ ] `factcheck --fetch` against real pages that block it (StackOverflow, say), and semantic mode against the real embedder.
+- [ ] The new badges and the Facts tab in a real browser, and the bibliography in the built site (`tools/QA.sh --rebuild`); the tests cover the HTML, not how it looks.
+- [ ] Each format against a real vault (Obsidian, Foam, Dendron, Logseq). Only made-up collections have been tested (each format's page says which); the rules came from each tool's
+      documentation, read second-hand, and the unconfirmed ones are listed on the page (case rules, duplicate names, what a tool does with links in code).
+- [ ] QA: `tools/QA.sh` on 3.10 to 3.14 (3.12 once failed a test that starts a subprocess without `yaml`), the Web UI in a browser, the docs hook with fact blocks, and
+      `uvx --from 'bowerbird-mcp[semantic]'`.
 
 ### Release
 
-- [ ] QA: `tools/QA.sh` on 3.10 to 3.14 (3.12 once failed a test that starts a subprocess without `yaml`), the Web UI in a browser, the docs
-      hook with fact blocks, and `uvx --from 'bowerbird-mcp[semantic]'`.
-- [ ] Re-seal the pages edited since they were sealed (the two ADRs, `TODO.md`, `BOWERBIRD.md`, the four new format pages and the pages that changed; `docs-src/tools.md` is derived and needs none), then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
-- [ ] Tag, build and upload to PyPI (core, then `bowerbird-fact-pack` and the four format add-ons, then the extras `fact-pack`, `obsidian`, `foam`, `dendron`, `logseq` in `pyproject.toml`; `uv.lock` cannot resolve them before). No `gh release`.
+- [ ] Re-seal the pages edited since they were sealed (the two ADRs, `TODO.md`, `BOWERBIRD.md`, the four new format pages and the other pages that changed; `docs-src/tools.md` is
+      derived and needs none), then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
+- [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack` and the four format add-ons, each at the release's version), then add the extras to
+      `pyproject.toml` (`fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
+- [ ] Merge `2.3`. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
 
 ## Later
 
@@ -45,6 +43,8 @@ Only what is open. What is done is in `CHANGELOG.md`.
 - [ ] Fact kinds nobody has asked for yet: scoped claims, and a quote to watch for paraphrases.
 
 ### Seals
+
+Everything optional about sealing belongs to `seal-extensions`: several signers and a quorum are there now; the rest below joins them.
 
 - [ ] Vote tally. Several signers and a quorum exist (`seal-extensions`); still open: a seal as a vote, a break-on-purpose and a strict-seal mode,
       seal count as importance, `seal.tally`. A tally counts distinct human sealers per file or ADR from the ledger, each only while the sha256
@@ -62,14 +62,16 @@ Only what is open. What is done is in `CHANGELOG.md`.
       rank by it, counting only live seals. Each seal is a person who judged the file worth their review, so the count is earned, not guessed.
       A heavily sealed file marks its subject as important, and a recurring multi-seal workflow marks the process as common; with the mode off
       a count means neither.
-- [ ] **Optional, not core:** off by default, switched on with `seal.tally` (threshold, gate or inform), or shipped as an add-on extra
-      (`bowerbird-mcp[tally]`). Plain seals work unchanged without it.
+- [ ] **Optional, not core:** all of it lives in `seal-extensions` (`bowerbird_seal.py`, the extra that already holds several signers and the quorum), not in a separate
+      `[tally]` extra. Each feature is off by default and switched on under `seal:` in `bower.yaml` (`seal.tally`: threshold, gate or inform). Plain seals work unchanged without it.
 - [ ] **Open:** does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote, by what identity;
       threshold or quorum (ratify at N); approve only, or also object and abstain; where it shows. Each sealer also needs a way to find out
       (`seal check` in CI, or a notice on their next pull).
 
 ### Formats
 
+- [ ] Format add-ons, what is read but not followed (take one when a real vault needs it): links inside Obsidian `.canvas` and `.base` files; Dendron schemas and wildcard and
+      range references; Logseq `{{query}}` and `config.edn` keys other than the file name format and the journal title format; the Logseq database version.
 - [ ] Other markups, each its own loader and extra: `[org-roam]` (org-mode, ID links) and `[sphinx]` (reStructuredText, `:ref:`, toctrees). They are not profiles of
       markdown, so they need the loader registry below.
 - [ ] A loader registry (`sync` dispatches `load_md`, `load_skos` and `load_adoc` by format; a seventh format is the time). The registry for the markdown family

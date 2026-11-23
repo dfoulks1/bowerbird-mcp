@@ -2551,6 +2551,20 @@ in_vault("markdown", {"src.md": "<!-- --8<-- [start:part] -->\n## Pulled in\n\nt
                       "other.md": "[a](guide.md#pulled-in) [b](src.md#other-part)\n", "bad.md": "[c](guide.md#nope)\n"}, snippets)
 
 
+# the `facts:` settings the pack reads are checked when bower.yaml loads
+for bad in ("facts: {types: {key: {server: s, tool: t, arg: a}}}\n", "facts: {scripts: {a: {cmd: 'echo hi'}}}\n", "facts: {scripts: {a: {cmd: []}}}\n", "facts: {scripts: {a: {cmd: [echo], timeout: 0}}}\n",
+            "facts: {scripts: {'a b': {cmd: [echo]}}}\n", "facts: {manual_days: 0}\n", "facts: {manual_days: true}\n"):
+    (lg / "bower.yaml").write_text(bad)
+    try:
+        bb.load_config(lg)
+        raise AssertionError(bad)
+    except SystemExit as e:
+        assert "facts takes" in str(e), (bad, str(e))
+(lg / "bower.yaml").write_text("facts: {scripts: {uvver: {cmd: [uv, --version], timeout: 5}}, manual_days: 90}\n")
+assert bb.load_config(lg)[1]["facts"]["manual_days"] == 90
+(lg / "bower.yaml").unlink()
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)

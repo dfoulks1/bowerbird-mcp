@@ -163,7 +163,7 @@ The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
 - **`[fact.internal](docs/tools.md#links)`** is another page of this collection: a path from the collection root, optionally `#Heading` (matched by its anchor, so
   `#Part Two` and `#part-two` are the same). The claim's words must still be on the page, or under that heading down to the next heading of the same or a higher
   level. A missing page or heading is a drift. The page's seal is not consulted: this checks the words, not who reviewed them.
-- **The fact pack**, `pip install 'bowerbird-mcp[fact-pack]'`, brings five more kinds. Without it, a page that uses one is a `lint` error that says what to install.
+- **The fact pack**, `pip install 'bowerbird-mcp[fact-pack]'`, brings five more kinds (the [fact pack](fact-pack.md) page has each in full). Without it, a page that uses one is a `lint` error that says what to install.
   - **`[fact.key](pyproject.toml project.version)`**: a value at a path in a JSON, YAML or TOML file (`a.b.0` for a list item; TOML needs Python 3.11 or `tomli`).
     The first check records the value and later ones must match it, like an MCP fact. The file is found as for `file`. A missing file or key is a drift.
   - **`[fact.git](tag v2.3.0)`** or **`[fact.git](file main docs/x.md)`**: a tag, or a file at a revision, in the repository around the document. The first check records
