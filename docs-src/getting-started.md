@@ -15,8 +15,8 @@ notes, decisions, vocabularies, even code. Bowerbird looks after it for three ki
   saying which file and line it used and whether a person has reviewed it.
 - **CI**, your automated checks, can fail a change that has no human review.
 
-It is not tied to one format. A `format:` line in `bower.yaml` says what a folder holds: Markdown, ADR, OKF, SKOS or
-seal-only. [Formats](formats.md) shows each one. This page uses plain Markdown: it asks nothing of your files, and it does
+It is not tied to one format. A `format:` line in `bower.yaml` says what a folder holds: Markdown, ADR, OKF, SKOS, AsciiDoc or
+seal-only, or, with an add-on, Obsidian, Foam, Dendron or Logseq. [Formats](formats.md) shows each one. This page uses plain Markdown: it asks nothing of your files, and it does
 more than seal them, because it searches them too.
 
 This page is a self-guided tour. Part 1 sets up a collection. Then you take five stops, in any order: the command
@@ -28,7 +28,7 @@ should see, so you can check yourself as you go.
 Every command on this page starts with `uvx bowerbird-mcp`, which runs the tool without installing it (it needs
 [uv](https://docs.astral.sh/uv/)). To have it on your path instead, run `uv tool install bowerbird-mcp` once and drop the
 `uvx`. (`bowerbird` is a shorter name for the same command. [The guide](guide.md#run) has every way to run it, and the extras:
-`serve` for the browser, `semantic` for meaning search.)
+`serve` for the browser, `semantic` for meaning search, `skos` for SKOS files, and one add-on per note-taking tool: `obsidian`, `foam`, `dendron`, `logseq`.)
 
 ```sh
 uvx bowerbird-mcp help          # the everyday commands for your format; `help all` lists every one
@@ -61,10 +61,11 @@ A collection holds one kind of thing, and you say which when you make it:
 | `adr` | decision records (ADR or MADR), with each record's status |
 | `okf` | knowledge that says where it came from, who checked it and when it expires, with the full toolset |
 | `skos` | glossaries, vocabularies and thesauri |
+| `asciidoc` | manuals and guides written in AsciiDoc |
 | `seal-only` | any text files (code, configuration) with nothing searched: just a guaranteed human review of each |
 
 Leave `holds=` out and `create` guesses from the folder, then asks you for what it cannot know. The choice is written to
-`bower.yaml` as `format:`, and you can change it later by editing that line. Here it is `markdown`:
+`bower.yaml` as `format:`, and you can change it later by editing that line. (An Obsidian, Foam, Dendron or Logseq folder is Markdown read with that tool's rules for links: install the add-on, `pip install 'bowerbird-mcp[obsidian]'` and so on, and write `format: obsidian` by hand. See [Formats](formats.md#format-add-ons).) Here it is `markdown`:
 
 ```sh
 uvx bowerbird-mcp create -t markdown -a "Infra runbooks." --apply -O text
@@ -108,6 +109,7 @@ uvx bowerbird-mcp status -O text
 concepts: 3
 by_type: {"(none)": 3}
 by_status: {"stable": 3}
+by_state: {"stable": 3}
 by_tier: {"unverified": 3}
 stale: 0
 hubs:
@@ -126,7 +128,7 @@ uvx bowerbird-mcp lint -O text
 bowerbird-mcp lint: ok: 0 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True
 ```
 
-`lint` checks the form of files. For plain Markdown there is little to check (the `okf` format has the most rules). Like
+`lint` checks the form of files. For Markdown it checks fact blocks and links that lead nowhere (a `[[wikilink]]` too), as warnings; the `okf` format has the most rules. Like
 every check it exits 0 when clean, 1 when there are findings and 2 for a usage error, so anything that can run a command
 can use it: your terminal, a script, CI, a git hook. Part 7 covers that.
 
@@ -305,7 +307,7 @@ hits:
 - **Narrow it with filters:** `type=`, `tag=`, `dir=`, `fields=` (look only in some fields), and `limit=` and `offset=`
   to page through a long list.
 
-On an MCP server, `search` is offered for `okf` collections. The other formats offer `passages`. At the command line `search`
+On an MCP server, `search` is offered for `okf`, `markdown` and `adr` collections (and the add-on formats). Every format offers `passages`. At the command line `search`
 reads any folder of Markdown, but it cannot see SKOS files.
 
 ### Ranked-result: `passages`
@@ -420,17 +422,17 @@ uvx bowerbird-mcp seal runbooks/deploy.md --attest
 ```
 
 ```text
-edited: {".": [".waxseals.yaml"]}
+edited: {".": ["runbooks/.waxseals.yaml"]}
 file: runbooks/deploy.md
 sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
 bowerbird: 2.0.0
 tier: human-reviewed
 ```
 
-The review goes into `.waxseals.yaml` (commit it), and your file is not touched:
+The review goes into a `.waxseals.yaml` in the file's folder (commit it), and your file is not touched. Here that is `runbooks/.waxseals.yaml`, and the line names the file from that folder:
 
 ```yaml
-- {file: runbooks/deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.0.0}
+- {file: deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.0.0}
 ```
 
 One line per file, and only the latest seal is kept: seal it again and the line is replaced (git has the earlier ones). In
@@ -475,7 +477,7 @@ Two commands read a collection and **exit with a failure code when something is 
 
 | Command | It checks | For |
 |---|---|---|
-| `lint` | the form of every file: a header, links that resolve, no empty files, no duplicate titles, no secrets that look like keys, index and log files well formed | `okf` |
+| `lint` | the form of every file: a header, links that resolve, no empty files, no duplicate titles, no secrets that look like keys, index and log files well formed (`okf`); fact blocks and links that resolve (`markdown`, `adr` and the add-on formats) | `okf`, `markdown`, `adr` |
 | `seal -c` | that a person has reviewed the current version of every file the policy requires | every format |
 
 Each finding names the file, what is wrong and how to fix it, and a last line says the check ran, whether it passed or not.
@@ -535,7 +537,7 @@ and it does.
           verbose: true
   ```
 
-  Keep the hooks you use: `lint` is for OKF collections, `seal -c` for any. `verbose: true` makes pre-commit print the
+  Keep the hooks you use: `lint` is for OKF, Markdown and ADR collections (the other formats have nothing for it to check), `seal -c` for any. `verbose: true` makes pre-commit print the
   verdict line even when the check passes.
 
 [The guide](guide.md#ci) has full workflows for GitHub Actions, baselines and pull requests.

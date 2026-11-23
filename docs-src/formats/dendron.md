@@ -45,9 +45,9 @@ parent of one is a broken link (a `dead_link` warning).
 
 ## Reviews and lint
 
-As in [Markdown](markdown.md): seals live in a `.waxseals.yaml` beside the note, and `lint` warns of a wikilink that leads nowhere.
+Seal a note as in [Sealing](../sealing.md); the review goes in a `.waxseals.yaml` in the note's folder, and the note is never edited. `lint` is offered here as in [Markdown](markdown.md): it checks fact blocks and warns of a wikilink that leads nowhere (`dead_link`) or to a heading that is not there (`dead_anchor`).
 
-## What it does not do yet
+## Limits
 
 - Wildcard references (`![[demo.journal.*]]`) and range references (`![[note#start:#end]]`) are not followed.
 - Schemas (`*.schema.yml`) are not read, and nothing checks a note against one.

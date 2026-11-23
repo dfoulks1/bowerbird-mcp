@@ -86,9 +86,11 @@ The base install is small: search, lint, seal, the MCP server and the CLI. Anyth
 | `syntax` | `pygments` | highlighted code files in `serve` (use with `serve`) |
 | `semantic` | `fastembed` (about 150 MB; the model, about 65 MB, downloads once) | `semantic: true`, matching passages by meaning |
 | `skos` | `rdflib` | `format: skos` |
+| `obsidian`, `foam`, `dendron`, `logseq` | the add-on of that name (`bowerbird-obsidian`, ...) | `format: obsidian` (or the others): a [format add-on](https://bowerbird.voltpop.com/formats/#format-add-ons) |
+| `fact-pack` | the add-on `bowerbird-fact-pack` | five more kinds of fact: `key`, `git`, `until`, `manual`, `script` |
 | `sqlite-vec` | `sqlite-vec` | `vector_index: sqlite-vec` |
 | `hnsw` | `hnswlib` | `vector_index: hnsw` |
-| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum |
+| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}` (several people seal one version, with a quorum) and `seal: {extensions: true, count: true}` (how many people hold a file) |
 
 Ask for one, or several, in the same places:
 
@@ -142,7 +144,7 @@ about: Engineering runbooks.   # shown to the agent; tells collections apart
 user: your-id         # your id in confirmation prompts: personal, prefer BOWERBIRD_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (BOWERBIRD_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | adr | markdown | skos | asciidoc | seal-only: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos | asciidoc | seal-only, or an add-on's: obsidian | foam | dendron | logseq (see Formats)
 hubs: true            # concepts many others link to rank a little higher
 semantic: false       # also match by meaning (see Reading the collection)
 semantic_model: BAAI/bge-small-en-v1.5
@@ -261,20 +263,23 @@ search, index and review tools work across them.
   its name or folder, and no frontmatter is needed. A hit gets type `adr` and its `status`, read from MADR frontmatter,
   a `## Status` section (Nygard) or a `* Status:` line (MADR 2).
 - `markdown`: any other folder of Markdown, no frontmatter needed; `index.md` and `log.md` are ordinary files. A
-  numbered file name (`0007-use-queue.md`) or a path through `adr`, `adrs` or `decisions` still counts as an ADR.
+  numbered or dated file name (`0007-use-queue.md`) or a path through `adr`, `adrs` or `decisions` still counts as an ADR.
+  `[[wikilinks]]` are links, and `lint`, `fact` and `factcheck` are offered.
 - `asciidoc`: AsciiDoc (`*.adoc`, `*.asciidoc`), no frontmatter needed. One passage per section; the document header's
   `:name: value` attributes (or YAML front matter) are the metadata, and `xref:`, `link:` and `<<file.adoc#id>>` links count.
   `include::` is not followed.
 - `skos`: SKOS thesauri as Turtle, RDF/XML, JSON-LD, N-Triples or N3 (`*.ttl`, `*.rdf`, `*.jsonld`, `*.nt`, `*.n3`;
-  needs `pip install rdflib`). One passage per concept, headed by its broader chain, with its labels, notes and
+  needs `pip install 'bowerbird-mcp[skos]'`). One passage per concept, headed by its broader chain, with its labels, notes and
   broader, narrower and related concepts in the text.
+- `obsidian`, `foam`, `dendron`, `logseq`: Markdown as that tool writes it (add-ons: `pip install 'bowerbird-mcp[obsidian]'`, `[foam]`, `[dendron]`, `[logseq]`). The add-on is found by the entry point
+  group `bowerbird.formats` and selected by `format: <name>`; it changes how links, tags and names are read, and the tools are Markdown's.
 - `seal-only`: any text files (code, configuration), with nothing indexed or searched. Every file is checked; name the ones
   to leave out in `seal.exempt`. The one tool is `seal`, and `bowerbird-mcp seal check=true` fails when a file has no human
   review of its current version.
 
 Outside `okf` a server offers only the tools that format uses: `passages`, `reindex` and `seal` for every format but
-`seal-only` (just `seal`); `markdown` adds `get`, `search`, `dirs`, `links`, `list`, `status`, `heatmap`, `create` and
-`config`; `adr` adds `move`; `asciidoc` adds `heatmap`. The command line always has every tool. A hit is `unverified`
+`seal-only` (just `seal`); `markdown` adds `get`, `search`, `dirs`, `links`, `list`, `status`, `heatmap`, `create`, `config`, `new`, `lint`, `fact` and
+`factcheck`; `adr` adds `move`; `asciidoc` adds `heatmap`; the four add-on formats offer what `markdown` does. The command line always has every tool. A hit is `unverified`
 until a human seals that exact file (see [Sealing](https://bowerbird.voltpop.com/sealing/)): reviews go in
 `.waxseals.yaml`, not in the file. `create` guesses
 the format from the folder, and the agent's instructions follow it.
@@ -416,8 +421,7 @@ bowers: [docs-src, adr/*]   # folders (globs are fine) that carry their own bowe
 - With no root `bower.yaml` and no git repository, nothing below the folder is scanned.
 
 What each tool does with the ADR folder inside an OKF bundle: `passages`, `search`, `list`, `status`, `links`, `web`
-and `seal` include it, each file read in its own format (an ADR's status, its review in `.waxseals.yaml`). `lint`,
-`fix`, `index`, `provenance` and `upgrade` leave it out, since they judge and rewrite OKF concepts. `move` and `migrate` still
+and `seal` include it, each file read in its own format (an ADR's status, its review in `.waxseals.yaml`). `lint` checks its facts and links but does not judge it as OKF; `fix`, `index`, `provenance` and `upgrade` leave it out, since they rewrite OKF concepts. `move` and `migrate` still
 rewrite links in it, and a moved ADR keeps its review. Links between the two work in both
 directions. A server offers the tools of every format in use.
 
@@ -505,8 +509,8 @@ at a terminal `--attest` records you; in `serve` (the browser) a dialog asks the
 `verify` (the OKF word), and `ratify` or `accepted` (the ADR words), are its command-line names too.
 
 - **`okf`:** a `verified: {by, at, sha256}` entry in the concept's own frontmatter.
-- **`markdown`, `adr`, `skos`, `asciidoc` and `seal-only`:** one dense line per file in `.waxseals.yaml` at the collection root (commit it), holding only the latest
-  review: file, sha256, who, when, `bowerbird` (the version that wrote it), and `decision=accepted|rejected` for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
+- **`markdown`, `adr`, `skos`, `asciidoc`, `seal-only` and the add-on formats:** one dense line per file in a `.waxseals.yaml` in the file's own folder (commit it; one at the collection root, from before 2.3, is still read), holding only the latest
+  review: file, sha256, who, when, `bowerbird` (the version that wrote it), and `decision=accepted|rejected` for an ADR (required when a person seals one). The file itself is never edited, so Nygard ADRs, MADR and
   thesauri all work.
 
 Like a wax seal, a review breaks when the file changes, and only a new review makes a new one (it replaces the old line; git has the history). The sha256 covers the file's exact bytes (line endings normalized; for `okf`, without the `verified` key). Edit the
