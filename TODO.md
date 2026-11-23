@@ -4,38 +4,27 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ## 2.3
 
+Built and committed on `2.3`. What is left is yours.
+
 ### Needs a decision from you
 
-- [ ] **Ratify ADR-004** (OKF keeps its reviews and facts in the shared files; `proposed`, with a setting `okf: {records: files}` off by default in 2.3). Its two asks: when the default flips, and whether
-      `okf import` runs by itself when a bundle is shipped. The build is not started: `seal` and `fact` need an OKF branch for the setting, and `okf export` and `import` need tests both ways. It can wait for 2.4 if
-      you want 2.3 out first.
-
-### Documentation passes
-
-- [ ] **Facts pass.** Facts have their own page (`docs-src/facts.md`). Left:
-  - trim the facts section of `docs-src/formats/okf.md` to what is OKF's (it still repeats the grammar and the kinds);
-  - make every example in the docs use the one grammar, and read the new page against the code line by line;
-  - check the facts mentions in `README.md`, `getting-started.md`, `cli.md`, `guide.md`, `BOWERBIRD.md` and the `tools.md` docstrings.
-- [ ] **Formats pass.** `formats.md` and each format page (the six formats and four add-ons) read as one set: the same sections in the same order, the same words for the same thing, the
-      tool tables right for every format, and the README and getting-started in step. Check every example against the code.
+- [ ] **ADR-004 is accepted; its build is not started.** `okf: {records: files}` (off by default in 2.3): `seal` and `fact` write the shared files for OKF, every tool reads them there, and `okf export` and `okf import`
+      are the bridge, tested both ways. Build it before 2.3, or ship 2.3 first? I would ship first: it is a new setting that is off by default, and nothing in 2.3 depends on it.
 
 ### Needs a person or a real environment
 
-- [ ] `factcheck --fetch` against real pages that block it (StackOverflow, say), and semantic mode against the real embedder.
-- [ ] The new badges and the Facts tab in a real browser, and the bibliography in the built site (`tools/QA.sh --rebuild`); the tests cover the HTML, not how it looks.
+- [ ] The new badges and the Facts tab in a real browser, and the Web UI generally (`tools/QA.sh --rebuild` builds the site; the tests cover the HTML, not how it looks).
 - [ ] Each format against a real vault (Obsidian, Foam, Dendron, Logseq). Only made-up collections have been tested (each format's page says which); the rules came from each tool's
       documentation, read second-hand, and the unconfirmed ones are listed on the page (case rules, duplicate names, what a tool does with links in code).
-- [ ] QA: `tools/QA.sh` on 3.10 to 3.14 (3.12 once failed a test that starts a subprocess without `yaml`), the Web UI in a browser, the docs hook with fact blocks, and
-      `uvx --from 'bowerbird-mcp[semantic]'`.
+- [ ] A real MCP call for an `mcp` fact (it needs a `.mcp.json` and a server); every other kind has run for real.
 
 ### Release
 
-- [ ] **ADR-001's header** still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `landed`
-      (it stales its seal, so do it with the re-seal below).
-- [ ] Re-seal the pages edited since they were sealed: ADR-001 (its header and amendment), `TODO.md`, `BOWERBIRD.md`, the new pages (`facts.md`, `fact-pack.md` and the four formats) and every other page
-      changed on the branch (`git diff --stat main..2.3 -- docs-src` lists them; `docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
-- [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons, each at the release's version), then add the extras to
-      `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
+- [ ] Re-seal everything changed on the branch: `git diff --stat main..2.3 -- docs-src '*.md'` lists the pages (the ADRs you accepted are sealed; ADR-001's header and amendment, `TODO.md`, `BOWERBIRD.md`, the pages the passes
+      rewrote and the new pages are not). `docs-src/tools.md` is derived and needs none.
+- [ ] Then `tools/QA.sh --rebuild` to rebuild `docs/` (the badges are drawn from the ledger, so it must follow the re-seal), and commit it.
+- [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons: all are at 2.3.0 and build clean), then add the extras to
+      `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; replace the empty `seal-extensions = []`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
 - [ ] Merge `2.3`. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
 
 ## Later
@@ -43,6 +32,9 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 ### Facts
 
 - [ ] Fact kinds nobody has asked for yet: scoped claims, and a quote to watch for paraphrases.
+- [ ] Semantic mode passes a contradiction (a paraphrase scores 0.62 to 0.80, a swapped noun 0.65 to 0.80, so the score cannot tell them apart): require numbers and proper nouns to appear verbatim, or a second check.
+- [ ] A captcha or login page with a lot of text still reads as a drift; only a redirect to another host and a page with almost no words are called an error.
+- [ ] `okf import` gives a block fact of kind `file`, `key` and the rest the resource `<kind>:<source>`; decide what OKF readers should see for them.
 
 ### Seals
 
