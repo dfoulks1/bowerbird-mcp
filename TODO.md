@@ -65,10 +65,8 @@ Everything optional about sealing belongs to the `seal-extensions` add-on (`addo
       sealer. Useful for ratified ADRs, charters, policy, security docs and release notes; pointless at N=1. Break as review-then-change: the
       person sees the proposed change and the seal it would break (the `review_ui` dialog, as RTC), approves, and only then does the edit apply.
       A denial writes nothing. Builds on the `rtc` branch, which stays off `main` until you say.
-- [ ] **Seal count as importance.** Show N wherever a file shows (docs badge, `serve` list, `seal check`, search results), and let `heatmap` and search
-      rank by it, counting only live seals. Each seal is a person who judged the file worth their review, so the count is earned, not guessed.
-      A heavily sealed file marks its subject as important, and a recurring multi-seal workflow marks the process as common; with the mode off
-      a count means neither.
+- [ ] **Seal count as importance, what is left.** `seal.count` is built (`list`, `passages`, search rank, `seal check`'s `most_sealed`). Left: show N in the `serve` list and the docs badge's tree, rank `heatmap` by it
+      (it ranks by git activity today), and show it for OKF (it counts ledger seals, so OKF waits for OKF to use the ledger).
 - [ ] **Optional, not core:** all of it lives in the `seal-extensions` add-on (`addons/seal-extensions`, which holds several signers and the quorum today), not in a separate
       `[tally]` extra. Each feature is off by default and switched on under `seal:` in `bower.yaml` (`seal.tally`: threshold, gate or inform). Plain seals work unchanged without it.
 - [ ] **Open:** does the warning gate (refuse until broken) or only inform; who may break whose seal; one voter one vote, by what identity;

@@ -74,6 +74,9 @@ seal: {extensions: true, quorum: 2}
 - **`quorum: N`** (2 or more needs `extensions: true`) is how many *different people* a version needs. Until it has them, `seal check`
   reports `short_of_quorum` (`1 of 2 human reviews of this version`) and the file's tier is `unverified`, not `human-reviewed`. A machine
   check (`by=<tool>`) is never counted as a person.
+- **`count: true`** (needs `extensions: true`) counts the different people who hold a file's current version as its **importance**: each seal is a person who judged the file worth their review, so
+  the count is earned, not guessed. `list` and `passages` show it (`seals: 2`), a search ranks a file a little higher for each (the way it does for each link to it), and `seal check` lists the
+  `most_sealed`. Only live seals count: an edit ends them, so a changed file drops to 0. Off, none of this appears.
 - A folder can set its own, since `seal` is one of the keys a [bower](formats.md) may override.
 - **The add-on** is called `seal-extensions` (`bowerbird-seal-extensions`, in `addons/seal-extensions/`): `uv tool install 'bowerbird-mcp[seal-extensions]'`. Installing it is not enough: the
   setting is what turns the behaviour on. Without the add-on, seals work as before, one latest review per file, comments included, and a collection that sets `extensions: true` is told to install it

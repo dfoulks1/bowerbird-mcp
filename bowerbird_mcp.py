@@ -70,7 +70,7 @@ DEFAULTS: dict[str, typing.Any] = {  # bower.yaml keys beyond root, user and ai_
     "min_similarity": 0.6,  # a passage must be at least this close in meaning
     "vector_index": "scan",  # how semantic search finds neighbours: scan (exact, Python), sqlite-vec (exact, C), hnsw (approximate)
     "index": ".bower/index.db",  # one SQLite file for passages, BM25, links and vectors; "" keeps it in memory
-    "seal": {"exempt": [], "exempt_status": ["proposed", "draft"], "extensions": False, "quorum": 1},  # `seal check=true` checks every file except the exempt; extensions: several signers and quorum
+    "seal": {"exempt": [], "exempt_status": ["proposed", "draft"], "extensions": False, "quorum": 1, "count": False},  # `seal check=true` checks every file except the exempt; extensions: several signers and quorum
     "build": "auto",  # auto: passages keeps the index current; manual: only `reindex` does, passages just reads
     "roles": ["read", "write", "structure", "lifecycle", "seal"],  # which roles the MCP server may offer; drop one to turn it off
     "about": ""}  # a sentence for the agent: what this collection holds (matters with several loaded)
@@ -177,10 +177,11 @@ EXAMPLE_CONFIG = """\
 # review by a human, when a reviewed file was edited since, or when a file claims to be accepted without one. exempt is a
 # list of globs (a generated page, say: exempt: ["/tools.md"]); exempt_status lists statuses that need no review yet.
 # Shared: .env and the environment cannot change it.
-# The seal extensions (the `seal-extensions` extra): extensions: true lets several people seal the same version of a file, kept
+# The seal extensions (the `seal-extensions` add-on): extensions: true lets several people seal the same version of a file, kept
 # together in one ledger line, and quorum: N (2 or more needs extensions: true) makes `seal check` fail until N different people
-# have. A comment on a seal needs neither: every seal can carry one.
-# seal: {exempt: [], exempt_status: [proposed, draft], extensions: false, quorum: 1}
+# have. count: true (needs extensions) counts those people as the file's importance: `list` and `passages` show the number, and a search ranks
+# a file a little higher for each. A comment on a seal needs none of this: every seal can carry one.
+# seal: {exempt: [], exempt_status: [proposed, draft], extensions: false, quorum: 1, count: false}
 
 # false removes the passages and reindex tools.
 # passages: true
@@ -399,15 +400,17 @@ def check(c, f):
         if not (isinstance(dv, float) and isinstance(v, (int, float)) and not isinstance(v, bool)) and type(v) is not type(dv):
             raise SystemExit(f"error: {f}: {k} must be a {type(dv).__name__} | fix: e.g. {k}: {dv!r}")
     vp = c.get("seal", {})
-    if set(vp) - {"exempt", "exempt_status", "extensions", "quorum"} or any(
+    if set(vp) - {"exempt", "exempt_status", "extensions", "quorum", "count"} or any(
             not isinstance(vp.get(k, []), list) or not all(isinstance(x, str) for x in vp.get(k, [])) for k in ("exempt", "exempt_status")):
-        raise SystemExit(f"error: {f}: seal takes exempt and exempt_status (lists of strings), extensions (true or false) and quorum" + (
+        raise SystemExit(f"error: {f}: seal takes exempt and exempt_status (lists of strings), extensions (true or false), quorum and count (true or false)" + (
             " (seal.require is gone: every file is checked, so list the ones to leave out)" if "require" in vp else "") + " | fix: "
                          'seal: {exempt: ["/tools.md"], exempt_status: [proposed, draft]}')
     q = vp.get("quorum", 1)
     if not isinstance(vp.get("extensions", False), bool) or isinstance(q, bool) or not isinstance(q, int) or q < 1 or (q > 1 and not vp.get("extensions")):
         raise SystemExit(f"error: {f}: seal.extensions is true or false, and seal.quorum a whole number from 1 (above 1 it needs extensions: true)"
                          " | fix: seal: {extensions: true, quorum: 2}")
+    if not isinstance(vp.get("count", False), bool) or (vp.get("count") and not vp.get("extensions")):
+        raise SystemExit(f"error: {f}: seal.count is true or false, and counting seals needs extensions: true | fix: seal: {{extensions: true, count: true}}")
     fc = c.get("facts", {})
     shape = lambda v, extra=(): isinstance(v, dict) and set(v) - {"tool", "arg", "watch", *extra} == set() and all(
         isinstance(v.get(k), str) for k in ("tool", "arg", *extra)) and isinstance(v.get("watch", ""), str)
@@ -2109,7 +2112,7 @@ def list_(type: str = "", tag: str = "", status: str = "", tier: str = "", stale
         d, okf = x.meta, fmt_of(x.path) == "okf"
         row = {**ref(x.path, b), "id": x.rel[:-3], "title": title_of(d, x.text, x.path), "type": d.get("type"),
                "status": d.get("status") or "stable" if okf else adr_state(d), "tier": trust_tier(d), "stale": is_stale(d),
-               **({} if okf else {"state": adr_phase(d)}),
+               **({} if okf else {"state": adr_phase(d)}), **({"seals": d.get("seal_count", 0)} if seal_count_on(x.path) else {}),
                "description": describe(d, x.text)}
         tags = d.get("tags") if isinstance(d.get("tags"), list) else []
         if ((not type or row["type"] == type) and (not tag or tag in map(str, tags))
@@ -2656,7 +2659,8 @@ def passages(query: str, type: str = "", tag: str = "", dir: str = "", limit: in
             rl, rs = rank(lex), rank(cos)  # reciprocal rank fusion: no weights to tune
             score = {i: sum(1 / (60 + q[i]) for q in (rl, rs) if i in q) for i in {*rl, *rs}}
         links = dict(con.execute("SELECT dst, COUNT(*) FROM links GROUP BY dst")) if OPTS["hubs"] else {}
-        scored = sorted(((sc * (1 + .15 * math.log1p(links.get(rows[i][4], 0))), i) for i, sc in score.items()),
+        sealed = seal_counts({rows[i][4] for i in score})  # {file: different people who hold it}, for the files whose policy counts them
+        scored = sorted(((sc * (1 + .15 * math.log1p(links.get(rows[i][4], 0))) * (1 + .2 * math.log1p(sealed.get(rows[i][4], 0))), i) for i, sc in score.items()),
                         key=lambda t: (-t[0], rows[t[1]][0], rows[t[1]][1], t[1]))
         top = page(scored, limit, offset)
         det = {i: d for i, *d in con.execute(
@@ -2669,8 +2673,17 @@ def passages(query: str, type: str = "", tag: str = "", dir: str = "", limit: in
         hits.append({"bundle": b, "file": rl, "line": line, "heading": head,
                      "match": 100 if best <= 0 else round(100 * sc / best), "title": title,
                      "type": d.get("type"), "status": d.get("status") or "stable", "tier": trust_tier(d),
-                     "stale": is_stale(d), "links": links.get(key, 0), "text": body})
+                     "stale": is_stale(d), "links": links.get(key, 0), **({"seals": d.get("seal_count", 0)} if seal_count_on(ROOT / key) else {}), "text": body})
     return {"total": len(scored), "gap": not scored, "hits": hits}  # shortcut: no stemming
+
+
+def seal_counts(keys) -> dict:
+    """{file: how many different people hold its current version}, for the files among `keys` that have a seal and whose policy has `count` on. Reads only those files."""
+    led, out = ledger_by_file(), {}
+    for key in keys:
+        if key in led and seal_count_on(ROOT / key) and (text := read(ROOT / key)) is not None:
+            out[key] = seal_n(reviews({}, key, text, led)[1])
+    return out
 
 
 def reindex(full: bool = False, info: bool = False, drop: bool = False) -> dict:
@@ -3301,6 +3314,18 @@ def seal_ext(p) -> tuple:
     return (True, pol["quorum"]) if pol["extensions"] else (False, 1)
 
 
+def seal_count_on(p) -> bool:
+    """Is a file's seal count switched on (`seal: {extensions: true, count: true}`) for the policy in force at p?"""
+    return bool(policy_for(p)[1].get("count"))
+
+
+def seal_n(valid: list) -> int:
+    """How many different people hold this exact version of a file: its importance, each seal a person who judged it worth their review. Only live seals count."""
+    if (m := seal_mod()) is None:
+        raise ValueError("seal.count needs the seal-extensions add-on | fix: pip install 'bowerbird-mcp[seal-extensions]'")
+    return len(m.signers(valid))
+
+
 def quorum_gap(key: str, valid: list):
     """'n of q' when the seal extensions need more different people to have reviewed this version of the file than have, else None."""
     on, q = seal_ext(ROOT / key)
@@ -3443,6 +3468,8 @@ def signed(d: dict, key: str, ledger: dict) -> dict:
     out = {**d, "verified": [{"by": e["by"], "at": e.get("at"), **({"comment": e["comment"]} if e.get("comment") else {})} for e in valid]}
     if gap := quorum_gap(key, valid):
         out["quorum_short"] = gap
+    if seal_count_on(ROOT / key):
+        out["seal_count"] = seal_n(valid)
     if valid and fmt_of(ROOT / key) != "okf" and valid[-1].get("decision"):
         out["status"] = valid[-1]["decision"]
     if len(valid) < len(es):
@@ -3638,8 +3665,9 @@ def signatures(since: str = "") -> dict:
                 findings.append(flag("orphan_signature", key, f"{LEDGER} has a review of a file that is gone", f"delete its line in {LEDGER}, or keep it with the file by using move", "warning"))
             elif not reviews({}, key, text, ledger)[1]:
                 findings.append(flag("stale_signature", key, "edited since it was reviewed", f"review it again: {SIGN} {key} --attest"))
+    most = sorted(((c, k) for k, c in seal_counts(ledger).items() if c), key=lambda t: (-t[0], t[1]))[:10]  # the files the most people have sealed (seal.count)
     return {"tool": "seal", "ok": not any(f["severity"] == "error" for f in findings), "files_checked": n,
-            "total": len(findings), "findings": findings}
+            "total": len(findings), "findings": findings, **({"most_sealed": [{"file": k, "seals": c} for c, k in most]} if most else {})}
 
 
 def review_target(file: str, bundle: str, decision: str) -> tuple:

@@ -2755,6 +2755,45 @@ def ext_vault(d):
 in_vault("markdown", {"a.md": "# A\n\nbody\n"}, ext_vault)
 
 
+# seal.count: the number of different people who hold a file is its importance: shown in list and passages, a little rank in a search, and the most sealed in `seal check`
+def counted(d):
+    saved = (dict(bb.OPTS["seal"]), bb.SEAL_EXT)
+    try:
+        for n in ("a", "b"):
+            (d / f"{n}.md").write_text(f"# {n.upper()}\n\nThe quokka lives here.\n")
+        bb.OPTS["seal"] = {**saved[0], "extensions": True, "quorum": 1}
+        bb._POLICY.clear()
+        for f, who in (("a.md", "ann"), ("b.md", "ann"), ("b.md", "bo")):
+            bb.ledger_put(f, {"file": f, "sha256": bb.content_hash((d / f).read_text(), False), "by": f"human:{who}", "at": "2026-11-23T10:00:00Z"})
+        order = lambda: [h["file"] for h in bb.passages("quokka")["hits"]]
+        assert order() == ["a.md", "b.md"] and "seals" not in bb.passages("quokka")["hits"][0] and "most_sealed" not in bb.signatures()  # off: a tie, by path
+        assert "seals" not in bb.list_(limit=0)["concepts"][0]
+        bb.OPTS["seal"] = {**saved[0], "extensions": True, "quorum": 1, "count": True}
+        bb._POLICY.clear()
+        assert order() == ["b.md", "a.md"]  # on: two people hold b.md, one holds a.md
+        assert {h["file"]: h["seals"] for h in bb.passages("quokka")["hits"]} == {"a.md": 1, "b.md": 2}
+        assert {c["file"]: c["seals"] for c in bb.list_(limit=0)["concepts"]} == {"a.md": 1, "b.md": 2}
+        assert bb.signatures()["most_sealed"] == [{"file": "b.md", "seals": 2}, {"file": "a.md", "seals": 1}]
+        (d / "b.md").write_text("# B\n\nThe quokka lives here, edited.\n")  # an edit ends the seals: only live ones count
+        assert {c["file"]: c["seals"] for c in bb.list_(limit=0)["concepts"]} == {"a.md": 1, "b.md": 0} and bb.signatures()["most_sealed"] == [{"file": "a.md", "seals": 1}]
+        bb.SEAL_EXT = None
+        assert "seal-extensions add-on" in raises(bb.list_, limit=0)  # counting needs the add-on
+    finally:
+        bb.OPTS["seal"], bb.SEAL_EXT = saved
+        bb._POLICY.clear()
+    for bad in ("seal: {count: true}\n", "seal: {extensions: true, count: 3}\n"):  # counting needs extensions, and is true or false
+        (lg / "bower.yaml").write_text(bad)
+        try:
+            bb.load_config(lg)
+            raise AssertionError(bad)
+        except SystemExit as e:
+            assert "seal.count" in str(e), (bad, str(e))
+    (lg / "bower.yaml").write_text("seal: {extensions: true, count: true}\n")
+    assert bb.load_config(lg)[1]["seal"]["count"] is True
+    (lg / "bower.yaml").unlink()
+in_vault("markdown", {"a.md": "x\n"}, counted)
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)
