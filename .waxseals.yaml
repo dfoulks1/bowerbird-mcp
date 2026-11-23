@@ -6,17 +6,19 @@
 - {file: NOTICE, sha256: 0b42944ba49fcb6510b7c1a2e96149e21fee412ed4effa8d4cfdb79337b75a17, by: 'human:dfoulks', at: '2026-11-20T15:19:13Z', bowerbird: 2.2.0}
 - {file: README.md, sha256: 2f9e94818e3dc1cb60ee7d34af45e1b40ec5e4493bf109a4ea8384fa1ce9445d, by: 'human:dfoulks', at: '2026-11-20T17:22:18Z', bowerbird: 2.2.0}
 - {file: SECURITY.md, sha256: f5a2fb97c02431a8e489ef93b499deaf11bd043486220720953c8c032f2ea35d, by: 'human:dfoulks', at: '2026-11-20T15:19:20Z', bowerbird: 2.2.0}
-- {file: TODO.md, sha256: b5908fdc27b902fec15ec5aab90da5a06cf165b4a4e57a2ebe9454a21399b01f, by: 'human:dfoulks', at: '2026-11-20T17:33:06Z', bowerbird: 2.2.0}
+- {file: TODO.md, sha256: cc11a95507cb86fb40e6dc4e2b76d0d0d43cf39d5341576a31ddf0ec23ce3e9f, by: 'human:dfoulks', at: '2026-11-23T13:20:40Z', bowerbird: 2.2.0}
 - {file: bowerbird_facts.py, sha256: a45ac9d25ab7fe3bb5d84459b74d1d21abc9815f105ec5277276f39c30d8f25d, by: 'human:dfoulks', at: '2026-11-20T17:00:46Z', bowerbird: 2.2.0}
 - {file: bowerbird_logo.py, sha256: 1f0d64c51f23f645faf2f977c5fe7bebb730efba188823b7192b60f273df1950, by: 'human:dfoulks', at: '2026-11-20T13:41:28Z', bowerbird: 2.2.0}
 - {file: bowerbird_mcp.py, sha256: 5aeabcfedc2d9072541147e454695b2a4521a1d94c45c816a9d422b11360d9b1, by: 'human:dfoulks', at: '2026-11-20T17:34:13Z', bowerbird: 2.2.0}
-- {file: bowerbird_okf.py, sha256: a49ce3776d1ae02f27da0cd13a4c18a39061ab576ff6c8d6b14f969ed3a8f7f1, by: 'human:dfoulks', at: '2026-11-20T17:13:03Z', bowerbird: 2.2.0}
+- {file: bowerbird_okf.py, sha256: 8841bc7f991a679d44949d5d11dfaa3ed0dbd23ffb040e8e5d6f51a3e3fb02d2, by: 'human:dfoulks', at: '2026-11-23T13:53:04Z', bowerbird: 2.2.0}
 - {file: bowerbird_seal.py, sha256: 2a6ae4aafc908a7bf375d3ef8011284c7f683caa7905f1c70a46b4a92415099b, by: 'human:dfoulks', at: '2026-11-20T16:06:16Z', bowerbird: 2.2.0}
 - {file: bowerbird_serve.py, sha256: 05917de8add9a91cc2d4fc5e62d9ed7e67da387535272deb1af0133b4073ef5a, by: 'human:dfoulks', at: '2026-11-20T17:33:36Z', bowerbird: 2.2.0}
 - {file: docs-src/agents.md, sha256: 9b1c98cdc9d14d5d0b8dfb83c4477db359c47113bd77d1eca73379fd90c3de47, by: 'human:dfoulks', at: '2026-11-20T17:23:18Z', bowerbird: 2.2.0}
 - {file: docs-src/badges.md, sha256: 2855d133bf116b3d452ab7d1663ff2c03aa6bb223a0e483e87044f36aae456c3, by: 'human:dfoulks', at: '2026-11-20T17:23:26Z', bowerbird: 2.2.0}
 - {file: docs-src/cli.md, sha256: b0f565457537253e60baecca958abc4e7dc65614e9a2ac2d57e7dee4dd049362, by: 'human:dfoulks', at: '2026-11-20T17:23:32Z', bowerbird: 2.2.0}
 - {file: docs-src/contributing.md, sha256: 92089f0ecb0fa6079f14bb2e8bafb12beaf15c08878c8b69740f6aa00a3d9958, by: 'human:dfoulks', at: '2026-11-16T20:14:31Z', bowerbird: 2.0.0}
+- {file: docs-src/decisions/ADR-001-fact-kinds-core-and-pack.md, sha256: 4090c2b522b58d05aadf8cb19b88bd84a87c6005ca834a23737844c4af785e5f, by: 'human:dfoulks', at: '2026-11-23T13:26:00Z', bowerbird: 2.2.0, decision: accepted}
+- {file: docs-src/decisions/ADR-002-format-plugins.md, sha256: 71324bc8e7872859af1e1c345af57a9f3facb7ad208ce587bb250da3636b03b3, by: 'human:dfoulks', at: '2026-11-23T13:26:07Z', bowerbird: 2.2.0, decision: accepted}
 - {file: docs-src/formats.md, sha256: a409857456bc67f1fb27bdc65b273cce6d4b83859c364db66c5e4e170fe7086c, by: 'human:dfoulks', at: '2026-11-20T17:30:13Z', bowerbird: 2.2.0}
 - {file: docs-src/formats/adr.md, sha256: 539141cc77874d698bdac5a80de0df7643c8ed29bda19932b2c0e4a4679233f6, by: 'human:dfoulks', at: '2026-11-20T17:26:05Z', bowerbird: 2.2.0}
 - {file: docs-src/formats/asciidoc.md, sha256: 4ee86cedb2b630b4a196a92441893d12e83edb4fdabd9dca748fd21eda9f7988, by: 'human:dfoulks', at: '2026-11-20T17:26:12Z', bowerbird: 2.2.0}
@@ -28,10 +30,11 @@
 - {file: docs-src/index.md, sha256: 4a2b667b8b25aa664c73ca75917c99e488ff9e5428097bf2a4e385cdb0899407, by: 'human:dfoulks', at: '2026-11-20T16:05:20Z', bowerbird: 2.2.0}
 - {file: docs-src/prompts/00-context.md, sha256: a70ec1500a4ff8185d8f46997984286891b8a2bf07672d84e088c9f71ee0e568, by: 'human:dfoulks', at: '2026-11-18T14:39:27Z', bowerbird: 2.1.1}
 - {file: docs-src/prompts/01-ui-security.md, sha256: 26e2aa8e82889c0ae77f9ae3a3f9ea96686e150420598f14fd479135e02c2ed4, by: 'human:dfoulks', at: '2026-11-18T15:07:52Z', bowerbird: 2.1.1}
+- {file: docs-src/prompts/02-release-2.2.0.md, sha256: 3eeb897691b7e26918ce8d183334d628dd980d0ac2dce70ca0ada82fc950e174, by: 'human:dfoulks', at: '2026-11-23T13:27:08Z', bowerbird: 2.2.0, decision: accepted}
+- {file: docs-src/prompts/2026-11-23-adr-fact-kinds-NEXT.md, sha256: 15bb13655fadc74ba497ab82adf5df51018c5dc2ff24fda05033154a88a998fe, by: 'human:dfoulks', at: '2026-11-23T13:27:16Z', bowerbird: 2.2.0, decision: accepted}
 - {file: docs-src/releasing.md, sha256: 81b6bbf1f0d82e93284dca9958b374bfd2a54f6f8bf9fdbdbc69217210cef5c5, by: 'human:dfoulks', at: '2026-11-20T15:15:51Z', bowerbird: 2.2.0}
 - {file: docs-src/sealing.md, sha256: f626e113cea9eefa22e3a9604819d4e9f54b4af2bc6261a2a2ad4a585d932238, by: 'human:dfoulks', at: '2026-11-20T17:24:36Z', bowerbird: 2.2.0}
 - {file: docs-src/serve.md, sha256: b5f3e3642a42cf385023ba3fc6e4f6d3c8fe86e27481f64d9b301959a352c42b, by: 'human:dfoulks', at: '2026-11-20T17:24:49Z', bowerbird: 2.2.0}
-- {file: docs-src/tools.md, sha256: 9578260986b536f7bfe7f44ce5e62e1255fa7e1baa1e1390bf1d63ccdc773700, by: 'generator:docs_tools.py', at: '2026-11-20T16:49:26Z', bowerbird: 2.2.0, derived: docs_tools.py}
 - {file: docs-src/troubleshooting.md, sha256: c213523d56d029c65f8067d763ce3598d94f593228ba3f5f671ab74855e55229, by: 'human:dfoulks', at: '2026-11-20T17:25:02Z', bowerbird: 2.2.0}
 - {file: docs/, by: 'generator:mkdocs', at: '2026-11-20T17:05:48Z', bowerbird: 2.2.0, derived: mkdocs}
 - {file: docs_tools.py, sha256: c23818e214a9ef5862e4d11df537c17e514639f8bd74d0abec81ebaa048a58f5, by: 'human:dfoulks', at: '2026-11-20T17:22:03Z', bowerbird: 2.2.0}
