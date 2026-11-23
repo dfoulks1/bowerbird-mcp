@@ -7,6 +7,8 @@
   `bower.yaml` beside it stops the run with `git mv kbmcp.yaml bower.yaml`; the rest are ignored.
 
 ### Changed
+- **`list` and `status` tell the truth about an edited OKF concept.** An OKF concept's reviews are in its frontmatter, bound to its text; `list` and `status` showed one edited since as `human-reviewed` (a search and `seal check`
+  already said it was stale). They now say `unverified`.
 - **`seal.count`: how many people hold a file** (a human signal: a machine check is never counted). With `seal: {extensions: true, count: true}`, `list` and `passages` show `seals: N` (the different people whose seal of the current version holds), a search
   ranks a file a little higher for each, and `seal check` returns the `most_sealed`.
 - **Seal extensions are an add-on.** The code for several signers and a quorum moved out of core to `addons/seal-extensions` (`bowerbird-seal-extensions`, found through the `bowerbird.seal` entry point);

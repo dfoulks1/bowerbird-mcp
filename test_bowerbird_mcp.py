@@ -333,6 +333,9 @@ assert cli("fact", "file=note.md", "resource=https://x", "--attest")[0] == 2  # 
 assert "secret" not in json.dumps(bb.lint(limit=0))
 bb.fact("note.md", resource="https://example.com/page", title="Page")
 assert bb.lint()["ok"]
+assert bb.status()["by_tier"].get("human-reviewed", 0) == 0  # a new source changed the bytes: the review no longer holds, and status says so
+time.sleep(1.1)  # a review counts only if it is made after the last drift: not in the same second
+assert cli("verify", "file=note.md", "--attest")[0] == 0  # a human reviews it again
 
 # Symlinks are never followed.
 (coll / "alias.md").symlink_to(coll / "note.md")
@@ -2794,6 +2797,20 @@ def counted(d):
     assert bb.load_config(lg)[1]["seal"]["count"] is True
     (lg / "bower.yaml").unlink()
 in_vault("markdown", {"a.md": "x\n"}, counted)
+
+
+# an OKF concept's seal is in its frontmatter and goes stale when the text is edited: `list` says so, as a search and `seal check` do
+def okf_stale(d):
+    bb.ATTEST = "human:ann"
+    try:
+        asyncio.run(bb.seal(file="a"))
+    finally:
+        bb.ATTEST = ""
+    tier = lambda: {c["file"]: c["tier"] for c in bb.list_(limit=0)["concepts"]}["a.md"]
+    assert tier() == "human-reviewed"
+    (d / "a.md").write_text((d / "a.md").read_text().replace("Body text", "Changed body text"))
+    assert tier() == "unverified" and [h["tier"] for h in bb.passages("changed")["hits"]] == ["unverified"] and bb.status()["by_tier"].get("human-reviewed", 0) == 0
+in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text that is long enough to not be a stub here.\n"}, okf_stale)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.

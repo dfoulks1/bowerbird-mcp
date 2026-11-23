@@ -1,3 +1,7 @@
+---
+status: accepted
+---
+
 # ADR record: fact kinds, the core four and the fact-pack
 
 2026-11-23 · makeadr, new ADR, 12 questions · lead Sonnet 5.5 · owner dfoulks. Not committed.

@@ -1,0 +1,3 @@
+# .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
+# an edit breaks them, git has the earlier ones. Commit it.
+- {file: 2026-11-23-adr-fact-kinds.md, sha256: f6bb98700418f32974cc33bce714afc8cd77d454d48b03cd445ba9c16a38aceb, by: 'human:dfoulks', at: '2026-11-23T17:37:40Z', bowerbird: 2.2.0, decision: accepted}

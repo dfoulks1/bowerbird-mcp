@@ -2036,19 +2036,19 @@ def status(due_days: int = 30, bundle: str = "") -> dict:
     record is accepted) and tier, stale, hubs and wanted."""
     r = root(bundle)
     if fmt_of(r) != "okf":  # markdown, adr: what a folder of decisions or notes can answer (no conformance, lint or upkeep)
-        docs = scan(r)[0]
+        docs, led = scan(r)[0], ledger_by_file()
         ok = [x for x in docs if x.meta is not None]
         def count(it) -> dict:
             return dict(sorted(collections.Counter(it).items()))
         return {"concepts": len(docs), "by_type": count(str(x.meta.get("type") or "(none)") for x in ok),
                 "by_status": count(adr_state(x.meta) for x in ok), "by_state": count(adr_phase(x.meta) for x in ok),
-                "by_tier": count(trust_tier(x.meta) for x in ok), "stale": sum(is_stale(x.meta) for x in ok)} | demand(r, docs)
+                "by_tier": count(trust_tier(live_meta(x, led)) for x in ok), "stale": sum(is_stale(live_meta(x, led)) for x in ok)} | demand(r, docs)
     inner = [] if bundle else sorted(nested(r))
     if inner:
         per = {"bundles": {bundle_name(b): status(due_days, bundle=str(b)) for b in inner}}
         return status(due_days, bundle=str(r)) | per if scan(r)[0] else per
     docs, reserved, others = scan_split(r)
-    ok = [x for x in docs if x.meta is not None]
+    ok, led = [x for x in docs if x.meta is not None], ledger_by_file()
     fs = findings(r, docs, reserved, others)
     count = lambda it: dict(sorted(collections.Counter(it).items()))
     top = next((x.meta for x in reserved if x.path == r / "index.md"), None) or {}
@@ -2057,7 +2057,7 @@ def status(due_days: int = 30, bundle: str = "") -> dict:
     return {"concepts": len(docs), "unparseable": len(docs) - len(ok),
             "by_type": count(str(x.meta.get("type") or "(none)") for x in ok),
             "by_status": count(str(x.meta.get("status") or "stable") for x in ok),
-            "by_tier": count(trust_tier(x.meta) for x in ok), "stale": sum(is_stale(x.meta) for x in ok),
+            "by_tier": count(trust_tier(live_meta(x, led)) for x in ok), "stale": sum(is_stale(live_meta(x, led)) for x in ok),
             "okf_version": top.get("okf_version"), "conformant": not any(f["kind"] in CONFORMANCE for f in fs),
             "lint": {"errors": sum(f["severity"] == "error" for f in fs),
                      "warnings": sum(f["severity"] == "warning" for f in fs)},
@@ -2105,11 +2105,12 @@ def list_(type: str = "", tag: str = "", status: str = "", tier: str = "", stale
     (a proposed or accepted record is stable; the tier, from .waxseals.yaml, says whether a person accepted it), and status
     also matches `state` (a decision record is accepted once a person has sealed it, else proposed) and the word the file
     wrote: status=proposed lists the decisions nobody has reviewed."""
-    rows = []
+    rows, led = [], ledger_by_file()
     for b, x in every(root(bundle), bundle):
         if x.meta is None:
             continue
         d, okf = x.meta, fmt_of(x.path) == "okf"
+        d = live_meta(x, led)  # an OKF concept's reviews are in its frontmatter: only the ones that still hold count, as in a search
         row = {**ref(x.path, b), "id": x.rel[:-3], "title": title_of(d, x.text, x.path), "type": d.get("type"),
                "status": d.get("status") or "stable" if okf else adr_state(d), "tier": trust_tier(d), "stale": is_stale(d),
                **({} if okf else {"state": adr_phase(d)}), **({"seals": d.get("seal_count", 0)} if seal_count_on(x.path) else {}),
@@ -3454,6 +3455,12 @@ def reviews(d: dict, key: str, text: str, ledger: dict) -> tuple:
     if dr := drift_of(key, d):  # a fact drifted (factcheck): only a review made after it holds
         valid = [e for e in valid if (a := when(e.get("at"))) and a > dr]  # strictly after: a seal in the drift's own second does not count
     return es, valid
+
+
+def live_meta(x, led: dict) -> dict:
+    """A concept's frontmatter with only the reviews that still hold. An OKF concept keeps its reviews in its frontmatter, bound to its text, so one edited since is unverified and stale
+    (the other formats get this from scan, which reads the ledger)."""
+    return signed(x.meta, os.path.relpath(x.path, ROOT), led) if fmt_of(x.path) == "okf" else x.meta
 
 
 def signed(d: dict, key: str, ledger: dict) -> dict:

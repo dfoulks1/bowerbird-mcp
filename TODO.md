@@ -68,7 +68,7 @@ without it. Built there: several signers, a quorum and `seal.count`. The rest jo
       person sees the proposed change and the seal it would break (the `review_ui` dialog, as RTC), approves, and only then does the edit apply.
       A denial writes nothing. Builds on the `rtc` branch, which stays off `main` until you say.
 - [ ] **Seal count, what is left.** `seal.count` is built (`list`, `passages`, search rank, `seal check`'s `most_sealed`). Left: show N in the `serve` tree, rank `heatmap` by it
-      (it ranks by git activity today), and show it for OKF (it counts ledger seals, so OKF waits for OKF to use the ledger).
+      (it ranks by git activity today), and rank a search by it for OKF (an OKF concept's count is shown, from its frontmatter seals, but only ledger seals move a search rank).
 - [ ] **Move more into the add-on.** It holds four helpers (merge, collapse, signers, expand); the quorum logic, the count and the `serve` and docs displays are still in core. Put them behind a small
       interface (who signed, is the quorum met, how many) so core only asks. Optional: it changes nothing a user sees.
 
