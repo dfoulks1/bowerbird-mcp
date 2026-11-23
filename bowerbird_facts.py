@@ -95,9 +95,11 @@ class Block(NamedTuple):
     start: int  # offsets of the whole block (both tags) in the text
     end: int
     meta: dict = {}  # the optional `{...}` after the opening tag: who wrote it, when, how sure; free keys are kept. It is not part of the id.
+    meta_span: tuple = (-1, -1)  # where that `{...}` is in the text, braces included; (-1, -1) when the block has none
+    fp: str = ""  # a fingerprint of the kind, the source and the words: when it differs from the one a check recorded, the fact was edited since
 
 
-STD_META = ("by", "at", "as_of", "confidence", "note", "tags", "stale_after")  # the keys with a meaning; any other key is kept and shown
+STD_META = ("id", "by", "at", "as_of", "confidence", "note", "tags", "stale_after", "last_checked")  # the keys with a meaning; any other key is kept and shown
 
 
 def brace_end(text: str, pos: int) -> int:
@@ -148,7 +150,7 @@ def meta_problems(m: dict) -> list:
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
     out = []
     for k, v in m.items():
-        if (k in ("by", "note") and not isinstance(v, str)) or (k in ("at", "as_of") and not day(v)) or (k == "tags" and not (isinstance(v, list) and all(isinstance(x, str) for x in v))) \
+        if (k == "id" and not (isinstance(v, int) and not isinstance(v, bool) and v >= 1)) or (k in ("by", "note") and not isinstance(v, str)) or (k in ("at", "as_of", "last_checked") and not day(v)) or (k == "tags" and not (isinstance(v, list) and all(isinstance(x, str) for x in v))) \
                 or (k == "confidence" and not ((num(v) and 0 <= v <= 1) or v in ("low", "medium", "high"))) or (k == "stale_after" and not ((isinstance(v, int) and not isinstance(v, bool) and v >= 1) or day(v))):
             out.append(k)
     return out
@@ -168,6 +170,73 @@ def due(m: dict, st: dict) -> bool:
         return dt.date.today() >= dt.date.fromisoformat(str(s)[:10])
     except ValueError:
         return False
+
+
+LAST_CHECKED = re.compile(r'(?:^|,)\s*"?(?:last_checked|id)"?\s*:\s*(?:"[^"]*"|[^,}\s]*)')  # the pairs the tools write into a block's metadata: `id` (fix, fact) and `last_checked` (a check)
+
+
+def strip_checked(text: str) -> str:
+    """text as a review sees it: in each fact block's metadata, the `id` and `last_checked` pairs are dropped, and a mapping left empty (or written as `{}`) is dropped with its braces. The
+    tools write those (`fix` and `fact` number a fact, a check stamps the day), so a seal does not break when they do. Everything else is the document, byte for byte."""
+    if "[fact." not in text:
+        return text
+    for b in sorted(parse(text, strict=False)[0], key=lambda b: -b.meta_span[0]):
+        s, e = b.meta_span
+        if s < 0:
+            continue
+        inner = re.sub(r"^\s*,\s*", "", LAST_CHECKED.sub("", text[s + 1:e - 1])).strip()
+        text = text[:s] + ("{" + inner + "}" if inner else "") + text[e:]
+    return text
+
+
+def with_last_checked(text: str, block_id: str, day: str) -> str:
+    """text with `last_checked: day` set in the metadata of the block with that id: the value replaced where the key is, the pair added where it is not, `{last_checked: day}` where
+    the block has no metadata. The style (JSON, with quotes, or bare YAML) follows what is there. Anything else in the document is left as it is."""
+    b = next((x for x in parse(text, strict=False)[0] if x.id == block_id), None)
+    if b is None:
+        return text
+    s, e = b.meta_span
+    if s < 0:
+        at = b.start + len(f"[fact.{b.kind}]")
+        return text[:at] + "{last_checked: " + day + "}" + text[at:]
+    inner = text[s + 1:e - 1]
+    quoted = inner.lstrip().startswith('"')
+    if m := re.search(r'("?last_checked"?\s*:\s*)("[^"]*"|[^,}\s]*)', inner):
+        new = inner[:m.start()] + m.group(1) + (f'"{day}"' if m.group(2).startswith('"') else day) + inner[m.end():]
+    else:
+        pair = f'"last_checked": "{day}"' if quoted else f"last_checked: {day}"
+        new = (inner.rstrip() + ", " + pair) if inner.strip() else pair
+    return text[:s + 1] + new + text[e - 1:]
+
+
+def assign_ids(text: str) -> tuple:
+    """(text, {old id: new id}): every fact block with no numeric `id` gets the next free number in this document, as the first key of its metadata (`{id: 3}`, or `{id: 3, by: ann}`;
+    JSON style where the metadata is JSON). A seal does not see the difference. The mapping is what a block's state is moved by."""
+    if "[fact." not in text:
+        return text, {}
+    blocks = parse(text, strict=False)[0]
+    nxt = max([int(b.id) for b in blocks if b.id.isdigit() and b.meta.get("id") == int(b.id)] or [0]) + 1
+    moved = {}
+    for b in sorted(blocks, key=lambda b: -b.start):
+        if b.id.isdigit() and b.meta.get("id") == int(b.id):
+            continue
+        moved[b.id] = None
+    todo = [b for b in sorted(blocks, key=lambda b: b.start) if b.id in moved]
+    new_ids = {b.start: nxt + i for i, b in enumerate(todo)}
+    for b in sorted(todo, key=lambda b: -b.start):
+        n = new_ids[b.start]
+        moved[b.id] = str(n)
+        s, e = b.meta_span
+        if s < 0:
+            at = b.start + len(f"[fact.{b.kind}]")
+            text = text[:at] + "{id: " + str(n) + "}" + text[at:]
+            continue
+        inner = text[s + 1:e - 1]
+        json_style = inner.lstrip().startswith('"')
+        pair = f'"id": {n}' if json_style else f"id: {n}"
+        new = f"{pair}, {inner.strip()}" if inner.strip() else pair
+        text = text[:s + 1] + new + text[e - 1:]
+    return text, moved
 
 
 def mask(text: str) -> str:
@@ -201,7 +270,7 @@ def parse(text: str, strict: bool = True) -> tuple:
             if ft is None and strict:
                 fix = ("install the fact pack: pip install 'bowerbird-mcp[fact-pack]'" if name in PACK else ", ".join("fact." + k for k in FACT_TYPES))
                 problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {fix}"))
-            pos, meta, bad_meta = t.end(), {}, None
+            pos, meta, bad_meta, span = t.end(), {}, None, (-1, -1)
             if masked[pos:pos + 1] == "{":
                 stop = brace_end(masked, pos)
                 try:
@@ -210,18 +279,19 @@ def parse(text: str, strict: bool = True) -> tuple:
                     meta = None
                 if not isinstance(meta, dict):
                     bad_meta, meta = "its {metadata} is not a JSON or YAML mapping that closes", {}
+                span = (pos, stop) if stop > 0 and not bad_meta else (-1, -1)
                 pos = stop if stop > 0 else pos + 1
             src = SOURCE.match(masked, pos) if not bad_meta else None
             if bad_meta and ft:
                 problems.append((line(t.start()), "bad_fact", f"[fact.{name}] {bad_meta} | fix: [fact.{name}]{{by: me}}({ft.sample}) the claim [fact.end]"))
             elif src is None and ft:
                 problems.append((line(t.start()), "bad_fact", f"[fact.{name}] needs its source in parentheses right after it | fix: [fact.{name}]({ft.sample}) the claim [fact.end]"))
-            opened = (t, src, meta)
+            opened = (t, src, meta, span)
             continue
         if opened is None:
             problems.append((line(t.start()), "stray_fact_end", "[fact.end] closes no fact"))
             continue
-        (o, src, meta), opened = opened, None
+        (o, src, meta, span), opened = opened, None
         ft = FACT_TYPES.get(o.group(1))
         if (ft is None and strict) or src is None:
             continue
@@ -236,7 +306,11 @@ def parse(text: str, strict: bool = True) -> tuple:
         if not claim:
             problems.append((where, "bad_fact", f"[fact.{kind}] has no words to check | fix: put the claim between the source and [fact.end]"))
             continue
-        blocks.append(Block(kind, source, claim, where, line(t.start()), fact_id(kind, source, claim), o.start(), t.end(), meta))
+        fp = fact_id(kind, source, claim)
+        num = meta.get("id") if isinstance(meta.get("id"), int) and not isinstance(meta.get("id"), bool) and meta.get("id") >= 1 else None
+        if num is not None and any(x.id == str(num) for x in blocks):
+            problems.append((where, "duplicate_fact_id", f"[fact.{kind}] id {num} is already used by another fact in this document | fix: give it the next number (`fix` does)"))
+        blocks.append(Block(kind, source, claim, where, line(t.start()), str(num) if num is not None else fp, o.start(), t.end(), meta, span, fp))
     if opened is not None:
         problems.append((line(opened[0].start()), "unclosed_fact", f"[fact.{opened[0].group(1)}] has no [fact.end] | fix: close it with [fact.end]"))
     return blocks, problems
@@ -259,7 +333,7 @@ def read_state(d: Path) -> dict:
 
 
 def write_state(d: Path, state: dict) -> None:
-    keys = ("file", "id", "kind", "source", "status", "method", "at", "value", "drifted_at")
+    keys = ("file", "id", "kind", "source", "status", "method", "at", "value", "drifted_at", "fp")
     lines = ["- " + yaml.safe_dump({k: str(e[k]) if k in ("at", "drifted_at") else e[k] for k in keys if e.get(k) is not None},
                                    default_flow_style=True, sort_keys=False, allow_unicode=True, width=10 ** 6).strip()
              for _, e in sorted(state.items())]
@@ -267,7 +341,7 @@ def write_state(d: Path, state: dict) -> None:
                                  + "\n".join(lines) + "\n", encoding="utf-8")
 
 
-def record(d: Path, file: str, fid: str, kind: str, source: str, status: str, method: str, at: str, value=None) -> dict:
+def record(d: Path, file: str, fid: str, kind: str, source: str, status: str, method: str, at: str, value=None, fp: str | None = None) -> dict:
     """Note a check of the fact `fid` (a block's id, or the id of a `sources` entry) of `file`. A drift is remembered (drifted_at)
     even after a later check passes: only a review made after it holds again. The state lives here, never in the document: a check
     that found nothing wrong must not change the bytes a human's review is bound to."""
@@ -276,6 +350,8 @@ def record(d: Path, file: str, fid: str, kind: str, source: str, status: str, me
     e = {"file": file, "id": fid, "kind": kind, "source": source, "status": status, "method": method, "at": at}
     if value is not None:
         e["value"] = value
+    if fp:
+        e["fp"] = fp
     if status == "drifted":
         e["drifted_at"] = at
     elif old.get("drifted_at"):
@@ -294,7 +370,20 @@ def drift_time(d: Path, file: str):
 def status_of(d: Path, file: str, b: Block) -> dict:
     """The block's last check: {status: unchecked|checked|drifted, at, method}."""
     e = read_state(d).get((file, b.id))
+    if e and e.get("fp") and b.fp and e["fp"] != b.fp:  # the words or the source changed since this fact was checked: it is unchecked again
+        e = None
     return {"status": e["status"], "at": e.get("at"), "method": e.get("method")} if e else {"status": "unchecked", "at": None, "method": None}
+
+
+def rename_state(d: Path, file: str, moved: dict) -> None:
+    """Move the checks of `file` from the old ids to the new ones ({old: new}), the fingerprint kept: a fact that was numbered keeps its history."""
+    st = read_state(d)
+    out = {k: v for k, v in st.items() if not (k[0] == file and k[1] in moved)}
+    for (f, i), e in st.items():
+        if f == file and i in moved:
+            out[(f, moved[i])] = {**e, "id": moved[i], "fp": e.get("fp") or i}
+    if out != st:
+        write_state(d, out)
 
 
 # ------------------------------------------------------------------ showing: a badge in the text, a bibliography of the page's facts
@@ -334,9 +423,10 @@ def meta_html(m: dict) -> str:
     bits = [f"by {m['by']}"] if m.get("by") else []
     bits += [f"as of {str(m['as_of'])[:10]}"] if m.get("as_of") else []
     bits += [f"written {str(m['at'])[:10]}"] if m.get("at") else []
+    bits += [f"last checked {str(m['last_checked'])[:10]}"] if m.get("last_checked") else []
     bits += [f"confidence {m['confidence']}"] if m.get("confidence") is not None else []
     bits += [", ".join(f"#{x}" for x in m["tags"])] if isinstance(m.get("tags"), list) and m["tags"] else []
-    bits += [f"{k}: {v}" for k, v in m.items() if k not in STD_META and k != "stale_after"]
+    bits += [f"{k}: {v}" for k, v in m.items() if k not in STD_META]
     note = f"<br><small>{html.escape(str(m['note']))}</small>" if m.get("note") else ""
     return f'<small class="fact-meta">{html.escape(" · ".join(map(str, bits)))}</small>{note}<br>' if bits or note else ""
 
@@ -349,7 +439,7 @@ def bibliography(entries: list) -> str:
     for e in entries:
         src = f'<a href="{html.escape(e["source"])}">{html.escape(e["source"])}</a>' if e["kind"] == "url" else f"<code>{html.escape(e['source'])}</code>"
         claim = html.escape(" ".join(e["claim"].split())[:220])
-        items.append(f'<li id="fact-{e["n"]}"><span class="fact-kind">{html.escape(e["kind"])}</span> {src}<br>'
+        items.append(f'<li id="fact-{e["n"]}"><span class="fact-kind">{html.escape(e["kind"])}</span>{" #" + e["id"] if str(e["id"]).isdigit() else ""} {src}<br>'
                      f'<span class="fact-badge" data-state="{e["status"]}">{html.escape(e["label"])}</span> <small>line {e["line"]}{" · due for a check" if e.get("due") else ""}</small><br>'
                      f'{meta_html(e.get("meta") or {})}<q>{claim}</q></li>')
     return f'<section class="fact-bib" id="facts"><h2>Facts</h2><ol>{"".join(items)}</ol></section>'

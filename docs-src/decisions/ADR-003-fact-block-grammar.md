@@ -23,8 +23,13 @@ The `{metadata}` is optional, a JSON or YAML mapping directly after the tag. The
 metadata, `[fact.KIND](source) claim [fact.end]`, stays valid. The brackets delimit everything, so a person and an agent write the same thing and a parser needs no other record.
 An agent may write the metadata as JSON, and the source as a JSON string or an array of strings, which read as the words joined by spaces.
 
-The metadata keys that mean something are `by`, `at`, `as_of`, `confidence`, `note`, `tags` and `stale_after`; any other key is kept and shown. The metadata is not part of a fact's id
-(the kind, the source and the claim are), and a check never writes to it: results stay in `.facts.yaml`, so a check cannot change the document or stale a review.
+**A fact's identity is its number**: `id`, the first key of the metadata, a whole number unique in the document. `factcheck` takes it. A fact with no `id` is known by a fingerprint of its
+kind, source and claim, as in 2.2.0. The fingerprint is also kept with each check, so a fact whose words or source changed since its last check shows as unchecked, whatever its number.
+`fix` gives each unnumbered block the next number (moving what was checked under the fingerprint to the number), and the `fact` tool takes the next number when it writes one.
+
+The other metadata keys that mean something are `by`, `at`, `as_of`, `confidence`, `note`, `tags`, `stale_after` and `last_checked`; any other key is kept and shown. Results stay in
+`.facts.yaml`. **A check writes `last_checked` (the day) into the metadata**, and a review ignores `id`, `last_checked` and an empty `{}` when it hashes the document, so numbering a fact
+and checking it never stale a seal. Everything else in the metadata is part of what a person reviewed.
 
 ## Context
 
@@ -35,7 +40,7 @@ blocks in the old form, so the new one must be a superset.
 Drivers:
 - One form for people and agents, so no second record is needed.
 - Nothing already written breaks.
-- A check must not change the document (a review is bound to its bytes).
+- A check and a renumbering must not break a review, though they write to the document (a review is bound to its bytes).
 
 ## Alternatives
 
@@ -51,22 +56,23 @@ Drivers:
 - Good: uniform.
 - Bad: it rewrites what every kind reads today. The owner kept each kind's own words in the parentheses.
 
-### Writing the date of the last check into the metadata
-- Good: the date is visible in the text.
-- Bad: it is accepted as any other key, but no tool writes it: writing it would change the document at every check and break the review of it. The owner's example showed it; rejected as a written field.
+### The check state kept only beside the document
+- Good: a check never touches the document.
+- Bad: the date and the number are not visible in the text, and a fact cannot be named without the state file. The owner chose to write `last_checked` and `id` into the metadata, and to have a seal ignore them.
 
 ## Consequences
 
 - `fact` (the tool) writes this form (`kind`, `source`, `claim`, `meta`), so an agent's fact is a block; without `claim` it is still the older `sources` entry.
 - The bibliography (the docs hook and `serve`) shows the metadata, and `factcheck` lists a fact as due when its `stale_after` says so.
 - `lint` has `bad_fact_meta` (a wrong value in a key with a meaning) and reports a mapping that never closes.
+- `fix` and `fact` write `id`, a check writes `last_checked`; both stay out of a review's hash, so a seal holds.
 - Closing a `)` or `}` inside a string needs an escape (`%29`, `\\u007d`); a source with a literal `)` still ends at the first one.
 
 ## Asks left open
 
-1. Should `fix` add an empty `{}` or `{by: ...}` to old blocks? (I would not: it changes bytes and stales reviews.)
-2. Is `lastchecked` better as a computed field in `factcheck` output than as a key a person may write?
+None. The owner settled the two that were open: `fix` adds the number to old blocks, and `factcheck` writes `last_checked`.
 
 ## History
 
 - 2026-11-23: drafted from the owner's words: `[fact.TYPE]{KV: METADATA}(SOURCE CRITERIA)CLAIM[fact.end]`, "{metadata} optional", and "the idea is that `[fact.*] ... [fact.end]` is all you should need".
+- 2026-11-23: the owner settled the open asks and added the number: `fix` adds `{id: N}` to old blocks, `factcheck` writes `last_checked`, a fact is named by its `id` (a number, first in the metadata), and a seal ignores `id` and `last_checked`.

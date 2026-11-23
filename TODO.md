@@ -4,18 +4,20 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ## 2.3
 
+### Needs a decision from you
+
+- [ ] **Ratify ADR-003** (the fact grammar; `proposed`). Its open asks are settled (`fix` numbers old blocks, a check writes `last_checked`, and a seal ignores both), so it is ready.
+- [ ] **What may an agent run in `factcheck`?** Local kinds (`file`, `internal`, `key`, `git`, `until`) it runs now. `url` and `mcp` still need a person at a terminal (`--fetch`); decide
+      what an agent may run, and what the plan and the prompt look like.
+- [ ] **OKF through import and export** (decided 2026-11-23). OKF keeps in frontmatter what every other format keeps in a file of its own: `verified` (reviews, `.waxseals.yaml`) and `sources` (facts,
+      the blocks and `.facts.yaml`). It should use those files, with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect: so yes, seals as well as facts, and
+      anything else OKF puts in frontmatter that another format has a file for. Needs two answers, then ADR-004: how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
+
 ### Still to build
 
-- [ ] **Agent-run `factcheck` beyond the local kinds.** `url` and `mcp` still need a person at a terminal (`--fetch`). Decide what an agent may run, and what the plan and
-      prompt look like.
-- [ ] **OKF through import and export** (decided 2026-11-23). OKF keeps facts (`sources`) and reviews (`verified`) in frontmatter; it should use the records every other format
-      uses (`.facts.yaml`, `.waxseals.yaml`), with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect. Write the ADR first (ADR-004).
-      Open: does it cover seals as well as facts; how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
 - [ ] **Seal and fact state as data** for other tools (a JSON function, or `/_api/status` for the Obsidian plugin): `bowerbird_facts.render` returns the facts' side; the seals'
       side is still in the hook and `serve`.
 - [ ] **The quorum's M in the docs hook.** The hook reads only the ledger, so a badge says who signed (`by ann, bo`) but not "2 of 3".
-- [ ] **ADR-001's header** still says `built: not started`. The loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`); make it
-      `landed`. Editing it stales its seal.
 
 ### Documentation passes
 
@@ -36,8 +38,10 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Release
 
-- [ ] Re-seal the pages edited since they were sealed (the two ADRs, `TODO.md`, `BOWERBIRD.md`, the four new format pages and the other pages that changed; `docs-src/tools.md` is
-      derived and needs none), then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
+- [ ] **ADR-001's header** still says `built: not started`; the loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`). Make it `landed`
+      (it stales its seal, so do it with the re-seal below).
+- [ ] Re-seal the pages edited since they were sealed: ADR-001 and ADR-003, `TODO.md`, `BOWERBIRD.md`, the new pages (the fact pack and the four formats) and the other pages that changed
+      (`docs-src/tools.md` is derived and needs none). Then `tools/QA.sh --rebuild` to rebuild `docs/`, and commit it.
 - [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack` and the four format add-ons, each at the release's version), then add the extras to
       `pyproject.toml` (`fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
 - [ ] Merge `2.3`. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.

@@ -633,7 +633,7 @@ KINDS = CONFORMANCE | {  # every lint finding kind, for lint only= / ignore=
     "cross_bundle", "dead_anchor", "dead_link", "dead_path", "deprecated_link", "duplicate_title", "index_stale",
     "island", "nested_bundle", "no_description", "odd_filename", "okf_trust", "okf_version", "orphan", "secret",
     "self_link", "source_changed", "stray_fact_end", "stub", "tag_case", "unclosed_fact", "undeclared_fact_source", "undefined_ref",
-    "unknown_fact_kind", "unknown_footnote", "unused_ref", "via_server", "bad_fact_meta"}
+    "unknown_fact_kind", "unknown_footnote", "unused_ref", "via_server", "bad_fact_meta", "duplicate_fact_id"}
 WEIGHTS = {"title": 5, "id": 4, "tags": 3, "type": 2, "description": 2, "body": 1}  # search: where a word matched
 EMBEDDERS: dict = {}  # model name -> embed function, loaded on first use
 CHUNK = 1200  # characters a passage is cut to, at a blank line; a cut repeats the last short paragraph (overlap)
@@ -3044,8 +3044,8 @@ async def create(path: str = "", apply: bool = False, mcp: bool = False, env: bo
 @expose(idempotent=True, exit=lambda o: 1 if o.get("would_edit") or not o.get("remaining", {"ok": 1})["ok"] else 0)
 def fix(apply: bool = False, all: bool | None = None, bundle: str = "") -> dict:
     """Mechanical repairs, nothing that needs judgment: strip frontmatter from index.md files (§8; the root
-    keeps okf_version), rebuild generated index lists, give each tag its most common spelling, and put log.md
-    sections and entries back in order after a merge (§9).
+    keeps okf_version), rebuild generated index lists, give each tag its most common spelling, put log.md
+    sections and entries back in order after a merge (§9), and number each fact block that has no `id` (`{id: 3}`, first in its metadata; a seal does not see it).
     apply=False shows the diff (CLI exit 1 if there is work); apply=True writes, re-lints and returns `remaining` (CLI exit 1 if errors remain). Like lint, it
     defaults to where the user is and every bundle there; all=false keeps to one bundle."""
     r = root(bundle, write=apply)
@@ -3074,7 +3074,19 @@ def fix_one(r: Path, apply: bool) -> dict:
         if any(str(tg).lower() in top and str(tg) != top[str(tg).lower()] for tg in tags_of(x)):
             changes[x.path] = put(x.text, "tags", list(dict.fromkeys(top.get(str(tg).lower(), str(tg))
                                                                      for tg in tags_of(x))))
-    return commit(r, changes, apply, "**Update**: Ran fix.")
+    renumbered = {}
+    if F := facts_mod():  # a fact block with no number gets `{id: N}`, first in its metadata (ADR-003); a seal does not see it
+        for x in scan(r)[0]:
+            if x.text and "[fact." in x.text:
+                added, moved = F.assign_ids(changes.get(x.path, x.text))
+                if added != changes.get(x.path, x.text):
+                    changes[x.path] = added
+                    renumbered[x.path] = moved
+    out = commit(r, changes, apply, "**Update**: Ran fix.")
+    if apply and F:
+        for path, moved in renumbered.items():
+            F.rename_state(path.parent, path.name, moved)  # what was checked under the old id is the new id's history
+    return out
 
 
 @expose(idempotent=True)
@@ -3245,6 +3257,8 @@ def record(note: str, kind: str = "Update", dir: str = "", bundle: str = "") -> 
 def content_hash(text: str, okf: bool) -> str:
     """sha256 of a file's text with CRLF and a BOM normalized away, and, for okf, without its `verified` key (a review
     is written into the file it covers). A review binds to exactly this."""
+    if (F := facts_mod()) and "[fact." in text:
+        text = F.strip_checked(text)  # a fact's `last_checked`, and an empty `{}`, are written by the tools: a seal ignores them
     t = put(text, "verified", drop=True) if okf and split(text)[0] is not None else text
     return hashlib.sha256(t.replace("\r\n", "\n").removeprefix("\ufeff").encode("utf-8")).hexdigest()
 
@@ -3820,14 +3834,15 @@ def fact_block(file: str, kind: str, source, claim: str, fmeta, after: str, chec
         result = sys.stdin.read() if result == "-" else Path(os.path.expanduser(result[1:])).read_text(encoding="utf-8")
     fmeta = {**(fmeta or {})}
     fmeta.setdefault("at", now()[:10])
-    text, b = fact_text(kind, source, claim, fmeta)
     okf = fmt_of(next((q for q in (ROOT / file, ROOT / f"{file}.md") if q.is_file()), ROOT / file)) == "okf"
-    if okf:
-        p, r = locate(file, bundle)
-    else:
-        p, r = confined(ROOT, file if file.endswith(".md") else file + ".md"), ROOT
-        if not p.is_file():
-            raise ValueError(f"{file} is not a file here | fix: pass its path from the collection root")
+    p, r = (locate(file, bundle) if okf else (confined(ROOT, file if file.endswith(".md") else file + ".md"), ROOT))
+    if not p.is_file():
+        raise ValueError(f"{file} is not a file here | fix: pass its path from the collection root")
+    used = [b2.meta["id"] for b2 in F.parse(read(p) or "", strict=False)[0] if isinstance(b2.meta.get("id"), int)]
+    if "id" in fmeta and fmeta["id"] in used:
+        raise ValueError(f"id {fmeta['id']} is already used in {file} | fix: leave id out and the next number is taken")
+    fmeta = {"id": fmeta.pop("id", max(used, default=0) + 1), **fmeta}  # the id is the first field
+    text, b = fact_text(kind, source, claim, fmeta)  # first as written, to check it
     ft = F.FACT_TYPES[kind]
     status = method = value = None
     declared = (CFG.get("facts") or {}).get("mcp", {})
@@ -3840,11 +3855,13 @@ def fact_block(file: str, kind: str, source, claim: str, fmeta, after: str, chec
         d = declared.get(server) or {}
         value = F.watched(result, d.get("watch", ""))
         status, method = "checked", "baseline recorded"
+    if status:  # what was checked is stamped
+        text, b = fact_text(kind, source, claim, {**fmeta, "last_checked": now()[:10]})
     t = read(p) or ""
     new, line = insert_at(t, text, after)
     commit(r, {p: new}, True, f"**Update**: Cited a {kind} fact in [{title_of(meta(new)[0] or {}, new, p)}](/{rel(p, r)}).") if okf else write(p, new)
     if status:
-        F.record(p.parent, p.name, b.id, kind, b.source, status, method, now(), value)
+        F.record(p.parent, p.name, b.id, kind, b.source, status, method, now(), value, b.fp)
     return {"written": True, "file": rel(p, ROOT), "line": line, "id": b.id, "block": text, "checked": status}
 
 
@@ -4088,7 +4105,9 @@ def fact_run(p: Path, b, declared: dict) -> dict:
     except Exception as e:  # noqa: BLE001 (a failed fetch or call is reported, not a drift)
         return row | {"status": "error", "method": f"{type(e).__name__}: {str(e)[:160]}"}
     if status != "skipped":
-        F.record(p.parent, p.name, b.id, b.kind, b.source, status, method, now(), value)
+        F.record(p.parent, p.name, b.id, b.kind, b.source, status, method, now(), value, b.fp)
+        if status in ("checked", "drifted") and (text := read(p)) is not None and (stamped := F.with_last_checked(text, b.id, now()[:10])) != text:
+            write(p, stamped)  # `last_checked: <day>` in the block's metadata; a seal does not see it (content_hash)
     return row | {"status": status, "method": method}
 
 
@@ -4111,8 +4130,8 @@ def fact_fetch(file: str, id: str) -> dict:
 
 
 @expose(exit=lambda o: 1 if o.get("drifted") else 0)
-def factcheck(file: str = "", id: str = "", result: str = "", older_than_days: int = 0, fetch: bool = False, bundle: str = "") -> dict:
-    """Check facts for drift. Without result it only lists the facts due (sources retrieved at least older_than_days ago, or on a
+def factcheck(file: str = "", id: str | int = "", result: str = "", older_than_days: int = 0, fetch: bool = False, bundle: str = "") -> dict:
+    """Check facts for drift. A fact is named by its `id`, the number first in its block's metadata (`factcheck file=notes.md id=3`); a check writes `last_checked` there. Without result it only lists the facts due (sources retrieved at least older_than_days ago, or on a
     concept past stale_after; file and id narrow it), each with `cites`, the lines whose claims rest on it. `calls` replay the
     recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first).
     `manual` ones need opening. Nothing is executed here. With result (what the replayed call returned now), for one fact (file and
@@ -4128,6 +4147,7 @@ def factcheck(file: str = "", id: str = "", result: str = "", older_than_days: i
     the command exits 1. A `file` fact (a path that is absolute, `~/…` or relative to the document, optionally the lines `#L10-20`) must still hold its words in those
     lines; an `internal` fact (a page of this collection from the root, optionally `#Heading`) must still hold them on the page or in that section. Both only read
     files here, so with file and id and no result you may check one yourself: it is recorded like any other check."""
+    id = str(id)  # a fact's id is a number (the `id` first in its metadata), or an older block's fingerprint
     if fetch:
         return fact_fetch(file, id)
     F = facts_mod()

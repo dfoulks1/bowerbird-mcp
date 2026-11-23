@@ -35,7 +35,16 @@ def entries(root: Path, rel: str) -> list:
 
 def banner(src: Path, rel: str, docs: Path, text: str, includes: bool) -> str:
     # the same hash the tool takes: the text with CRLF turned into LF and any BOM removed
-    sha = hashlib.sha256(src.read_text(encoding="utf-8-sig").replace("\r\n", "\n").encode("utf-8")).hexdigest()
+    text = src.read_text(encoding="utf-8-sig").replace("\r\n", "\n")
+    sys.path.insert(0, str(Path.cwd()))
+    try:
+        import bowerbird_facts as F
+        text = F.strip_checked(text)  # a fact's last_checked and an empty {} are written by the tools; the seal ignores them
+    except ImportError:
+        pass
+    finally:
+        sys.path.pop(0)
+    sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
     root = Path.cwd()  # the repo root, where mkdocs runs; a ledger's paths start at its own folder
     es = entries(root, (docs.resolve().relative_to(root.resolve()) / rel).as_posix())
     made = next((e for e in es if e.get("derived") and e.get("sha256") == sha), None)  # a generator recorded these exact bytes

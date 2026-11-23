@@ -19,6 +19,9 @@
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
+- **A fact has a number.** `id` is the first key of a block's metadata, a whole number unique in the document; `factcheck` takes it (`id=3`), `fact` takes the next one, and `fix` numbers the blocks that have none (a fact with no
+  `id` is still known by a fingerprint of its words, as in 2.2.0, and what was checked under the fingerprint moves to the number). A fact edited since its last check shows as unchecked. A check now writes
+  `last_checked` (the day) into the block's metadata; a seal does not see `id`, `last_checked` or an empty `{}`, so neither numbering nor checking breaks one. `lint` has `duplicate_fact_id`.
 - **`fact` writes the block.** `fact` with `kind`, `source` and `claim` writes `[fact.KIND]{metadata}(source) claim [fact.end]` into a document of any format (`after` a heading or a line; the end by default), checks a
   file-reading kind first and refuses a claim its source does not hold, records an `mcp` baseline from `result` (`-` or `@file` at a terminal), and with `harvest=true` lets a person pick a passage of a page. `fact` and `factcheck` are now
   offered to markdown and ADR servers. Without `claim` it is the older `sources` form.

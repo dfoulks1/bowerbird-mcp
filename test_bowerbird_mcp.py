@@ -2600,14 +2600,15 @@ def writer(d):
     (d / "data.txt").write_text("alpha\nbeta\ngamma\n")
     (d / "n.md").write_text("# A\n\n## S1\n\ntext one\n\n## S2\n\ntext two\n")
     got = bb.fact(file="n.md", kind="file", source="data.txt#L2", claim="beta", meta={"by": "claude", "confidence": "high"}, after="S1")
-    blk = f'[fact.file]{{"by": "claude", "confidence": "high", "at": "{bb.now()[:10]}"}}(data.txt#L2) beta [fact.end]'
+    blk = f'[fact.file]{{"id": 1, "by": "claude", "confidence": "high", "at": "{bb.now()[:10]}", "last_checked": "{bb.now()[:10]}"}}(data.txt#L2) beta [fact.end]'  # the id first, the day it was checked last
     assert got["written"] and got["block"] == blk and got["checked"] == "checked", got
     body = (d / "n.md").read_text()
     assert body.index("## S1") < body.index(blk) < body.index("## S2") and "text one\n\n[fact.file]" in body  # at the end of S1's section
     assert [r["status"] for r in bb.fact_rows("n.md")] == ["checked"] and bb.fact_rows("n.md")[0]["meta"]["by"] == "claude"  # parsed back, and the check is recorded
-    assert F.parse(blk)[0][0].id == F.parse("[fact.file](data.txt#L2) beta [fact.end]")[0][0].id == got["id"]  # the id ignores the metadata
+    assert got["id"] == "1" and F.parse(blk)[0][0].id == "1" and F.parse(blk)[0][0].fp == F.parse("[fact.file](data.txt#L2) beta [fact.end]")[0][0].fp  # the id is the number; the fingerprint ignores the metadata
+    assert bb.fact(file="n.md", kind="file", source="data.txt#L1", claim="alpha")["id"] == "2"  # the next number in this document
     refused = raises(bb.fact, file="n.md", kind="file", source="data.txt#L2", claim="alpha")  # alpha is on line 1: not what those lines say
-    assert "not written" in refused and "alpha" not in (d / "n.md").read_text().split("## S2")[1]
+    assert "not written" in refused and "gamma?" not in (d / "n.md").read_text()
     assert bb.fact(file="n.md", kind="file", source="data.txt#L2", claim="alpha", check=False)["written"]  # a person may say they know better
     # the other kinds: no check at write time; a `)` in the source, a JSON list of words, a line number, the end of the file
     assert "(https://x.test/a_(b%29) The words. [fact.end]" in bb.fact(file="n.md", kind="url", source="https://x.test/a_(b)", claim="The words.", after="line:1")["block"]  # a `)` is written %29
@@ -2654,7 +2655,8 @@ def writer(d):
             bb.CLI = False
     finally:
         bb.CFG.pop("facts", None)
-    assert len(F.parse((d / "n.md").read_text())[0]) == 8 and not F.parse((d / "n.md").read_text())[1]  # every block written reads back, and nothing else is wrong with the file
+    blocks_now = F.parse((d / "n.md").read_text())[0]
+    assert not F.parse((d / "n.md").read_text())[1] and sorted(int(b.id) for b in blocks_now) == list(range(1, len(blocks_now) + 1)) and len(blocks_now) >= 8  # every block written reads back, numbered 1 up, nothing else wrong
 in_vault("markdown", {"n.md": "x\n"}, writer)
 
 # the same, in an OKF bundle (it goes through the bundle's commit and log), and the older form of `fact` is still there
@@ -2665,6 +2667,38 @@ def writer_okf(d):
     old = bb.fact(file="a", resource="https://x.test/p", title="A page")
     assert old["footnote"] == "[^p]" and "sources" in (d / "a.md").read_text()
 in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text here.\n"}, writer_okf)
+
+
+# a fact is its number (`id`, first in its metadata): factcheck takes it, a check stamps `last_checked`, `fix` numbers the old ones, and none of that breaks a seal
+def numbered(d):
+    (d / "data.txt").write_text("alpha\nbeta\ngamma\n")
+    old = "# N\n\n[fact.file](data.txt#L1) alpha [fact.end]\n\n[fact.file]{by: ann}(data.txt#L2) beta [fact.end]\n"
+    (d / "n.md").write_text(old)
+    h0 = bb.content_hash(old, False)
+    h_old = [b.id for b in F.parse(old)[0]]
+    assert all(len(i) == 12 for i in h_old)  # no number: the fingerprint is the id, as in 2.2.0
+    bb.factcheck(file="n.md", id=h_old[0])  # an agent checks it by its id; the old state is keyed by the fingerprint
+    assert bb.fact_rows("n.md")[0]["status"] == "checked"
+    stamped = (d / "n.md").read_text()
+    assert "{last_checked: " + bb.now()[:10] + "}(data.txt#L1)" in stamped and "{by: ann}" in stamped  # the day is written in the block's own metadata, in its style
+    assert bb.content_hash(stamped, False) == h0  # and a seal does not see it
+    # fix numbers them, in the first place of the metadata, moves what was checked, and still no seal sees it
+    out = bb.fix(apply=True)
+    numbered_text = (d / "n.md").read_text()
+    assert "{id: 1, last_checked: " in numbered_text and "{id: 2, by: ann}" in numbered_text, numbered_text
+    assert [b.id for b in F.parse(numbered_text)[0]] == ["1", "2"] and bb.content_hash(numbered_text, False) == h0
+    assert bb.fact_rows("n.md")[0]["status"] == "checked" and bb.fact_rows("n.md")[1]["status"] == "unchecked"  # fact 1 kept its history under its new number
+    r = bb.factcheck(file="n.md", id=2)  # a number is fine, as an int or as text
+    assert r["checked"][0]["status"] == "checked" and bb.factcheck(file="n.md", id="1")["checked"][0]["id"] == "1"
+    # an edited claim keeps its number, and is unchecked until it is checked again; two with one number is an error
+    edited = (d / "n.md").read_text().replace("alpha [fact.end]", "alpha beta [fact.end]")
+    (d / "n.md").write_text(edited)
+    assert bb.fact_rows("n.md")[0]["id"] == "1" and bb.fact_rows("n.md")[0]["status"] == "unchecked"
+    assert bb.factcheck(file="n.md", id="1")["checked"][0]["status"] == "drifted"  # "alpha beta" is not what line 1 says
+    (d / "n.md").write_text("[fact.url]{id: 1}(https://x.test/a) a [fact.end] [fact.url]{id: 1}(https://x.test/b) b [fact.end]\n")
+    assert any(f["kind"] == "duplicate_fact_id" for f in bb.lint(limit=0)["findings"])
+    assert "already used" in raises(bb.fact, file="n.md", kind="url", source="https://x.test/c", claim="c", meta={"id": 1})
+in_vault("markdown", {"n.md": "x\n"}, numbered)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.

@@ -153,10 +153,13 @@ The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
 
 - **`[fact.<kind>]{<metadata>}(<source>) <the claim> [fact.end]`** is the whole form, and `[fact.` to `[fact.end]` is all a fact needs: a person and an agent write the same thing.
   The `{metadata}` is optional (leave it out and you have the form of 2.2.0, which still works): a JSON or YAML mapping right after the tag, such as
-  `{by: ann, as_of: 2026-11-20, confidence: high}`. These keys mean something: `by` and `note` (text), `at` and `as_of` (a date), `confidence` (0 to 1, or `low`, `medium`,
-  `high`), `tags` (a list), `stale_after` (days since the last check, or a date, after which `factcheck` lists the fact as due). Any other key is kept and shown in the
-  bibliography. `lint` warns of a wrong value in one that has a meaning. The metadata is yours: a check never writes to it, since that would change the document and break a
-  review, and it is not part of the fact's identity, so adding a note does not make a new fact. An agent may write it as JSON, `{"by": "claude", "tags": ["a"]}`, and the source
+  `{id: 3, by: ann, as_of: 2026-11-20, confidence: high}`. **`id` is the fact's number**, first in the mapping and unique in the document: `factcheck file=notes.md id=3` checks it, and the
+  claim can be edited without losing it (a fact edited since its last check shows as unchecked until it is checked again). A fact with no `id` is known by a fingerprint of its words, as
+  in 2.2.0; `fix` numbers those, and the `fact` tool takes the next number. These other keys mean something: `by` and `note` (text), `at` and `as_of` (a date), `confidence` (0 to 1, or `low`, `medium`,
+  `high`), `tags` (a list), `stale_after` (days since the last check, or a date, after which `factcheck` lists the fact as due), and `last_checked` (a date). Any other key is kept and shown in the
+  bibliography. `lint` warns of a wrong value in one that has a meaning, and a number used twice in a document is an error. **A check writes `last_checked`** (the day) into the block's
+  metadata, in the style it is written in, and `fix` and `fact` write `id`. A [review](../sealing.md) does not see those two keys, or an empty `{}`: the sealed text is the
+  document without them, so numbering a fact or checking it never breaks a seal. The rest of the metadata is yours, and is part of the review. An agent may write it as JSON, `{"by": "claude", "tags": ["a"]}`, and the source
   as a JSON string or an array of strings, `(["jira", "INFRA-1"])`, which reads as the words `jira INFRA-1`. Write a `)` or `}` inside a string as `%29` or `\u007d`. A mapping that never
   closes, or a source that is not words, is a `lint` error. Otherwise: The kind says what the source is, the source goes in parentheses
   right after it (it ends at the first `)`, so write a `)` inside an address as `%29`), and the words up to `[fact.end]` are what is

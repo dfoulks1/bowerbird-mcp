@@ -36,8 +36,9 @@ only the tools its `--role` and the collection's `format` switch on.
 
 A fact is a claim with what it rests on, so it can be checked again. Two ways to write one:
 
-- The grammar is `[fact.KIND]{metadata}(source) the claim [fact.end]`: the `{metadata}` is optional (`{by: claude, as_of: 2026-11-23, confidence: high}`), and you may write it as JSON, with the
-  source as a JSON string or array (`(["jira", "INFRA-1"])`). Never put a result or a checked-on date in it: checks are kept beside the document.
+- The grammar is `[fact.KIND]{metadata}(source) the claim [fact.end]`: the `{metadata}` is optional (`{id: 3, by: claude, as_of: 2026-11-23, confidence: high}`), and you may write it as JSON, with the
+  source as a JSON string or array (`(["jira", "INFRA-1"])`). `id` is the fact's number, first in the mapping: `fact` and `fix` write it, and `factcheck file=... id=3` checks by it. Never put a result in the
+  metadata, and never write `last_checked` yourself: a check writes it, and a seal does not see it.
 - In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, `[fact.mcp](jira INFRA-1) is open [fact.end]`,
   `[fact.file](src/app.py#L10-20) the words in those lines [fact.end]`, or `[fact.internal](docs/tools.md#links) the words in that section [fact.end]`.
   With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. `manual` and `script` need a person at a terminal.
@@ -54,7 +55,7 @@ Checking:
 - Read each `args`, run the call yourself, then `factcheck file=... id=... result=<what it returned>`. A different result is drift: it
   breaks the human review of that file, and `factcheck` returns the lines to fix (append, do not erase). Record the new result with
   `fact`, and tell the user the file needs review. The same result just records the check.
-- `factcheck file=... id=...` with no result checks a `file` or `internal` fact yourself: it only reads files here, and the check is recorded.
+- `factcheck file=... id=3` with no result checks a `file` or `internal` fact yourself: it only reads files here, and the check is recorded.
 - `factcheck fetch=true` is for a person at a terminal. You cannot run it.
 
 ## Review: `seal` and `accepted`
