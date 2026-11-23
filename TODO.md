@@ -4,7 +4,7 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ## 2.3
 
-Built and committed on `2.3`. What is left is yours.
+Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by default). What is left is yours.
 
 ### Needs a person or a real environment
 
@@ -15,8 +15,9 @@ Built and committed on `2.3`. What is left is yours.
 
 ### Release
 
-- [ ] Re-seal everything changed on the branch: `git diff --stat main..2.3 -- docs-src '*.md'` lists the pages (the ADRs you accepted are sealed; ADR-001's header and amendment, `TODO.md`, `BOWERBIRD.md`, the pages the passes
-      rewrote and the new pages are not). `docs-src/tools.md` is derived and needs none.
+- [ ] Re-seal what `seal check` still lists (the ADRs are sealed; `docs-src/tools.md` is derived). Docs pages: `docs-src/` agents, badges, cli, facts, fact-pack, formats, formats/* (adr, asciidoc, dendron, foam,
+      logseq, markdown, obsidian, okf, skos), getting-started, sealing, serve, troubleshooting, decisions/INDEX, README and TEMPLATE. Repo files: `README.md`, `BOWERBIRD.md`, `TODO.md`, `CHANGELOG.md`, and the
+      six `addons/*/README.md`. `prompts/*.md` are drafts: seal them or leave the folder out (`seal.exempt`).
 - [ ] Then `tools/QA.sh --rebuild` to rebuild `docs/` (the badges are drawn from the ledger, so it must follow the re-seal), and commit it.
 - [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons: all are at 2.3.0 and build clean), then add the extras to
       `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; replace the empty `seal-extensions = []`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
@@ -26,6 +27,7 @@ Built and committed on `2.3`. What is left is yours.
 
 ### Facts
 
+- [ ] ADR-004 follow-ups: flip `okf.records` to `files` in 3.0 with a warning before; decide whether `okf import` runs by itself when a bundle ships; a test of `okf export` into a `files` collection and of the serve seal dialog on an OKF concept in `files` mode.
 - [ ] Fact kinds nobody has asked for yet: scoped claims, and a quote to watch for paraphrases.
 - [ ] Semantic mode passes a contradiction (a paraphrase scores 0.62 to 0.80, a swapped noun 0.65 to 0.80, so the score cannot tell them apart): require numbers and proper nouns to appear verbatim, or a second check.
 - [ ] A captcha or login page with a lot of text still reads as a drift; only a redirect to another host and a page with almost no words are called an error.
