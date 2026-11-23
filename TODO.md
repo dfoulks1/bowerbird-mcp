@@ -6,7 +6,6 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Needs a decision from you
 
-- [ ] **Ratify ADR-003** (the fact grammar; `proposed`). Its open asks are settled (`fix` numbers old blocks, a check writes `last_checked`, and a seal ignores both), so it is ready.
 - [ ] **OKF through import and export** (decided 2026-11-23, confirmed). OKF keeps in frontmatter what every other format keeps in a file of its own: `verified` (reviews, `.waxseals.yaml`) and `sources`
       (facts, the blocks and `.facts.yaml`). It uses those files, with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect: seals as well as facts, and anything else OKF puts in
       frontmatter that another format has a file for. Needs two answers, then ADR-004: how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.

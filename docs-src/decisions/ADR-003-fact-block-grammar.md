@@ -1,6 +1,6 @@
 ---
-status: proposed
-status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"
+status: accepted
+status-note: accepted by dfoulks on 2026-11-23, in the seal dialog
 owner: dfoulks
 kind: design
 built: landed
@@ -8,6 +8,8 @@ proof: test_bowerbird_mcp.py
 supersedes: nothing
 amends: ADR-001 (the form of a fact block)
 consulted: "Claude Sonnet 5.5 (drafting)"
+ratified-by: dfoulks
+ratified-on: "2026-11-23"
 ---
 # ADR-003 — A fact is `[fact.KIND]{metadata}(source) claim [fact.end]`, and nothing else is needed
 
@@ -76,3 +78,4 @@ None. The owner settled the two that were open: `fix` adds the number to old blo
 
 - 2026-11-23: drafted from the owner's words: `[fact.TYPE]{KV: METADATA}(SOURCE CRITERIA)CLAIM[fact.end]`, "{metadata} optional", and "the idea is that `[fact.*] ... [fact.end]` is all you should need".
 - 2026-11-23: the owner settled the open asks and added the number: `fix` adds `{id: N}` to old blocks, `factcheck` writes `last_checked`, a fact is named by its `id` (a number, first in the metadata), and a seal ignores `id` and `last_checked`.
+- 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"`.

@@ -22,9 +22,8 @@
 - {file: docs-src/badges.md, sha256: b7f40bddedbe7a0b37e9bfcfb6cd33fe5241261f025a1f3b0a2b8c11c85a969a, by: 'human:dfoulks', at: '2026-11-23T15:01:16Z', bowerbird: 2.2.0}
 - {file: docs-src/cli.md, sha256: b0f565457537253e60baecca958abc4e7dc65614e9a2ac2d57e7dee4dd049362, by: 'human:dfoulks', at: '2026-11-20T17:23:32Z', bowerbird: 2.2.0}
 - {file: docs-src/contributing.md, sha256: 92089f0ecb0fa6079f14bb2e8bafb12beaf15c08878c8b69740f6aa00a3d9958, by: 'human:dfoulks', at: '2026-11-16T20:14:31Z', bowerbird: 2.0.0}
-- {file: docs-src/decisions/ADR-001-fact-kinds-core-and-pack.md, sha256: e833a6e11fb528df18387f494d2d7d56afd139f72f249e8fcc4e3e04f22d27b5, by: 'human:dfoulks', at: '2026-11-23T15:18:22Z', bowerbird: 2.2.0}
+- {file: docs-src/decisions/ADR-001-fact-kinds-core-and-pack.md, sha256: 01f310dab802439688925fae3e84a3661d764f2b2ab6cbcc1d2a8abc3a3325e0, by: 'human:dfoulks', at: '2026-11-23T17:06:57Z', bowerbird: 2.2.0, decision: accepted}
 - {file: docs-src/decisions/ADR-002-format-plugins.md, sha256: 5246c86965b8b7db52208818050e144405c8ace06dca1e16625bfeab2f501455, by: 'human:dfoulks', at: '2026-11-23T15:57:44Z', bowerbird: 2.2.0, decision: accepted}
-- {file: docs-src/decisions/ADR-003-fact-block-grammar.md, sha256: 3471f4733bef0f45202af37ac550f86d72d1affd2ce11feaded0cfc4004e4066, by: 'human:dfoulks', at: '2026-11-23T16:36:05Z', bowerbird: 2.2.0, decision: accepted}
 - {file: docs-src/formats.md, sha256: 3591e1a0a5c150a5368ba0a349138fe55725978ae569d9922a94600c511bcf1f, by: 'human:dfoulks', at: '2026-11-23T16:22:21Z', bowerbird: 2.2.0}
 - {file: docs-src/formats/adr.md, sha256: 539141cc77874d698bdac5a80de0df7643c8ed29bda19932b2c0e4a4679233f6, by: 'human:dfoulks', at: '2026-11-20T17:26:05Z', bowerbird: 2.2.0}
 - {file: docs-src/formats/asciidoc.md, sha256: 4ee86cedb2b630b4a196a92441893d12e83edb4fdabd9dca748fd21eda9f7988, by: 'human:dfoulks', at: '2026-11-20T17:26:12Z', bowerbird: 2.2.0}
