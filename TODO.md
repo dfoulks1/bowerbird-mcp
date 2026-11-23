@@ -21,8 +21,8 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Documentation passes
 
-- [ ] **Facts pass.** Facts have grown in `docs-src/formats/okf.md` and its facts section is now long and layered. Candidate: give facts a page of their own (the grammar, the nine kinds, writing,
-      checking, drift, the bibliography), keep OKF's page to what is OKF's, and make every example use the one grammar. Check each command shown against the code, and the mentions in
+- [ ] **Facts pass.** Facts have their own page now (`docs-src/facts.md`). Left: trim the facts section of `docs-src/formats/okf.md` to what is OKF's (it still repeats the grammar and the kinds),
+      make every example in the docs use the one grammar, and read the new page against the code line by line. Check each command shown against the code, and the mentions in
       `README.md`, `getting-started.md`, `cli.md`, `guide.md`, `BOWERBIRD.md` and the `tools.md` docstrings.
 - [ ] **Formats pass.** `formats.md` and each format page (the six formats and four add-ons) read as one set: the same sections in the same order, the same words for the same thing, the
       tool tables right for every format, and the README and getting-started in step. Check every example against the code.

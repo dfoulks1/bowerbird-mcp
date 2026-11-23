@@ -81,7 +81,8 @@ nav:
       - Foam: formats/foam.md
       - Dendron: formats/dendron.md
       - Logseq: formats/logseq.md
-      - Fact pack: formats/fact-pack.md
+  - Facts: facts.md
+  - Fact pack: fact-pack.md
   - Sealing: sealing.md
   - Serve: serve.md
   - Docs:

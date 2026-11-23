@@ -136,6 +136,8 @@ at its entry in `sources` with a Markdown footnote (`[^pg]`). Links are for navi
 
 ### Facts: what a claim rests on, and drift
 
+This section is the OKF side of facts; the whole reference, in any format, is on the [Facts](../facts.md) page.
+
 A **fact** is a claim together with where it came from, written so it can be checked again. Put the source and the words you
 relied on in a block, in any Markdown document (it works in every format, not only OKF):
 
