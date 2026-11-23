@@ -19,6 +19,9 @@
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
+- **One grammar for a fact: `[fact.KIND]{metadata}(source) the claim [fact.end]`.** The `{metadata}` is optional (the 2.2.0 form still reads): a JSON or YAML mapping with the keys `by`, `at`, `as_of`,
+  `confidence`, `note`, `tags` and `stale_after` (any other key is kept), shown in the bibliography; `stale_after` makes `factcheck` list a fact as due. An agent may write the metadata as JSON and the
+  source as a JSON string or array of strings. The metadata is not part of the fact's id. `lint` has a new `bad_fact_meta` warning, and a mapping that never closes is a `bad_fact` error.
 - **The fact pack, `bowerbird-mcp[fact-pack]`** (`addons/fact-pack/`): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
   and `script` (a command declared in the root `bower.yaml`, an argument list with no shell, terminal only). It registers through the new `bowerbird.fact_types` entry point; `facts:` takes
   `scripts:` and `manual_days:`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.

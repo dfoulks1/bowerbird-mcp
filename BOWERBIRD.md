@@ -36,6 +36,8 @@ only the tools its `--role` and the collection's `format` switch on.
 
 A fact is a claim with what it rests on, so it can be checked again. Two ways to write one:
 
+- The grammar is `[fact.KIND]{metadata}(source) the claim [fact.end]`: the `{metadata}` is optional (`{by: claude, as_of: 2026-11-23, confidence: high}`), and you may write it as JSON, with the
+  source as a JSON string or array (`(["jira", "INFRA-1"])`). Never put a result or a checked-on date in it: checks are kept beside the document.
 - In the text, a block: `[fact.url](https://example.com/page) the words from that page [fact.end]`, `[fact.mcp](jira INFRA-1) is open [fact.end]`,
   `[fact.file](src/app.py#L10-20) the words in those lines [fact.end]`, or `[fact.internal](docs/tools.md#links) the words in that section [fact.end]`.
   With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. `manual` and `script` need a person at a terminal.

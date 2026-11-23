@@ -633,7 +633,7 @@ KINDS = CONFORMANCE | {  # every lint finding kind, for lint only= / ignore=
     "cross_bundle", "dead_anchor", "dead_link", "dead_path", "deprecated_link", "duplicate_title", "index_stale",
     "island", "nested_bundle", "no_description", "odd_filename", "okf_trust", "okf_version", "orphan", "secret",
     "self_link", "source_changed", "stray_fact_end", "stub", "tag_case", "unclosed_fact", "undeclared_fact_source", "undefined_ref",
-    "unknown_fact_kind", "unknown_footnote", "unused_ref", "via_server"}
+    "unknown_fact_kind", "unknown_footnote", "unused_ref", "via_server", "bad_fact_meta"}
 WEIGHTS = {"title": 5, "id": 4, "tags": 3, "type": 2, "description": 2, "body": 1}  # search: where a word matched
 EMBEDDERS: dict = {}  # model name -> embed function, loaded on first use
 CHUNK = 1200  # characters a passage is cut to, at a blank line; a cut repeats the last short paragraph (overlap)
@@ -1505,6 +1505,10 @@ def fingerprint(f: dict) -> str:
     return hashlib.sha1(f"{f['kind']}|{bundle_name(ROOT / f['bundle'] / f['file'])}|{f['message']}".encode()).hexdigest()[:16]
 
 
+def blocks_meta_problems(F, b) -> list:
+    return F.meta_problems(b.meta) if b.meta else []
+
+
 def fact_findings(f: str, text: str) -> list:
     """Lint for fact blocks, in any format: an opening tag with no [fact.end], a [fact.end] with no opening, an unknown kind, a
     malformed or empty block (errors), and an mcp fact whose server `facts.mcp` in bower.yaml does not declare (a warning)."""
@@ -1514,6 +1518,9 @@ def fact_findings(f: str, text: str) -> list:
     blocks, problems = F.parse(text)
     out = [finding(kind, f, f"line {n}: " + msg.split(" | fix: ")[0], msg.split(" | fix: ")[1] if " | fix: " in msg else "correct the tags", "house")
            for n, kind, msg in problems]
+    out += [finding("bad_fact_meta", f, f"line {b.line}: [fact.{b.kind}] has a bad value for {', '.join(bad)} in its {{metadata}}",
+                    "by and note are text, at and as_of dates, confidence 0 to 1 or low, medium, high, tags a list, stale_after days or a date", "house", "warning")
+            for b in blocks if (bad := blocks_meta_problems(F, b))]
     declared = (CFG.get("facts") or {}).get("mcp", {})
     out += [finding("undeclared_fact_source", f, f"line {b.line}: {b.source.split()[0]!r} is not declared under facts.mcp in bower.yaml",
                     "declare it (tool, arg, watch) or `factcheck --fetch` skips this fact", "house", "warning")
@@ -3817,8 +3824,13 @@ def semantic_ok(pars: list, text: str) -> bool:
 
 def fact_rows(file: str = "", id: str = "") -> list:
     F = facts_mod()
-    return [{"file": os.path.relpath(p, ROOT), "line": b.line, "id": b.id, "kind": b.kind, "source": b.source,
-             **F.status_of(p.parent, p.name, b)} for p, b in fact_blocks(file) if not id or b.id == id]
+    rows = []
+    for p, b in fact_blocks(file):
+        if not id or b.id == id:
+            st = F.status_of(p.parent, p.name, b)
+            rows.append({"file": os.path.relpath(p, ROOT), "line": b.line, "id": b.id, "kind": b.kind, "source": b.source, **st,
+                         **({"meta": b.meta, "due": F.due(b.meta, st)} if b.meta else {})})
+    return rows
 
 
 def fact_plan_url(b, declared, p=None) -> str:
@@ -3995,7 +4007,7 @@ def factcheck(file: str = "", id: str = "", result: str = "", older_than_days: i
     document itself is not changed, so no review of it is disturbed). Different: the fact has drifted, so that is recorded too and every review before that moment
     stops holding (`seal check` flags the file; a human reviews it again after the claim is corrected and the new result recorded with
     `fact`). A fact with no fact_sha256 yet has nothing to compare: the result becomes its baseline.
-    The fact blocks in the documents (`[fact.url](<address>) <claim> [fact.end]`, `[fact.mcp](<server> <key>) <claim> [fact.end]`, `[fact.file](<path>#L10-20) <claim> [fact.end]`, `[fact.internal](<page>#Heading) <claim> [fact.end]`) are
+    The fact blocks in the documents (`[fact.KIND]{optional metadata}(<source>) <claim> [fact.end]`, such as `[fact.url](<address>) <claim> [fact.end]`, `[fact.mcp](<server> <key>) <claim> [fact.end]`, `[fact.file](<path>#L10-20) <claim> [fact.end]`, `[fact.internal](<page>#Heading) <claim> [fact.end]`) are
     listed under `blocks` with their last check (unchecked, checked, drifted; kept in `.facts.yaml` beside the document). fetch=true,
     for a person at a terminal, shows what it will fetch or call, asks, then checks each block against a fresh result: a page
     must still hold the block's words (same words, else similar meaning with `semantic: true`), an MCP call (only those declared

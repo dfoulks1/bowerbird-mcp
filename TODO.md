@@ -6,12 +6,12 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Still to build
 
-- [ ] **`fact` writes blocks.** `fact` writes the `[fact.*]` block into the document (it records a frontmatter `sources` entry today), for a person and an agent alike;
+- [ ] **`fact` writes blocks** in the one grammar (`[fact.KIND]{metadata}(source) claim [fact.end]`, ADR-003). `fact` writes the block into the document (it records a frontmatter `sources` entry today), for a person and an agent alike;
       `result=-` and `result=@file`; a `--harvest` capture of a page's words into a block.
 - [ ] **Agent-run `factcheck` beyond the local kinds.** `url` and `mcp` still need a person at a terminal (`--fetch`). Decide what an agent may run, and what the plan and
       prompt look like.
 - [ ] **OKF through import and export** (decided 2026-11-23). OKF keeps facts (`sources`) and reviews (`verified`) in frontmatter; it should use the records every other format
-      uses (`.facts.yaml`, `.waxseals.yaml`), with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect. Write the ADR first (ADR-003).
+      uses (`.facts.yaml`, `.waxseals.yaml`), with `okf export` and `okf import` converting to and from the frontmatter OKF readers expect. Write the ADR first (ADR-004).
       Open: does it cover seals as well as facts; how an existing OKF collection migrates; what `fact` and `seal` write for OKF meanwhile.
 - [ ] **Seal and fact state as data** for other tools (a JSON function, or `/_api/status` for the Obsidian plugin): `bowerbird_facts.render` returns the facts' side; the seals'
       side is still in the hook and `serve`.

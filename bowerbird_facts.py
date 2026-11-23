@@ -9,6 +9,7 @@ and `check_literal` / `page_text` / `call_mcp` do the checking. Self-contained, 
 PyYAML installed; the MCP client and the network are touched only inside the functions that need them.
 """
 import dataclasses
+import datetime as dt
 import hashlib
 import html
 import html.parser
@@ -93,6 +94,80 @@ class Block(NamedTuple):
     id: str  # derived from the kind, the source and the words: edit the words and it is a new, unchecked fact
     start: int  # offsets of the whole block (both tags) in the text
     end: int
+    meta: dict = {}  # the optional `{...}` after the opening tag: who wrote it, when, how sure; free keys are kept. It is not part of the id.
+
+
+STD_META = ("by", "at", "as_of", "confidence", "note", "tags", "stale_after")  # the keys with a meaning; any other key is kept and shown
+
+
+def brace_end(text: str, pos: int) -> int:
+    """The offset just past the `}` that closes the `{` at pos, counting nested braces and skipping "strings"; -1 when it never closes on the same paragraph."""
+    depth, i, quoted = 0, pos, False
+    while i < len(text):
+        c = text[i]
+        if quoted:
+            quoted = not (c == '"') or text[i - 1] == "\\"
+        elif c == '"':
+            quoted = True
+        elif c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+        elif c == "\n" and text[i + 1:i + 2] in ("\n", ""):
+            return -1
+        i += 1
+    return -1
+
+
+def source_text(raw: str) -> str | None:
+    """The source as one string: words as written, or a JSON string or array of strings (`["jira", "INFRA-1"]`) joined with spaces, the form an agent writes. None: not valid JSON."""
+    raw = raw.strip()
+    if raw[:1] in ('"', "["):
+        try:
+            v = json.loads(raw)
+        except ValueError:
+            return None
+        v = [v] if isinstance(v, str) else v
+        return " ".join(v) if isinstance(v, list) and v and all(isinstance(x, str) for x in v) else None
+    return " ".join(raw.split())
+
+
+def meta_problems(m: dict) -> list:
+    """What is wrong with the keys that have a meaning: by and note are text, at and as_of a date or datetime, confidence 0 to 1 or low, medium or high, tags a list of text,
+    stale_after a number of days or a date."""
+    def day(v):
+        if isinstance(v, (dt.date, dt.datetime)):
+            return True
+        try:
+            dt.date.fromisoformat(str(v)[:10])
+            return len(str(v)) >= 10
+        except ValueError:
+            return False
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    out = []
+    for k, v in m.items():
+        if (k in ("by", "note") and not isinstance(v, str)) or (k in ("at", "as_of") and not day(v)) or (k == "tags" and not (isinstance(v, list) and all(isinstance(x, str) for x in v))) \
+                or (k == "confidence" and not ((num(v) and 0 <= v <= 1) or v in ("low", "medium", "high"))) or (k == "stale_after" and not ((isinstance(v, int) and not isinstance(v, bool) and v >= 1) or day(v))):
+            out.append(k)
+    return out
+
+
+def due(m: dict, st: dict) -> bool:
+    """Is a fact due for another check? Only when its `stale_after` says so: a number of days since the last check (unchecked is due), or a date that has come."""
+    s = m.get("stale_after")
+    if s is None or isinstance(s, bool):
+        return False
+    if isinstance(s, int):
+        try:
+            return st["status"] == "unchecked" or not st.get("at") or dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(str(st["at"]).replace("Z", "+00:00")) >= dt.timedelta(days=s)
+        except ValueError:
+            return True
+    try:
+        return dt.date.today() >= dt.date.fromisoformat(str(s)[:10])
+    except ValueError:
+        return False
 
 
 def mask(text: str) -> str:
@@ -111,8 +186,9 @@ def fact_id(kind: str, source: str, claim: str) -> str:
 
 def parse(text: str, strict: bool = True) -> tuple:
     """(blocks, problems). problems are (line, kind, message): unclosed_fact, stray_fact_end, unknown_fact_kind, bad_fact.
-    A block is `[fact.<kind>](<source>) <the claim> [fact.end]`: the source in parentheses (it ends at the first `)`, so a `)` in an
-    address is written %29), then the words that are checked, up to `[fact.end]`. strict=False also takes a kind nobody registered (the docs
+    A block is `[fact.<kind>]{<metadata>}(<source>) <the claim> [fact.end]`: the optional metadata, a JSON or YAML mapping in braces right after the tag; the
+    source in parentheses (it ends at the first `)`, so a `)` in an address is written %29; an agent may write it as a JSON string or array of strings); then
+    the words that are checked, up to `[fact.end]`. strict=False also takes a kind nobody registered (the docs
     build shows a block by its recorded state without knowing the kind); `lint` is the strict one."""
     masked, blocks, problems, opened = mask(text), [], [], None
     line = lambda pos: text.count("\n", 0, pos) + 1
@@ -125,27 +201,42 @@ def parse(text: str, strict: bool = True) -> tuple:
             if ft is None and strict:
                 fix = ("install the fact pack: pip install 'bowerbird-mcp[fact-pack]'" if name in PACK else ", ".join("fact." + k for k in FACT_TYPES))
                 problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {fix}"))
-            src = SOURCE.match(masked, t.end())
-            if src is None and ft:
+            pos, meta, bad_meta = t.end(), {}, None
+            if masked[pos:pos + 1] == "{":
+                stop = brace_end(masked, pos)
+                try:
+                    meta = yaml.safe_load(text[pos:stop]) if stop > 0 else None
+                except yaml.YAMLError:
+                    meta = None
+                if not isinstance(meta, dict):
+                    bad_meta, meta = "its {metadata} is not a JSON or YAML mapping that closes", {}
+                pos = stop if stop > 0 else pos + 1
+            src = SOURCE.match(masked, pos) if not bad_meta else None
+            if bad_meta and ft:
+                problems.append((line(t.start()), "bad_fact", f"[fact.{name}] {bad_meta} | fix: [fact.{name}]{{by: me}}({ft.sample}) the claim [fact.end]"))
+            elif src is None and ft:
                 problems.append((line(t.start()), "bad_fact", f"[fact.{name}] needs its source in parentheses right after it | fix: [fact.{name}]({ft.sample}) the claim [fact.end]"))
-            opened = (t, src)
+            opened = (t, src, meta)
             continue
         if opened is None:
             problems.append((line(t.start()), "stray_fact_end", "[fact.end] closes no fact"))
             continue
-        (o, src), opened = opened, None
+        (o, src, meta), opened = opened, None
         ft = FACT_TYPES.get(o.group(1))
         if (ft is None and strict) or src is None:
             continue
-        kind, source, where = o.group(1), " ".join(src.group(1).split()), line(o.start())
+        kind, source, where = o.group(1), source_text(src.group(1)), line(o.start())
         claim = text[src.end():t.start()].strip()
+        if source is None:
+            problems.append((where, "bad_fact", f"[fact.{kind}] its source is not a JSON string or array of strings | fix: [fact.{kind}]([\"a\", \"b\"]) the claim [fact.end]"))
+            continue
         if ft and (bad := ft.valid(source)):
             problems.append((where, "bad_fact", f"[fact.{kind}] {bad} | fix: [fact.{kind}]({ft.sample}) the claim [fact.end]"))
             continue
         if not claim:
             problems.append((where, "bad_fact", f"[fact.{kind}] has no words to check | fix: put the claim between the source and [fact.end]"))
             continue
-        blocks.append(Block(kind, source, claim, where, line(t.start()), fact_id(kind, source, claim), o.start(), t.end()))
+        blocks.append(Block(kind, source, claim, where, line(t.start()), fact_id(kind, source, claim), o.start(), t.end(), meta))
     if opened is not None:
         problems.append((line(opened[0].start()), "unclosed_fact", f"[fact.{opened[0].group(1)}] has no [fact.end] | fix: close it with [fact.end]"))
     return blocks, problems
@@ -224,7 +315,7 @@ def render(markdown: str, folder: Path, name: str) -> tuple:
     for n, b in enumerate(blocks, 1):
         st = status_of(folder, name, b)
         label = state_label(st)
-        entries.append({"n": n, "id": b.id, "kind": b.kind, "source": b.source, "claim": b.claim, "line": b.line, **st, "label": label})
+        entries.append({"n": n, "id": b.id, "kind": b.kind, "source": b.source, "claim": b.claim, "line": b.line, "meta": b.meta, "due": due(b.meta, st), **st, "label": label})
         badge = f'<a class="fact-badge" data-state="{st["status"]}" href="#fact-{n}">{html.escape(label)}</a>'
         if b.line == b.end_line:  # an inline fact: the claim, then its state (an address links the claim; a server and key read before it)
             out += [markdown[pos:b.start], (f"[{b.claim}]({b.source}) {badge}" if b.kind == "url" else f"{b.source} {b.claim} {badge}")]
@@ -236,6 +327,20 @@ def render(markdown: str, folder: Path, name: str) -> tuple:
     return "".join(out) + markdown[pos:], entries
 
 
+def meta_html(m: dict) -> str:
+    """A fact's metadata as one small line: who and when, how sure, a note, the tags, then any other key as `key: value`."""
+    if not m:
+        return ""
+    bits = [f"by {m['by']}"] if m.get("by") else []
+    bits += [f"as of {str(m['as_of'])[:10]}"] if m.get("as_of") else []
+    bits += [f"written {str(m['at'])[:10]}"] if m.get("at") else []
+    bits += [f"confidence {m['confidence']}"] if m.get("confidence") is not None else []
+    bits += [", ".join(f"#{x}" for x in m["tags"])] if isinstance(m.get("tags"), list) and m["tags"] else []
+    bits += [f"{k}: {v}" for k, v in m.items() if k not in STD_META and k != "stale_after"]
+    note = f"<br><small>{html.escape(str(m['note']))}</small>" if m.get("note") else ""
+    return f'<small class="fact-meta">{html.escape(" · ".join(map(str, bits)))}</small>{note}<br>' if bits or note else ""
+
+
 def bibliography(entries: list) -> str:
     """The page's facts as an HTML list, one entry per block, each with the id its badge links to: kind, source, state, the line, the claim."""
     if not entries:
@@ -245,8 +350,8 @@ def bibliography(entries: list) -> str:
         src = f'<a href="{html.escape(e["source"])}">{html.escape(e["source"])}</a>' if e["kind"] == "url" else f"<code>{html.escape(e['source'])}</code>"
         claim = html.escape(" ".join(e["claim"].split())[:220])
         items.append(f'<li id="fact-{e["n"]}"><span class="fact-kind">{html.escape(e["kind"])}</span> {src}<br>'
-                     f'<span class="fact-badge" data-state="{e["status"]}">{html.escape(e["label"])}</span> <small>line {e["line"]}</small><br>'
-                     f'<q>{claim}</q></li>')
+                     f'<span class="fact-badge" data-state="{e["status"]}">{html.escape(e["label"])}</span> <small>line {e["line"]}{" · due for a check" if e.get("due") else ""}</small><br>'
+                     f'{meta_html(e.get("meta") or {})}<q>{claim}</q></li>')
     return f'<section class="fact-bib" id="facts"><h2>Facts</h2><ol>{"".join(items)}</ol></section>'
 
 

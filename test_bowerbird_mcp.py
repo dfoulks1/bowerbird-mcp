@@ -2565,6 +2565,35 @@ assert bb.load_config(lg)[1]["facts"]["manual_days"] == 90
 (lg / "bower.yaml").unlink()
 
 
+# the one grammar of a fact: [fact.KIND]{metadata}(source) claim [fact.end]; the metadata and the JSON source are optional, and neither is part of the fact's id
+g0 = F.parse("[fact.url](https://x.test/a) The words. [fact.end]")[0][0]
+g1 = F.parse('[fact.url]{by: ann, at: 2026-11-20, confidence: high, lastchecked: $DATETIME}(https://x.test/a) The words. [fact.end]')[0][0]
+g2 = F.parse('[fact.url]{"by": "claude", "tags": ["a", "b"], "note": "has } brace"}(["https://x.test/a"]) The words. [fact.end]')[0][0]
+g3 = F.parse('[fact.mcp]{}(["jira", "INFRA-1"]) is open [fact.end]')[0][0]
+assert g0.id == g1.id == g2.id and g0.meta == {} and g1.meta["by"] == "ann" and g1.meta["lastchecked"] == "$DATETIME" and g2.meta["note"] == "has } brace" and g2.meta["tags"] == ["a", "b"]  # the same fact
+assert (g3.kind, g3.source, g3.meta) == ("mcp", "jira INFRA-1", {}) and g2.source == "https://x.test/a"  # a JSON array of words is the words
+for bad, why in (('[fact.url]{by: [ (https://x.test/a) x [fact.end]', "mapping that closes"), ('[fact.url]{a: 1}{b: 2}(https://x.test/a) x [fact.end]', "source in parentheses"),
+                 ('[fact.url]("no) x [fact.end]', "JSON string or array"), ('[fact.url]{"a": 1} x [fact.end]', "source in parentheses")):
+    assert why in F.parse(bad)[1][0][2], (bad, F.parse(bad)[1])
+assert F.meta_problems({"by": 5, "confidence": 7, "tags": "x", "at": "soon", "stale_after": 0, "note": 1}) == ["by", "confidence", "tags", "at", "stale_after", "note"]
+assert F.meta_problems({"by": "a", "at": "2026-11-20T10:00:00Z", "as_of": "2026-11-20", "confidence": 0.8, "tags": ["x"], "stale_after": 30, "note": "n", "free": {"any": 1}}) == []
+assert F.meta_problems({"confidence": "high", "stale_after": "2026-12-31"}) == [] and F.due({"stale_after": 30}, {"status": "unchecked"}) and not F.due({}, {"status": "unchecked"})
+assert F.due({"stale_after": 30}, {"status": "checked", "at": "2000-01-01T00:00:00Z"}) and not F.due({"stale_after": 30}, {"status": "checked", "at": bb.now()})
+assert F.due({"stale_after": "2000-01-01"}, {"status": "checked", "at": bb.now()}) and not F.due({"stale_after": "2999-01-01"}, {"status": "checked", "at": bb.now()})
+shown_meta, ents = F.render('[fact.url]{by: ann, confidence: high, note: "checked by hand", stale_after: 30}(https://x.test/a) The words. [fact.end]\n', Path(tempfile.mkdtemp()), "p.md")
+bibm = F.bibliography(ents)
+assert "by ann" in bibm and "confidence high" in bibm and "checked by hand" in bibm and "due for a check" in bibm and "{" not in shown_meta  # shown in the bibliography, and the braces are not in the text
+
+
+def meta_vault(d):
+    (d / "n.md").write_text('[fact.url]{by: ann, stale_after: 30}(https://x.test/z) the freeze is on [fact.end]\n\n[fact.url]{confidence: 7, tags: x}(https://x.test/a) a claim [fact.end]\n')
+    rows = bb.fact_rows("n.md")
+    assert rows[0]["meta"]["by"] == "ann" and rows[0]["due"] is True and "meta" in rows[1]
+    got = [f for f in bb.lint(limit=0)["findings"] if f["kind"] == "bad_fact_meta"]
+    assert len(got) == 1 and "confidence, tags" in got[0]["message"] and got[0]["severity"] == "warning", got
+in_vault("markdown", {"n.md": "x\n"}, meta_vault)
+
+
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
 rs2, rs2_saved = Path(tempfile.mkdtemp()).resolve() / "wiki", (bb.ROOT, dict(bb.OPTS))
 (rs2 / "docs/sub").mkdir(parents=True)
