@@ -37,14 +37,16 @@ class FactType:
     valid: Callable[[str], str | None]
     plan: Callable | None = None
     check: Callable | None = None
+    local: bool = False  # the check only reads files here (no network, no command): an agent may run it, with no prompt
 
 
 FACT_TYPES: dict[str, FactType] = {}
 
 
-def register(name: str, sample: str, valid: Callable[[str], str | None], plan: Callable | None = None, check: Callable | None = None) -> FactType:
+def register(name: str, sample: str, valid: Callable[[str], str | None], plan: Callable | None = None, check: Callable | None = None,
+             local: bool = False) -> FactType:
     """Add a kind of fact (or replace one of that name). Everything that reads blocks, lint and the docs build included, then knows it."""
-    FACT_TYPES[name] = FactType(name, sample, valid, plan, check)
+    FACT_TYPES[name] = FactType(name, sample, valid, plan, check, local)
     return FACT_TYPES[name]
 
 
@@ -55,6 +57,30 @@ def attach(name: str, **fns) -> None:
 
 register("url", "https://example.com/page", lambda s: None if re.fullmatch(r"https?://\S+", s) else f"needs the page's address in the parentheses, got {s!r}")
 register("mcp", "jira INFRA-27707", lambda s: None if len(s.split()) == 2 else "needs a server and a key in the parentheses")
+FILE_SOURCE = re.compile(r"(.+?)(?:#L(\d+)(?:-(\d+))?)?")  # path, then optionally #L10 or #L10-20
+
+
+def valid_file(s: str) -> str | None:
+    m = FILE_SOURCE.fullmatch(s)
+    if not m or "#" in m.group(1):
+        return "needs a path, then optionally #L10 or #L10-20 (the lines the claim rests on)"
+    if "://" in m.group(1):
+        return "that is an address: use [fact.url]"
+    if m.group(3) and int(m.group(2)) > int(m.group(3)) or m.group(2) == "0":
+        return "the lines run backwards, or start at 0 (lines count from 1)"
+    return None
+
+
+def valid_internal(s: str) -> str | None:
+    path = s.partition("#")[0].strip()
+    if not path:
+        return "needs a page of this collection, then optionally #Heading"
+    return "that is an address: use [fact.url]" if "://" in path else None
+
+
+register("file", "src/app.py#L10-20", valid_file, local=True)  # read by the tool, no network; the checks are attached by bowerbird_mcp
+register("internal", "docs/tools.md#links", valid_internal, local=True)  # a section of another page in this collection
+PACK = ("key", "git", "manual", "until", "script")  # the kinds `bowerbird-mcp[fact-pack]` brings
 CODE = re.compile(r"```.*?```|~~~.*?~~~|`[^`\n]*`", re.DOTALL)
 
 
@@ -97,7 +123,8 @@ def parse(text: str, strict: bool = True) -> tuple:
                 problems.append((line(opened[0].start()), "unclosed_fact", f"[fact.{opened[0].group(1)}] has no [fact.end] before the next fact"))
             ft = FACT_TYPES.get(name)
             if ft is None and strict:
-                problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {', '.join('fact.' + k for k in FACT_TYPES)}"))
+                fix = ("install the fact pack: pip install 'bowerbird-mcp[fact-pack]'" if name in PACK else ", ".join("fact." + k for k in FACT_TYPES))
+                problems.append((line(t.start()), "unknown_fact_kind", f"[fact.{name}] is not a kind of fact | fix: {fix}"))
             src = SOURCE.match(masked, t.end())
             if src is None and ft:
                 problems.append((line(t.start()), "bad_fact", f"[fact.{name}] needs its source in parentheses right after it | fix: [fact.{name}]({ft.sample}) the claim [fact.end]"))
@@ -177,6 +204,50 @@ def status_of(d: Path, file: str, b: Block) -> dict:
     """The block's last check: {status: unchecked|checked|drifted, at, method}."""
     e = read_state(d).get((file, b.id))
     return {"status": e["status"], "at": e.get("at"), "method": e.get("method")} if e else {"status": "unchecked", "at": None, "method": None}
+
+
+# ------------------------------------------------------------------ showing: a badge in the text, a bibliography of the page's facts
+
+
+def state_label(st: dict) -> str:
+    when = f" {str(st['at'])[:10]}" if st["at"] else ""
+    label = {"unchecked": "not yet checked", "checked": f"checked{when}", "drifted": f"drifted{when}"}[st["status"]]
+    return label + (f" ({st['method']})" if st["method"] and st["status"] != "unchecked" else "")
+
+
+def render(markdown: str, folder: Path, name: str) -> tuple:
+    """(the markdown with each fact block shown as a quotation, or as its claim inline, with a badge of its last check that links to its entry in the
+    bibliography, and the entries): [{n, kind, source, claim, line, status, at, method, label}]. The state is read from the .facts.yaml in folder;
+    nothing is written. The one place the docs hook and `serve` both ask, so the two show the same."""
+    blocks, _ = parse(markdown, strict=False)
+    out, pos, entries = [], 0, []
+    for n, b in enumerate(blocks, 1):
+        st = status_of(folder, name, b)
+        label = state_label(st)
+        entries.append({"n": n, "id": b.id, "kind": b.kind, "source": b.source, "claim": b.claim, "line": b.line, **st, "label": label})
+        badge = f'<a class="fact-badge" data-state="{st["status"]}" href="#fact-{n}">{html.escape(label)}</a>'
+        if b.line == b.end_line:  # an inline fact: the claim, then its state (an address links the claim; a server and key read before it)
+            out += [markdown[pos:b.start], (f"[{b.claim}]({b.source}) {badge}" if b.kind == "url" else f"{b.source} {b.claim} {badge}")]
+        else:
+            quote = "\n".join("> " + ln if ln.strip() else ">" for ln in b.claim.splitlines())
+            link = f'<a href="{html.escape(b.source)}">source</a>' if b.kind == "url" else html.escape(b.source)
+            out += [markdown[pos:b.start], f"{quote}\n>\n> {badge} {link}"]
+        pos = b.end
+    return "".join(out) + markdown[pos:], entries
+
+
+def bibliography(entries: list) -> str:
+    """The page's facts as an HTML list, one entry per block, each with the id its badge links to: kind, source, state, the line, the claim."""
+    if not entries:
+        return ""
+    items = []
+    for e in entries:
+        src = f'<a href="{html.escape(e["source"])}">{html.escape(e["source"])}</a>' if e["kind"] == "url" else f"<code>{html.escape(e['source'])}</code>"
+        claim = html.escape(" ".join(e["claim"].split())[:220])
+        items.append(f'<li id="fact-{e["n"]}"><span class="fact-kind">{html.escape(e["kind"])}</span> {src}<br>'
+                     f'<span class="fact-badge" data-state="{e["status"]}">{html.escape(e["label"])}</span> <small>line {e["line"]}</small><br>'
+                     f'<q>{claim}</q></li>')
+    return f'<section class="fact-bib" id="facts"><h2>Facts</h2><ol>{"".join(items)}</ol></section>'
 
 
 # ------------------------------------------------------------------ checking

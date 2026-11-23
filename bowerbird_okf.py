@@ -32,7 +32,7 @@ def concepts(bb, arg: str) -> list:
 def export_(bb, arg: str, apply: bool) -> list:
     """Frontmatter to the files. A review that still holds goes into .waxseals.yaml (rebound to the file as it is, so it holds there too; a stale
     one stays behind), and each source's last check into .facts.yaml, unless the file already has a newer word on it. Reads the documents only."""
-    led, lines, changed = bb.ledger_all(bb.ROOT / bb.LEDGER), [], False
+    led, lines, upd = bb.ledger_view(), [], {}
     for p in concepts(bb, arg):
         text = bb.read(p)
         d, err = bb.meta(text)
@@ -50,7 +50,7 @@ def export_(bb, arg: str, apply: bool) -> list:
             kept = kept[-1:]  # without seal.extensions the ledger keeps one latest review per file
         parts = []
         if kept != have:
-            led[rel], changed = kept, True
+            led[rel] = upd[rel] = kept
             parts.append(f"{len(new)} review(s) to {bb.LEDGER}" + (f" ({len(have) + len(new) - len(kept)} left out: seal.extensions is off)" if len(have) + len(new) > len(kept) else ""))
         state = F.read_state(p.parent)
         for e in d.get("sources") if isinstance(d.get("sources"), list) else []:
@@ -62,8 +62,8 @@ def export_(bb, arg: str, apply: bool) -> list:
                          iso(e.get("retrieved_at") or bb.now()), e.get("fact_sha256"))
         if parts:
             lines.append(f"{rel}: " + "; ".join(parts) + (f"; {len(ver) - len(valid)} stale review(s) stay behind" if len(ver) > len(valid) else ""))
-    if apply and changed:
-        bb.write(bb.ROOT / bb.LEDGER, bb.ledger_text(led))
+    if apply and upd:
+        bb.ledger_apply(upd)
     return lines
 
 
@@ -71,7 +71,7 @@ def import_(bb, arg: str, apply: bool) -> list:
     """The files to frontmatter. Every review in the ledger for the concept becomes a `verified` entry (one that held keeps holding, if the
     concept's bytes do not change; a stale one stays stale), and each fact's check updates its `sources` entry, or adds one for a block fact.
     Writing `sources` changes the bytes, which ends the reviews of the old ones: the preview says how many."""
-    led, lines = bb.ledger_all(bb.ROOT / bb.LEDGER), []
+    led, lines = bb.ledger_view(), []
     for p in concepts(bb, arg):
         text = bb.read(p)
         d, err = bb.meta(text)

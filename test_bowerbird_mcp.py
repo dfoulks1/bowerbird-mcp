@@ -126,6 +126,22 @@ check("---\ntype: x\n---\n", "no_description")
 check("---\ntype: x\n---\n", "orphan")
 check("---\ntype: Attested Computation\n---\n", "bad_computation")
 check("---\ntype: x\n---\n# Real\n\n[a](#nope)\n", "dead_anchor")
+
+# Wikilinks: [[Note]] resolves by file name (shortest path first), a missing one is a dead_link, #Heading is checked like a markdown anchor.
+(coll / "wk" / "sub").mkdir(parents=True)
+for n, body in {"a.md": "---\ntype: x\ndescription: d\n---\n# Top\n\n## My Heading\n\n[[Note]] [[sub/Deep#My Heading|alias]] ![[img.png]] [[Note#^b1]]\n",
+                "Note.md": "---\ntype: x\ndescription: d\n---\n[[a]] [[a#my heading]]\n", "sub/Deep.md": "---\ntype: x\ndescription: d\n---\n# My Heading\n\n[[a]]\n",
+                "sub/Note.md": "---\ntype: x\ndescription: d\n---\n[[a]]\n"}.items():
+    (coll / "wk" / n).write_text(body)
+(coll / "wk" / "img.png").write_bytes(b"x")
+wk = {(f["file"], f["kind"]) for f in bb.lint(bundle="wk", limit=0)["findings"]}
+assert not {k for k in wk if k[1] in ("dead_link", "dead_anchor", "self_link")}, wk  # every link above resolves
+assert bb.links("a.md", bundle="wk")["out"][0]["link"] == "[[Note]]"  # a wikilink is a link, so links/backlinks see it
+assert bb.target("[[note]]", coll / "wk" / "a.md", coll / "wk") == coll / "wk" / "Note.md"  # the shortest path wins, case ignored
+(coll / "wk" / "b.md").write_text("---\ntype: x\ndescription: d\n---\n[[Missing]] [[a#nope]]\n")
+wk = {(f["file"], f["kind"]) for f in bb.lint(bundle="wk", limit=0)["findings"]}
+assert ("b.md", "dead_link") in wk and ("b.md", "dead_anchor") in wk, wk
+shutil.rmtree(coll / "wk")
 check("---\ntype: x\ntags: [Sales, sales]\n---\n", "tag_case")
 check("---\ntype: x\ncomputation: nope/x.sql\n---\n", "dead_path")
 check("---\ntype: x\ngenerated: {by: human:a, at: '2026-01-01T00:00:00Z'}\n"
@@ -1159,7 +1175,7 @@ bb.ledger_put(k9, {"file": k9, "sha256": bb.content_hash(t9, False), "by": "huma
 bb.move(k9, "docs/0009-linked", apply=True)  # its own relative link had to change, so its text did and the seal stays behind
 assert set(bb.ledger_by_file()) == {k0, k9} and {c["file"]: c["tier"] for c in bb.list_(limit=0)["concepts"]}["docs/0009-linked.md"] == "unverified"
 (ar / "docs/0009-linked.md").unlink()
-(ar / ".waxseals.yaml").unlink()
+[f.unlink() for f in bb.ledger_files()]  # the ledgers now sit beside their files
 # format: seal-only: nothing is indexed, one tool; every text file is checked except what seal.exempt leaves out (code included).
 prev = (bb.ROOT, bb.OPTS["format"], dict(bb.OPTS["seal"]))
 so = Path(tempfile.mkdtemp()).resolve()
@@ -1223,12 +1239,28 @@ class Any(Ctx):  # a human who confirms whatever file is shown
         assert "adr/0001" in message and "sha256" in message and "decision: accepted" in message
         return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
 asyncio.run(bb.seal(adr1, ctx=Any(), decision="accepted"))
-led = (ar / ".waxseals.yaml").read_text()
-line = next(ln for ln in led.splitlines() if adr1 in ln)  # one dense line per file
+adr_led = (ar / adr1).parent / ".waxseals.yaml"  # the ledger sits in the file's own folder, and names the file relative to it
+led = adr_led.read_text()
+line = next(ln for ln in led.splitlines() if Path(adr1).name in ln)  # one dense line per file
+assert not (ar / ".waxseals.yaml").exists() and f"file: {Path(adr1).name}," in line
 assert led.startswith("# .waxseals.yaml") and line.startswith("- {") and "sha256:" in line and "human:tester" in line and "decision: accepted" in line and f"bowerbird: {bb.VERSION}" in line, led
 asyncio.run(bb.seal(adr1, ctx=Any(), decision="accepted"))  # sealing again replaces the line: only the last seal is kept
-assert [ln for ln in (ar / ".waxseals.yaml").read_text().splitlines() if adr1 in ln] and sum(adr1 in ln for ln in (ar / ".waxseals.yaml").read_text().splitlines()) == 1
+assert sum(Path(adr1).name in ln for ln in adr_led.read_text().splitlines()) == 1
 assert (adr1, "unsigned") not in {(f["file"], f["kind"]) for f in bb.signatures()["findings"]}
+assert "sealed with its outcome" in raises(bb.seal, adr1, ctx=Any())  # a person sealing a decision record must say what they decided
+assert bb.adr_meta(bb.meta((ar / adr1).read_text())[0] or {}, (ar / adr1).read_text(), ar / adr1)["status"] == "accepted" and (adr1, "stale_signature") not in {(f["file"], f["kind"]) for f in bb.signatures()["findings"]}  # the ruling is in the file, and the seal holds for it
+# an ADR+ record: who ruled and when are written too, and History keeps the values it had
+plus = ar / "docs/adr/0042-plus.md"
+plus.write_text('---\nstatus: proposed\nstatus-note: "drafted"\nkind: process\nbuilt: not started\n---\n# ADR-042 Plus\n\n## Decision\n\nx\n\n## History\n\n- drafted.\n')
+class Anyone(Ctx):
+    async def elicit(self, message, schema):
+        assert "-> accepted (written into the file)" in message  # the prompt says what the decision will write
+        return SimpleNamespace(action="accept", data=SimpleNamespace(confirm=True, reviewer="tester"))
+asyncio.run(bb.seal("docs/adr/0042-plus.md", ctx=Anyone(), decision="accepted"))
+pt = plus.read_text()
+assert "status: accepted" in pt and "ratified-by: tester" in pt and "ratified-on:" in pt and "Earlier values, word for word: `status: proposed`, `status-note: \"drafted\"`" in pt, pt
+plus.unlink()
+bb.ledger_apply({"docs/adr/0042-plus.md": None})
 h = bb.passages("zebra")["hits"][0]
 assert h["tier"] == "human-reviewed" and h["status"] == "accepted" and not h["stale"], h
 (ar / adr1).write_text((ar / adr1).read_text() + "\nAn edit after the review.\n")  # the seal is broken
@@ -1540,6 +1572,22 @@ else:
     assert put_("/_new", dir="", name="", text="x")[0] == 400
     pg = hit("GET", "/a.md")[1]
     aside = pg[pg.index("<aside>"):]
+    # a fact block is its claim and a badge that links to a Facts tab, which holds the bibliography; a page's signers and "N of M" are shown
+    (sv / "facts.md").write_text("---\ntype: Note\ndescription: F.\n---\n# Facts\n\nOne-liner: [fact.url](https://x.test/b) short claim [fact.end] and [fact.until](2999-01-01) the freeze is on [fact.end].\n")
+    fpg_ = hit("GET", "/facts.md")[1]
+    assert 'class="fact-badge" data-state="unchecked" href="#fact-1"' in fpg_ and "Facts (2)" in fpg_ and 'id=t-facts' in fpg_ and 'id="fact-2"' in fpg_ and "not yet checked" in fpg_
+    assert "[fact." not in fpg_.split("<aside>")[0].split("<main>")[1] and "Facts (" not in pg  # no tag shows, and no tab on a page with no facts
+    (sv / "signed.md").write_text("---\ntype: Note\ndescription: S.\nverified:\n  - {by: human:ann, at: '2026-11-23T10:00:00Z', comment: checked the steps}\n"
+                                  "  - {by: human:bo, at: '2026-11-23T10:00:05Z'}\n---\n# S\n\nBody.\n")
+    saved_seal = dict(bb.OPTS["seal"])
+    bb.OPTS["seal"] = {**saved_seal, "extensions": True, "quorum": 3}
+    bb._POLICY.clear()
+    spg_ = hit("GET", "/signed.md")[1]
+    assert "signed 2 of 3: ann (checked the steps), bo" in spg_ and "signed: 2 of 3 (ann, bo)" in spg_, spg_[spg_.find("signed"):][:200]  # the page's head and the modal
+    bb.OPTS["seal"] = saved_seal
+    bb._POLICY.clear()
+    (sv / "facts.md").unlink()
+    (sv / "signed.md").unlink()
     assert "✎" in aside and "⚙" in aside and "✎" not in pg[:pg.index("<aside>")].split("<main>")[1]  # the pencil and gear live in the right pane
 
     # edit: saves, and refuses to overwrite a page that changed under the editor
@@ -2148,62 +2196,32 @@ finally:
     bb._POLICY.clear()
 
 
-# the old names still work for now, with a warning: kbmcp.yaml, KB_* variables, kbmcp.nolint, and the kb-index markers.
+# the old names are gone (2.3): a kbmcp.yaml with no bower.yaml stops the run, and KB_* variables, kbmcp.nolint and kb-index markers are not read.
 lg = Path(tempfile.mkdtemp()).resolve()
 (lg / "kbmcp.yaml").write_text("format: adr\nabout: Old name.\n")
-err = io.StringIO()
-bb._WARNED.clear()
-with contextlib.redirect_stderr(err):
-    assert bb.load_config(lg)[1]["about"] == "Old name." and bb.load_config(lg)[0] == lg and bb.config_file(lg).name == "kbmcp.yaml"
-assert err.getvalue().count("kbmcp.yaml is the old name of bower.yaml") == 1 and "git mv kbmcp.yaml bower.yaml" in err.getvalue(), err.getvalue()  # said once
-assert bb.load_config(lg, str(lg))[1]["format"] == "adr"  # --config with the folder, and with the file
-(lg / "bower.yaml").write_text("format: markdown\nabout: New name.\n")  # both: the new one wins, and the old one is said to be ignored
-bb._WARNED.clear()
-err = io.StringIO()
-with contextlib.redirect_stderr(err):
-    assert bb.load_config(lg)[1]["about"] == "New name." and bb.config_file(lg).name == "bower.yaml"
-assert "both exist here" in err.getvalue()
+try:
+    bb.load_config(lg)
+    msg = "did not stop"
+except SystemExit as e:
+    msg = str(e)
+assert "kbmcp.yaml is no longer read" in msg and "git mv kbmcp.yaml bower.yaml" in msg, msg
+(lg / "bower.yaml").write_text("format: markdown\nabout: New name.\n")  # with a bower.yaml beside it, the old file is just a file
+assert bb.load_config(lg)[1]["about"] == "New name." and bb.config_file(lg).name == "bower.yaml"
 (lg / "bower.yaml").unlink()
-env_new = {"BOWERBIRD_ABOUT": "new", "KB_ABOUT": "old", "KB_HUBS": "false"}
-err = io.StringIO()
-bb._WARNED.clear()
-with contextlib.redirect_stderr(err):
-    ov = bb.env_overrides(env_new)
-assert ov == {"about": "new", "hubs": False} and "KB_HUBS is the old name of BOWERBIRD_HUBS" in err.getvalue() and "KB_ABOUT" not in err.getvalue(), (ov, err.getvalue())
-assert bb.envvar("USER", {"KB_USER": "me"}) == "me" and bb.envvar("USER", {"BOWERBIRD_USER": "you", "KB_USER": "me"}) == "you" and bb.envvar("USER", {}) is None
-dl = lg / ".env"
-dl.write_text("KB_ABOUT=old\nBOWERBIRD_BUILD=manual\n")
-assert bb.read_dotenv(dl) == {"KB_ABOUT": "old", "BOWERBIRD_BUILD": "manual"}  # both prefixes are read from a .env
-# a generated list written under the old marker is regenerated under the new one
-ix = Path(tempfile.mkdtemp()).resolve()
+ov = bb.env_overrides({"BOWERBIRD_ABOUT": "new", "KB_ABOUT": "old", "KB_HUBS": "false"})
+assert ov == {"about": "new"}, ov
+assert bb.envvar("USER", {"KB_USER": "me"}) is None and bb.envvar("USER", {"BOWERBIRD_USER": "you", "KB_USER": "me"}) == "you"
+(lg / ".env").write_text("KB_ABOUT=old\nBOWERBIRD_BUILD=manual\n")
+assert bb.read_dotenv(lg / ".env") == {"BOWERBIRD_BUILD": "manual"}
 old_block = "<!-- kb-index:start (generated by KnowledgeBaseMCP index; do not edit between the markers) -->\n\nstale\n\n<!-- kb-index:end -->"
-assert bb.BLOCK.search(f"# Index\n\n{old_block}\n") and bb.BLOCK.search(f"{bb.INDEX_BEGIN}\nx\n{bb.INDEX_END}")  # the old marker and the new one are both found
-assert "bowerbird-index:start" in bb.INDEX_BEGIN and "kb-index" not in bb.INDEX_BEGIN + bb.INDEX_END and bb.BLOCK.sub(bb.INDEX_BEGIN + "\nnew\n" + bb.INDEX_END, old_block).startswith("<!-- bowerbird-index")
-
-
-# the old nolint file and a bower still named kbmcp.yaml work inside a collection that uses the new names.
+assert not bb.BLOCK.search(f"# Index\n\n{old_block}\n") and bb.BLOCK.search(f"{bb.INDEX_BEGIN}\nx\n{bb.INDEX_END}")  # only the current marker is found
 nl, nl_saved = Path(tempfile.mkdtemp()).resolve(), bb.ROOT
 bb.ROOT = nl
 (nl / "kbmcp.nolint").write_text("drafts/\n")
-(nl / "bower.yaml").write_text("format: markdown\nbowers: [docs]\n")
-(nl / "docs").mkdir()
-(nl / "docs/kbmcp.yaml").write_text("format: adr\n")
-bb._SCOPES.clear()
-bb._POLICY.clear()
-try:
-    skip = bb.nolint(nl)
-    assert skip("drafts/a.md") and not skip("keep.md")  # the old file name
-    (nl / "kbmcp.nolint").unlink()
-    (nl / "bower.nolint").write_text("keep.md\n")
-    skip = bb.nolint(nl)
-    assert skip("keep.md") and not skip("drafts/a.md")  # the new one
-    bb._WARNED.clear()
-    with contextlib.redirect_stderr(io.StringIO()):
-        assert bb.fmt_of(nl / "docs/x.md") == "adr"  # a listed bower with the old file name
-finally:
-    bb.ROOT = nl_saved
-    bb._SCOPES.clear()
-    bb._POLICY.clear()
+(nl / "bower.nolint").write_text("keep.md\n")
+skip = bb.nolint(nl)
+assert skip("keep.md") and not skip("drafts/a.md")  # kbmcp.nolint is not read
+bb.ROOT = nl_saved
 
 
 # purge_seals: the ledger lines of the files the globs name go, the others stay; a person runs it, it is not a tool.
@@ -2218,6 +2236,288 @@ try:
     assert bb.purge_seals(["/docs/**"]) == [] and "purge_seals" not in bb.REG  # nothing left to purge; and no agent can call it
 finally:
     bb.ROOT = pg_saved
+
+
+# distributed ledgers (2.3): a seal goes into the ledger of the file's own folder, a root ledger from before still holds, and the nearest wins.
+dl2, dl2_saved = Path(tempfile.mkdtemp()).resolve(), bb.ROOT
+bb.ROOT = dl2
+(dl2 / "docs/adr").mkdir(parents=True)
+(dl2 / "docs/other").mkdir()
+(dl2 / ".waxseals.yaml").write_text("- {file: docs/adr/a.md, sha256: 11, by: 'human:old', at: '2026-01-01T00:00:00Z'}\n"
+                                  "- {file: docs/keep.md, sha256: 22, by: 'human:old', at: '2026-01-01T00:00:00Z'}\n")
+try:
+    assert set(bb.ledger_by_file()) == {"docs/adr/a.md", "docs/keep.md"}  # the old root ledger is read as it was
+    wrote = bb.ledger_put("docs/adr/a.md", {"file": "docs/adr/a.md", "sha256": "33", "by": "human:new", "at": "2026-02-01T00:00:00Z"})
+    assert wrote == [".waxseals.yaml", "docs/adr/.waxseals.yaml"], wrote  # one line left the root ledger, one went beside the file
+    assert "file: a.md," in (dl2 / "docs/adr/.waxseals.yaml").read_text() and "a.md" not in (dl2 / ".waxseals.yaml").read_text()
+    seen = bb.ledger_by_file()
+    assert set(seen) == {"docs/adr/a.md", "docs/keep.md"} and seen["docs/adr/a.md"][-1]["by"] == "human:new" and seen["docs/adr/a.md"][-1]["file"] == "docs/adr/a.md"
+    (dl2 / "docs/adr/.waxseals.yaml").write_text(  # a stray old line in the root for the same file: the nearer ledger wins
+        "- {file: a.md, sha256: 33, by: 'human:new', at: '2026-02-01T00:00:00Z'}\n")
+    (dl2 / ".waxseals.yaml").write_text("- {file: docs/adr/a.md, sha256: 11, by: 'human:old', at: '2026-01-01T00:00:00Z'}\n")
+    assert bb.ledger_by_file()["docs/adr/a.md"][-1]["by"] == "human:new"
+    for k, v in bb.ledger_changes({"docs/adr/a.md": None, "docs/other/a.md": bb.ledger_by_file()["docs/adr/a.md"]}).items():  # a move carries the seal to the new folder
+        (k.unlink() if v is None else k.write_text(v))
+    assert not (dl2 / "docs/adr/.waxseals.yaml").exists() and "file: a.md," in (dl2 / "docs/other/.waxseals.yaml").read_text() and list(bb.ledger_by_file()) == ["docs/other/a.md"]
+    assert hk.entries(dl2, "docs/other/a.md")[0]["by"] == "human:new" and hk.entries(dl2, "docs/adr/a.md") == []  # the docs hook finds the nearest ledger too
+finally:
+    bb.ROOT = dl2_saved
+
+
+# format add-ons (2.3): obsidian, foam, dendron and logseq each register a profile of the markdown family; the shared resolver reads their links.
+import importlib.metadata as _im
+import importlib.util as _iu
+
+
+def addon(n):
+    s = _iu.spec_from_file_location(f"bowerbird_{n}", HERE / "addons" / n / f"bowerbird_{n}.py")
+    m = _iu.module_from_spec(s)
+    s.loader.exec_module(m)
+    m.register(bb)
+
+
+class _EP:  # an entry point, as importlib.metadata hands one out
+    def __init__(self, name, fn):
+        self.name, self.load = name, lambda: fn
+
+
+def _boom(_bb):
+    raise RuntimeError("broken add-on")
+
+
+_orig_eps, err = _im.entry_points, io.StringIO()
+_im.entry_points = lambda group=None: [_EP("fake", lambda m: m.register_format("fake", about="a fake")), _EP("bad", _boom)]
+try:
+    with contextlib.redirect_stderr(err):
+        bb.load_plugins()
+finally:
+    _im.entry_points = _orig_eps
+assert "fake" in bb.PROFILES and bb.base("fake") == "markdown" and bb.base("okf") == "okf"  # a profile is read as markdown
+assert "the add-on bad did not load (RuntimeError: broken add-on)" in err.getvalue()  # a broken add-on is said, and left out
+del bb.PROFILES["fake"]
+for n in ("obsidian", "foam", "dendron", "logseq"):
+    addon(n)
+assert {"obsidian", "foam", "dendron", "logseq"} <= set(bb.PROFILES)
+
+
+def vault(fmt, files):
+    """A throwaway collection of `fmt` holding files; (root, a function giving the (file, kind) lint findings)."""
+    d = Path(tempfile.mkdtemp()).resolve()
+    (d / "bower.yaml").write_text(f"format: {fmt}\n")
+    for n, body in files.items():
+        (d / n).parent.mkdir(parents=True, exist_ok=True)
+        (d / n).write_text(body)
+    return d
+
+
+def in_vault(fmt, files, fn):
+    saved = (bb.ROOT, bb.OPTS["format"], bb.CFG_DIR)
+    d = vault(fmt, files)
+    bb.ROOT, bb.OPTS["format"], bb.CFG_DIR = d, fmt, d
+    bb._SCOPES.clear()
+    bb._POLICY.clear()
+    bb.WIKI.clear()
+    try:
+        return fn(d)
+    finally:
+        bb.ROOT, bb.OPTS["format"], bb.CFG_DIR = saved
+        bb._SCOPES.clear()
+        bb._POLICY.clear()
+        bb.WIKI.clear()
+
+
+def dead(d):
+    return {(f["file"], f["message"].split(" ")[2]) for f in bb.lint(limit=0)["findings"] if f["kind"] == "dead_link"}
+
+
+# Obsidian: [[Note]] by name, the vault's own folders skipped, %%comments%% and embeds of files handled
+def obs(d):
+    a = d / "a.md"
+    assert bb.hrefs(a.read_text()) == ["[[b]]", "[[Missing]]", "[[img.png]]", "[[b]]"], bb.hrefs(a.read_text())  # %% [[Hidden]] %% is a comment; [[b#^blk]] keeps the note
+    assert bb.target("[[b]]", a, d) == d / "sub/b.md" and bb.target("[[img.png]]", a, d) == d / "img.png"
+    assert not any(".obsidian" in str(p) for p in bb.walk(d)) and dead(d) == {("a.md", "[[Missing]]")}, dead(d)
+    assert bb.fmt_of(a) == "markdown" and bb.profile().name == "obsidian"
+in_vault("obsidian", {"a.md": "[[b]] [[Missing]] %% [[Hidden]] %% ![[img.png]] [[b#^blk]]\n", "sub/b.md": "b\n", "img.png": "x", ".obsidian/workspace.md": "[[Nope]]\n"}, obs)
+
+
+# Foam: [[projects]] is projects/index.md, a sibling projects.md would win; the editor's folders are skipped
+def foam(d):
+    a = d / "a.md"
+    assert bb.target("[[projects]]", a, d) == d / "projects/index.md" and bb.target("[[house/todo]]", a, d) == d / "projects/house/todo.md"
+    assert dead(d) == {("a.md", "[[nope]]")} and not any(".foam" in str(p) for p in bb.walk(d)), dead(d)
+in_vault("foam", {"a.md": "[[projects]] [[house/todo]] [[nope]]\n", "projects/index.md": "i\n", "projects/house/todo.md": "t\n", ".foam/templates/n.md": "[[$FOAM_X]]\n"}, foam)
+
+
+# Dendron: the alias is on the left, dotted names are the hierarchy, a stub parent exists, a vault prefix is not a note
+def den(d):
+    a = d / "x.md"
+    assert bb.hrefs(a.read_text()) == ["[[a.b.c#head]]", "[[a.b]]", "[[a.b.c]]", "[[gone.x]]"], bb.hrefs(a.read_text())
+    assert bb.target("[[a.b.c]]", a, d) == d / "a.b.c.md" and bb.target("[[a.b]]", a, d) is None  # a.b is a stub: no file, not a broken link
+    assert dead(d) == {("x.md", "[[gone.x]]")}, dead(d)
+in_vault("dendron", {"x.md": "[[alias|a.b.c#head]] [[a.b]] [[dendron://v/a.b.c]] [[gone.x]]\n", "a.b.c.md": "c\n"}, den)
+
+
+# Logseq: a___b.md is page a/b, a journal page needs no file, and a link to a page with no file is not a mistake
+def lsq(d):
+    a = d / "pages/z.md"
+    assert bb.target("[[a/b]]", a, d) == d / "pages/a___b.md" and bb.target("[[Sep 14th, 2020]]", a, d) is None
+    assert dead(d) == set() and not any("logseq" in p.relative_to(d).parts for p in bb.walk(d))
+in_vault("logseq", {"pages/z.md": "- [[a/b]] [[Sep 14th, 2020]] [[nowhere]]\n", "pages/a___b.md": "- b\n", "logseq/bak/old.md": "[[x]]\n"}, lsq)
+for n in ("obsidian", "foam", "dendron", "logseq"):
+    del bb.PROFILES[n]
+
+
+# fact kinds file and internal (ADR-001): read here, no network; an agent may run the check, and a drift is recorded beside the document.
+outside = Path(tempfile.mkdtemp()).resolve() / "limits.txt"  # a file outside the collection
+outside.write_text("alpha\nbeta\ngamma\ndelta\n")
+
+
+def facts_vault(d):
+    def row(text, i=0):
+        (d / "n.md").write_text(text)
+        return bb.fact_rows("n.md")[i]
+
+    def run(r):
+        return bb.factcheck(file="n.md", id=r["id"])["checked"][0]
+    r = row(f"[fact.file]({outside}#L2-3) beta gamma [fact.end]\n")
+    assert r["status"] == "unchecked" and run(r)["status"] == "checked"  # an agent checks it with no prompt, and it is recorded
+    assert bb.fact_rows("n.md")[0]["status"] == "checked"
+    assert run(row(f"[fact.file]({outside}#L2-3) alpha [fact.end]\n"))["status"] == "drifted"  # alpha is in the file, not in the lines the fact names
+    got = run(row(f"[fact.file]({outside}#L9-10) beta [fact.end]\n"))
+    assert got["status"] == "drifted" and "past the end" in got["method"]
+    assert run(row(f"[fact.file]({outside.parent}/gone.txt) beta [fact.end]\n"))["status"] == "drifted"
+    (d / "data.txt").write_text("one\ntwo\n")
+    assert run(row("[fact.file](data.txt#L2) two [fact.end]\n"))["status"] == "checked"  # relative to the document's folder
+    assert run(row("[fact.file](data.txt) one two [fact.end]\n"))["status"] == "checked"  # no lines: the whole file
+    (d / "other.md").write_text("# Top\n\n## Part One\nfoo\n\n## Part Two\nthe second part says x\n\n### Sub\nsub text\n\n## Part Three\nbar\n")
+    assert run(row("[fact.internal](other.md#Part Two) the second part says x [fact.end]\n"))["status"] == "checked"
+    assert run(row("[fact.internal](other.md#part-two) sub text [fact.end]\n"))["status"] == "checked"  # a sub-section is in its section; the heading is matched by anchor
+    assert run(row("[fact.internal](other.md#Part Two) foo [fact.end]\n"))["status"] == "drifted"  # foo is on the page, in another section
+    assert run(row("[fact.internal](other.md#Part Two) bar [fact.end]\n"))["status"] == "drifted"
+    got = run(row("[fact.internal](other.md#Nope) foo [fact.end]\n"))
+    assert got["status"] == "drifted" and "no heading" in got["method"]
+    assert run(row("[fact.internal](nope.md) foo [fact.end]\n"))["status"] == "drifted"
+    assert run(row("[fact.internal](other.md) foo [fact.end]\n"))["status"] == "checked"  # no heading: the whole page
+    (d / "n.md").write_text("[fact.file](x#frag) a [fact.end] [fact.file](x#L3-1) a [fact.end] [fact.internal]() a [fact.end] [fact.file](https://a.b/c) a [fact.end]\n")
+    assert {f["kind"] for f in bb.lint(limit=0)["findings"]} >= {"bad_fact"} and sum(f["kind"] == "bad_fact" for f in bb.lint(limit=0)["findings"]) == 4
+in_vault("markdown", {"n.md": "x\n"}, facts_vault)
+
+
+# the fact pack (ADR-001): key, git, until, manual and script, registered through the `bowerbird.fact_types` entry point.
+_fp = _iu.spec_from_file_location("bowerbird_fact_pack", HERE / "fact-pack" / "bowerbird_fact_pack.py")
+fact_pack = _iu.module_from_spec(_fp)
+_fp.loader.exec_module(fact_pack)
+FF = bb.facts_mod()
+assert "pip install 'bowerbird-mcp[fact-pack]'" in FF.parse("[fact.key](a b) x [fact.end]")[1][0][2]  # without the pack: told what to install
+_im.entry_points = lambda group=None: [_EP("fact-pack", fact_pack.register)] if group == "bowerbird.fact_types" else []
+try:
+    bb.load_plugins("bowerbird.fact_types")
+finally:
+    _im.entry_points = _orig_eps
+assert {"key", "git", "until", "manual", "script"} <= set(FF.FACT_TYPES) and FF.FACT_TYPES["key"].local and not FF.FACT_TYPES["script"].local and not FF.FACT_TYPES["manual"].local
+assert "install the fact pack" not in str(FF.parse("[fact.key](a.json x) x [fact.end]")[1])
+
+
+def pack_vault(d):
+    def row(text, i=0):
+        (d / "n.md").write_text(text)
+        return bb.fact_rows("n.md")[i]
+
+    def run(text):
+        r = row(text)
+        return bb.fact_run(d / "n.md", next(b for _, b in bb.fact_blocks("n.md") if b.id == r["id"]), bb.CFG.get("facts", {}).get("mcp", {}))
+    # key: the first check records the value, the next ones compare, a missing key is a drift
+    (d / "v.json").write_text(json.dumps({"project": {"version": "2.3.0", "list": [1, 2]}}))
+    (d / "v.yaml").write_text("project:\n  version: '2.3.0'\n")
+    claim = "[fact.key](v.json project.version) is 2.3.0 [fact.end]\n"
+    assert run(claim)["method"] == "baseline recorded" and run(claim)["method"] == "same value"
+    (d / "v.json").write_text(json.dumps({"project": {"version": "2.4.0"}}))
+    got = run(claim)
+    assert got["status"] == "drifted" and "2.3.0" in got["method"] and "2.4.0" in got["method"]
+    assert run("[fact.key](v.json project.nope) x [fact.end]\n")["status"] == "drifted" and run("[fact.key](v.yaml project.version) x [fact.end]\n")["status"] == "checked"
+    assert run("[fact.key](gone.json a) x [fact.end]\n")["status"] == "drifted"
+    # until: a date
+    assert run("[fact.until](2999-01-01) the freeze is on [fact.end]\n")["status"] == "checked" and run("[fact.until](2000-01-01) the freeze is on [fact.end]\n")["status"] == "drifted"
+    (d / "n.md").write_text("[fact.until](soon) x [fact.end] [fact.git](tag) x [fact.end] [fact.git](file HEAD) x [fact.end] [fact.key](one) x [fact.end] [fact.script](a b c) x [fact.end]\n")
+    assert sum(f["kind"] == "bad_fact" for f in bb.lint(limit=0)["findings"]) == 5
+    # git: a tag, and a file at a revision
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    g = lambda *a: subprocess.run(["git", "-C", str(d), *a], check=True, capture_output=True, env=env)
+    g("init", "-q")
+    g("add", "-A")
+    g("commit", "-q", "-m", "one")
+    g("tag", "v1")
+    tag = "[fact.git](tag v1) tagged [fact.end]\n"
+    assert run(tag)["method"] == "baseline recorded" and run(tag)["method"] == "same value"
+    (d / "x.txt").write_text("changed\n")
+    g("add", "-A")
+    g("commit", "-q", "-m", "two")
+    g("tag", "-f", "v1")
+    assert run(tag)["status"] == "drifted"  # the tag moved
+    assert run("[fact.git](tag nope) x [fact.end]\n")["status"] == "drifted"
+    f1 = "[fact.git](file HEAD x.txt) x.txt is unchanged [fact.end]\n"
+    assert run(f1)["method"] == "baseline recorded"
+    (d / "x.txt").write_text("changed again\n")
+    g("add", "-A")
+    g("commit", "-q", "-m", "three")
+    assert run(f1)["status"] == "drifted"
+    # manual: a person at a terminal answers; no prompt for an agent; an opted-in interval skips a fresh confirmation
+    import builtins
+    saved_in, saved_term = builtins.input, bb.at_terminal
+    try:
+        bb.at_terminal = lambda: False
+        assert run("[fact.manual](ops standup) the rota moved to Tuesdays [fact.end]\n")["status"] == "error"
+        bb.at_terminal = lambda: True
+        builtins.input = lambda _="": "y"
+        m = "[fact.manual](ops standup) the rota moved to Tuesdays [fact.end]\n"
+        assert run(m)["status"] == "checked" and "confirmed by" in run(m)["method"]
+        bb.CFG["facts"] = {"manual_days": 30}
+        assert run(m)["status"] == "skipped"  # confirmed a moment ago, and an interval is on
+        bb.CFG.pop("facts")
+        builtins.input = lambda _="": "n"
+        assert run(m)["status"] == "drifted"
+    finally:
+        builtins.input, bb.at_terminal = saved_in, saved_term
+        bb.CFG.pop("facts", None)
+    # script: declared in the root bower.yaml, an argument list, no shell; output is the value; a failing command is skipped
+    s = "[fact.script](show) the file says one [fact.end]\n"
+    assert run(s)["status"] == "skipped" and "not declared" in run(s)["method"]
+    bb.CFG["facts"] = {"scripts": {"show": {"cmd": ["cat", "{key}"]}, "bad": {"cmd": ["false"]}, "inj": {"cmd": ["echo", "{key}"]}}}
+    try:
+        (d / "data.txt").write_text("one\n")
+        s2 = "[fact.script](show data.txt) the file says one [fact.end]\n"
+        assert run(s2)["method"] == "baseline recorded" and run(s2)["method"] == "same value"
+        (d / "data.txt").write_text("two\n")
+        assert run(s2)["status"] == "drifted"
+        assert run("[fact.script](bad) x [fact.end]\n")["status"] == "skipped"
+        (d / "n.md").write_text("[fact.script](inj ;touch-pwned) x [fact.end] [fact.script](inj --upload-pack=x) y [fact.end]\n")
+        assert bb.fact_rows("n.md") == [] and sum(f["kind"] == "bad_fact" for f in bb.lint(limit=0)["findings"]) == 2  # a key with shell characters, or one that starts with -, is not a fact
+        assert run("[fact.script](inj a.b-c) x [fact.end]\n")["status"] == "checked" and not (d / "touch-pwned").exists()  # an ordinary key goes in as one argument
+    finally:
+        bb.CFG.pop("facts", None)
+in_vault("markdown", {"n.md": "x\n"}, pack_vault)
+for _k in ("key", "git", "until", "manual", "script"):
+    del FF.FACT_TYPES[_k]
+
+
+# seal extensions: a move carries every person's seal, not only the last
+def seals_move(d):
+    saved = dict(bb.OPTS["seal"])
+    bb.OPTS["seal"] = {**saved, "extensions": True, "quorum": 2}
+    bb._POLICY.clear()
+    try:
+        text = (d / "a.md").read_text()
+        for i, who in enumerate(("ann", "bo"), 1):
+            bb.ledger_put("a.md", {"file": "a.md", "sha256": bb.content_hash(text, False), "by": f"human:{who}", "at": f"2026-11-23T10:00:0{i}Z", "comment": f"{who} read it"})
+        assert [e["by"] for e in bb.ledger_by_file()["a.md"]] == ["human:ann", "human:bo"]
+        bb.move("a.md", "sub/a", apply=True)
+        moved = bb.ledger_by_file()
+        assert set(moved) == {"sub/a.md"} and [e["by"] for e in moved["sub/a.md"]] == ["human:ann", "human:bo"] and moved["sub/a.md"][0]["comment"] == "ann read it"
+        assert not (d / ".waxseals.yaml").read_text().count("a.md") if (d / ".waxseals.yaml").exists() else True
+    finally:
+        bb.OPTS["seal"] = saved
+        bb._POLICY.clear()
+in_vault("markdown", {"a.md": "# A\n\nbody\n", "sub/keep.md": "# K\n"}, seals_move)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
@@ -2269,23 +2569,29 @@ F.record(fh, "p.md", fblocks[0].id, "url", fblocks[0].source, "checked", "same w
 F.record(fh, "p.md", fblocks[2].id, "mcp", fblocks[2].source, "drifted", "was 'Open', now 'Closed'", "2026-11-21T10:00:00Z", "Open")
 shown = hk.facts(fsrc, fpage)
 assert "[fact." not in shown.replace("[fact.url](https://x.test/c) in code [fact.end]", "")  # no tag survives outside the code block
-assert '> The page says this.\n>\n> And this.\n>\n> <span class="fact-badge" data-state="checked">checked 2026-11-20 (same words)</span> <a href="https://x.test/a">source</a>' in shown
-assert "[short claim](https://x.test/b) <span class=\"fact-badge\" data-state=\"unchecked\">not yet checked</span>" in shown  # an address links the claim
-assert 'jira K-1 is open <span class="fact-badge" data-state="drifted">drifted 2026-11-21' in shown  # a server and key read before it
+assert '> The page says this.\n>\n> And this.\n>\n> <a class="fact-badge" data-state="checked" href="#fact-1">checked 2026-11-20 (same words)</a> <a href="https://x.test/a">source</a>' in shown
+assert "[short claim](https://x.test/b) <a class=\"fact-badge\" data-state=\"unchecked\" href=\"#fact-2\">not yet checked</a>" in shown  # an address links the claim
+assert 'jira K-1 is open <a class="fact-badge" data-state="drifted" href="#fact-3">drifted 2026-11-21' in shown  # a server and key read before it
 assert "[fact.url](https://x.test/c) in code [fact.end]" in shown  # an example in code is not a fact
+bib = shown[shown.index('<section class="fact-bib"'):]  # the bibliography: an entry for each block, each with the id its badge links to
+assert [f'id="fact-{n}"' in bib for n in (1, 2, 3)] == [True] * 3 and 'id="fact-4"' not in bib and "https://x.test/a" in bib and "drifted 2026-11-21" in bib and "in code" not in bib
+ents = F.render(fsrc, fh, "p.md")[1]
+assert [(e["n"], e["kind"], e["status"], e["line"]) for e in ents] == [(1, "url", "checked", 3), (2, "url", "unchecked", 9), (3, "mcp", "drifted", 9)]  # the data both the hook and serve use
+assert F.bibliography([]) == "" and "[fact." not in hk.facts("No facts here.\n", fpage)
 
 
-# the registry of fact kinds: url and mcp are registered; a new kind is one register() call, and parse, lint and the check all know it.
-assert set(F.FACT_TYPES) == {"url", "mcp"} and F.FACT_TYPES["url"].check is bb.fact_check_url and F.FACT_TYPES["mcp"].plan is bb.fact_plan_mcp
-assert F.parse("[fact.file](a.py#L1-2) x [fact.end]")[1][0][1] == "unknown_fact_kind" and "fact.url, fact.mcp" in F.parse("[fact.file](a.py) x [fact.end]")[1][0][2]
-F.register("file", "src/app.py#L10-20", lambda s: None if re.fullmatch(r"[\w./-]+(#L\d+-\d+)?", s) else f"needs a path, got {s!r}")
+# the registry of fact kinds: url, mcp, file and internal are registered; a new kind is one register() call, and parse, lint and the check all know it.
+assert set(F.FACT_TYPES) == {"url", "mcp", "file", "internal"} and F.FACT_TYPES["url"].check is bb.fact_check_url and F.FACT_TYPES["mcp"].plan is bb.fact_plan_mcp
+assert F.FACT_TYPES["file"].check is bb.fact_check_file and F.FACT_TYPES["internal"].check is bb.fact_check_internal and F.FACT_TYPES["file"].local and not F.FACT_TYPES["url"].local
+assert F.parse("[fact.bogus](a.py#L1-2) x [fact.end]")[1][0][1] == "unknown_fact_kind" and "fact.url, fact.mcp, fact.file, fact.internal" in F.parse("[fact.bogus](a.py) x [fact.end]")[1][0][2]
+F.register("doc", "src/app.py#L10-20", lambda s: None if re.fullmatch(r"[\w./-]+(#L\d+-\d+)?", s) else f"needs a path, got {s!r}")
 try:
-    fblk, fprob = F.parse("[fact.file](src/app.py#L1-2) the limit is 5 [fact.end] and [fact.file](a b) x [fact.end]")
-    assert [(b.kind, b.source, b.claim) for b in fblk] == [("file", "src/app.py#L1-2", "the limit is 5")] and fprob[0][1] == "bad_fact" and "src/app.py#L10-20" in fprob[0][2]
-    assert "file" in F.FACT_TYPES and F.FACT_TYPES["file"].check is None  # registered, with no check yet: `factcheck --fetch` says so and records nothing
+    fblk, fprob = F.parse("[fact.doc](src/app.py#L1-2) the limit is 5 [fact.end] and [fact.doc](a b) x [fact.end]")
+    assert [(b.kind, b.source, b.claim) for b in fblk] == [("doc", "src/app.py#L1-2", "the limit is 5")] and fprob[0][1] == "bad_fact" and "src/app.py#L10-20" in fprob[0][2]
+    assert "doc" in F.FACT_TYPES and F.FACT_TYPES["doc"].check is None  # registered, with no check yet: `factcheck --fetch` says so and records nothing
 finally:
-    del F.FACT_TYPES["file"]
-assert "file" not in F.FACT_TYPES
+    del F.FACT_TYPES["doc"]
+assert "doc" not in F.FACT_TYPES
 
 
 # declared kinds of fact (facts: types: in the root bower.yaml) and `create --facts`.

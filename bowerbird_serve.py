@@ -59,6 +59,9 @@ input{width:100%;padding:.3rem;background:var(--bg);color:var(--fg);border:1px s
 #crumbs{color:var(--mut);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}#crumbs a{color:var(--mut)}
 #sw{position:relative;width:24rem;display:flex;gap:.3rem}#sw select{width:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}#res{display:none;position:absolute;top:2.2rem;left:0;right:0;z-index:7;background:var(--bg);border:1px solid var(--line);border-radius:6px;max-height:70vh;overflow:auto;box-shadow:0 6px 20px #0004}
 #res a{display:block;padding:.3rem .6rem;text-decoration:none;color:var(--fg)}#res a.sel,#res a:hover{background:var(--acc);color:#fff}#res small{color:inherit;opacity:.7}
+.tabs{display:flex;gap:.3rem;margin:0 0 .6rem}.tabs button{padding:.1rem .6rem;border:1px solid var(--line);border-radius:9px;background:none;color:var(--fg);font:inherit;cursor:pointer}.tabs .on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.fact-badge{display:inline-block;padding:0 .45rem;border-radius:9px;border:1px solid currentColor;font-size:12px;text-decoration:none;color:var(--mut)}.fact-badge[data-state=checked]{color:var(--ok)}.fact-badge[data-state=drifted]{color:var(--bad)}
+.fact-bib h2{display:none}.fact-bib ol{margin:0;padding-left:1.1rem}.fact-bib li{margin:0 0 .7rem}.fact-bib q{color:var(--mut)}.fact-kind{font-weight:700}.fact-bib li:target{outline:2px solid var(--acc);outline-offset:2px}
 .dot{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;margin-right:.35rem;background:var(--warn)}.dot.sealed{background:var(--ok)}.dot.derived{background:var(--acc)}.dot.broken-seal{background:var(--bad)}
 aside li.act>a{font-weight:700}kbd{border:1px solid var(--line);border-radius:3px;padding:0 .3rem;font-size:12px}.dot.none{background:var(--line)}
 .diff .a{color:var(--ok)}.diff .d{color:var(--bad)}nav a.new{color:var(--mut);font-size:12px}.menu{position:relative}.menu summary{width:fit-content;list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:4px;padding:.15rem .6rem}.menu summary::-webkit-details-marker{display:none}
@@ -94,6 +97,8 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea')||e
 const heads=$$('main h2[id],main h3[id]'), tl=new Map($$('aside a[href^="#"]').map(a=>[a.getAttribute('href').slice(1),a]));
 if(heads.length&&'IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){$$('aside .act').forEach(x=>x.classList.remove('act'));const a=tl.get(en.target.id);if(a)a.parentElement.classList.add('act')}}),{rootMargin:'-10% 0px -80% 0px'});heads.forEach(h=>io.observe(h))}
 const c=$('nav a.cur'); if(c)c.scrollIntoView({block:'center'});
+window.tabs=(b,id)=>{$$('[id^=t-]').forEach(e=>e.hidden=e.id!=='t-'+id);$$('.tabs button').forEach(x=>x.classList.toggle('on',x===b))};
+const fh=()=>{if(/^#fact-/.test(location.hash)&&$('#t-facts')){window.tabs($$('.tabs button')[1],'facts');const e=$(location.hash);if(e)e.scrollIntoView()}};addEventListener('hashchange',fh);fh();
 })();
 """
 
@@ -197,7 +202,11 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
             d = bb.meta(text)[0] or {}
             es, valid = bb.reviews(d, key, text, ledger)
             last = (valid or es or [{}])[-1]
+            ext, quorum = bb.seal_ext(p)
+            humans = {str(e["by"]): e for e in valid if str(e.get("by", "")).startswith("human:")}  # who holds this exact version, each once
             docs[key] = {"title": bb.title_of(d, text, p), "meta": d, "fm": bb.meta(text)[0] is not None, "body": bb.split(text)[1],
+                         "signers": [(k.removeprefix("human:"), v.get("comment", "")) for k, v in humans.items()],
+                         "signed": f"{len(humans)} of {quorum}" if ext else "",
                          "state": "derived" if bb.derived(p, ledger) else "unsealed" if not es else "sealed" if valid else "broken-seal",
                          "by": last.get("by", ""), "at": last.get("at", "")}
         for p, made in [(q, False) for q in bb.sealonly_files()] + [(q, True) for q in bb.derived_files()]:  # seal-only files: a page each, read-only; derived ones are marked, not sealed
@@ -542,9 +551,19 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
         extra = ""
         if okf and d.get("status") == "draft":
             extra = '<label><input type=checkbox name=promote style="width:auto"> promote draft to stable (§5.4)</label>'
+        elif not okf and d.get("type") == "adr":
+            extra = '<label>decision <small>(becomes the file status)</small><select name=decision required><option value="">choose<option>accepted<option>rejected</select></label>'
         elif not okf:
             extra = '<label>decision <small>(optional)</small><select name=decision><option value="">none<option>accepted<option>rejected</select></label>'
         msg = bb.review_message(label, okf, t, d, "", False)
+        try:  # who already holds this exact version, and how many the seal policy wants
+            es, valid = bb.reviews(d, key, t, bb.ledger_by_file())
+            ext, quorum = bb.seal_ext(ROOT / key)
+            names = sorted({str(e["by"]).removeprefix("human:") for e in valid if str(e.get("by", "")).startswith("human:")})
+            if ext or names:
+                msg += f"\n\nsigned: {len(names)}" + (f" of {quorum}" if ext else "") + (f" ({', '.join(names)})" if names else "")
+        except (ValueError, OSError):
+            pass
         return (f'<dialog id=sealdlg><form method=post action="/_seal"><input type=hidden name=_t value="{TOKEN}"><input type=hidden name=file value="{esc(key)}">'
                 f'<input type=hidden name=sha value="{bb.content_hash(t, okf)}"><h3>Confirm seal: {esc(key)}</h3><pre class=facts>{esc(msg)}</pre>'
                 f'<label><input type=checkbox name=confirm style="width:auto"> I reviewed this concept and confirm it is accurate</label>'
@@ -730,9 +749,7 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
                     raise ValueError(f"{len(back)} page(s) link to {key} | fix: unlink them first, or archive it")
                 with LOCK:
                     changes = {p: None}
-                    led = bb.ledger_all(bb.ROOT / bb.LEDGER)
-                    if led.pop(os.path.relpath(p, bb.ROOT), None) is not None:
-                        changes[bb.ROOT / bb.LEDGER] = bb.ledger_text(led)
+                    changes.update(bb.ledger_changes({os.path.relpath(p, bb.ROOT): None}))
                     bb.commit(bb.enclosing(p.parent), changes, True)
                     if bb.fmt_of(p) == "okf":
                         call("index", apply=True, bundle=bb.bundle_name(bb.enclosing(p.parent)))  # drop it from the generated list
@@ -823,7 +840,9 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
             if rel in docs:
                 d = docs[rel]
                 md = markdown.Markdown(extensions=["tables", "fenced_code", "toc"], extension_configs={"toc": {"toc_depth": "2-3"}})
-                htm = md.convert(d["body"])
+                F = bb.facts_mod()
+                shown, fact_entries = F.render(d["body"], (ROOT / rel).parent, Path(rel).name) if F and "[fact." in d["body"] else (d["body"], [])
+                htm = md.convert(shown)  # a fact block is its claim and a badge of its last check; the badge links to the Facts tab
                 out, back = [], []
                 for src, o in docs.items():
                     if src != rel and src not in back and any(resolve(src, link) == rel for link in LINK.findall(o["body"])):
@@ -838,11 +857,17 @@ def run(bb, port: int = PORT, foreground: bool = False) -> int:
                     return m.group(0) if t is None or t in docs or (ROOT / t).exists() else m.group(0).replace("<a ", '<a class="broken" ', 1)
                 htm = re.sub(r'<a href="([^"#]+)[^"]*"', fix, htm)
                 meta = d["meta"]
-                head = (f'<div class=meta>{badge(d)}<span class=b>{esc(str(meta.get("type", "")))}</span><span class=b>{esc(str(meta.get("status", "")))}</span>'
+                who = ("<br><small>signed " + (f"{d['signed']}: " if d["signed"] else "") + ", ".join(
+                    esc(n) + (f" ({esc(c)})" if c else "") for n, c in d["signers"]) + "</small>") if d["signers"] else ""
+                head = (f'<div class=meta>{badge(d)}<span class=b>{esc(str(meta.get("type", "")))}</span><span class=b>{esc(str(meta.get("status", "")))}</span>{who}'
                         f'<br>{esc(str(meta.get("description", "")))}<br><small>{esc(rel)}</small></div>')
                 lst = lambda xs: ("<ul>" + "".join(
                     f'<li><a href="{href(x)}" class="{"" if x in docs or (ROOT / x).exists() else "broken"}">{esc(docs[x]["title"][:40] if x in docs else x)}</a></li>' for x in xs) + "</ul>") if xs else "<small>none</small>"
                 right = f'<h4>On this page</h4>{md.toc}<h4>Linked from ({len(back)})</h4>{lst(back)}<h4>Links to ({len(out)})</h4>{lst(out)}'
+                if fact_entries:  # the page's facts are a tab beside the page's own links
+                    right = (f'<div class=tabs><button class=on onclick="tabs(this,\'pg\')">Page</button>'
+                             f'<button onclick="tabs(this,\'facts\')">Facts ({len(fact_entries)})</button></div>'
+                             f'<div id=t-pg>{right}</div><div id=t-facts hidden>{F.bibliography(fact_entries)}</div>')
                 tf, tb = tfile(rel)
                 made = d["state"] == "derived"  # built from the code: nothing for a person to seal
                 seal_btn = "" if made else '<button onclick="document.getElementById(\'sealdlg\').showModal()">Seal…</button>'
