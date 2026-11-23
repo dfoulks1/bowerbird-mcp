@@ -21,7 +21,7 @@ about: Bowerbird MCP
 # review by a human, when a reviewed file was edited since, or when a file claims to be accepted without one. exempt is a
 # list of globs (a generated page, say: exempt: ["/tools.md"]); exempt_status lists statuses that need no review yet.
 # Shared: .env and the environment cannot change it.
-seal: {exempt: [/docs/**], exempt_status: []}
+seal: {exempt: [/docs/**, /prompts/**], exempt_status: []}
 
 # false removes the passages and reindex tools.
 # passages: true

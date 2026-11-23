@@ -8,7 +8,6 @@ Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by 
 
 ### Needs a person or a real environment
 
-- [ ] The new badges and the Facts tab in a real browser, and the Web UI generally (`tools/QA.sh --rebuild` builds the site; the tests cover the HTML, not how it looks).
 - [ ] Each format against a real vault (Obsidian, Foam, Dendron, Logseq). Only made-up collections have been tested (each format's page says which); the rules came from each tool's
       documentation, read second-hand, and the unconfirmed ones are listed on the page (case rules, duplicate names, what a tool does with links in code).
 - [ ] A real MCP call for an `mcp` fact (it needs a `.mcp.json` and a server); every other kind has run for real.
@@ -21,9 +20,11 @@ Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by 
 - [ ] Then `tools/QA.sh --rebuild` to rebuild `docs/` (the badges are drawn from the ledger, so it must follow the re-seal), and commit it.
 - [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons: all are at 2.3.0 and build clean), then add the extras to
       `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; replace the empty `seal-extensions = []`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
-- [ ] Merge `2.3`. `prompts/` (the Obsidian drafts) is still untracked: commit it or leave it.
+- [ ] Merge `2.3`: `main` is behind it with nothing of its own, so it is a fast-forward (`git switch main && git merge --ff-only 2.3`), after the seal and `docs/` commit and before the tag.
 
 ## Later
+
+- [ ] **2.3.1: UI changes.** The badges and the Facts tab work (seen in a browser); polish goes in 2.3.1.
 
 ### Facts
 
