@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bowerbird-obsidian"
+version = "2.2.0"  # lockstep with bowerbird-mcp: set to the release's number when it is cut
+description = "Read an Obsidian vault with bowerbird-mcp: install it with `pip install 'bowerbird-mcp[obsidian]'`, then set `format: obsidian` in bower.yaml."
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = ["bowerbird-mcp"]
+
+[project.entry-points."bowerbird.formats"]
+obsidian = "bowerbird_obsidian:register"
+
+[tool.setuptools]
+py-modules = ["bowerbird_obsidian"]

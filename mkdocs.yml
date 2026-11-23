@@ -77,6 +77,10 @@ nav:
       - OKF: formats/okf.md
       - SKOS: formats/skos.md
       - AsciiDoc: formats/asciidoc.md
+      - Obsidian: formats/obsidian.md
+      - Foam: formats/foam.md
+      - Dendron: formats/dendron.md
+      - Logseq: formats/logseq.md
   - Sealing: sealing.md
   - Serve: serve.md
   - Docs:

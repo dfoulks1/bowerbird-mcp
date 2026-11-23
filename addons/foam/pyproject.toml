@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bowerbird-foam"
+version = "2.2.0"  # lockstep with bowerbird-mcp: set to the release's number when it is cut
+description = "Read a Foam workspace with bowerbird-mcp: install it with `pip install 'bowerbird-mcp[foam]'`, then set `format: foam` in bower.yaml."
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = ["bowerbird-mcp"]
+
+[project.entry-points."bowerbird.formats"]
+foam = "bowerbird_foam:register"
+
+[tool.setuptools]
+py-modules = ["bowerbird_foam"]
