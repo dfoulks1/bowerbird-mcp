@@ -5,7 +5,7 @@
 **Use it when** a claim rests on something other than a web page, a file or another page of the collection: a value in a config file, a tag in git, a date, a
 command's output, or something only a person can say.
 
-`bowerbird-mcp` has four kinds of [fact](okf.md#facts-what-a-claim-rests-on-and-drift): `url`, `mcp`, `file` and `internal`. The pack adds five. It is a separate
+`bowerbird-mcp` has four kinds of [fact](formats/okf.md#facts-what-a-claim-rests-on-and-drift): `url`, `mcp`, `file` and `internal`. The pack adds five. It is a separate
 package (`bowerbird-fact-pack`, in `addons/fact-pack/`), so what runs a command or reads your repository is off until you install it.
 
 ## Install
@@ -19,7 +19,7 @@ build still shows the block from its recorded state.
 
 ## The five kinds
 
-Each is a block, `[fact.<kind>](<source>) the claim [fact.end]`, on one line or many. A check records its result beside the document in `.facts.yaml`, never in the document.
+Each is a block, `[fact.<kind>](<formats/source>) the claim [fact.end]`, on one line or many. A check records its result beside the document in `.facts.yaml`, never in the document.
 
 | Kind | Source | Holds while | First check |
 |---|---|---|---|
@@ -77,4 +77,4 @@ Not tested: TOML on Python 3.10 without `tomli`, Windows, a repository with a sh
 ## Report a problem
 
 A kind that checked wrong, a drift that should not be, or a command that should not have run: [open an issue](https://github.com/dfoulks1/bowerbird-mcp/issues/new) or write to [dfoulks@voltpop.com](mailto:dfoulks@voltpop.com). Give the
-kind, the version (`bowerbird-mcp --version`) and the smallest file that shows it, never a private one. More on [reporting a problem](../troubleshooting.md#reporting-a-problem).
+kind, the version (`bowerbird-mcp --version`) and the smallest file that shows it, never a private one. More on [reporting a problem](troubleshooting.md#reporting-a-problem).

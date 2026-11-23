@@ -43,8 +43,10 @@ A fact is a claim with what it rests on, so it can be checked again. Two ways to
   With the fact pack (`bowerbird-mcp[fact-pack]`): `key` (a value in a JSON, YAML or TOML file), `git`, `until`, `manual` and `script`. `manual` and `script` need a person at a terminal.
   The kind, the source in parentheses, then the claim. `bower.yaml` may declare more kinds (`[fact.issue](INFRA-1)`); a kind it does not
   declare is a `lint` error. Never invent a source or paste words the source does not say.
-- `fact` records a `sources` entry and returns the footnote marker to put after the claim. Pass `server`, `tool`, `args` (the exact call)
-  and `result` (what it returned): the call is the re-check recipe, and the result's `fact_sha256` is what a later result is compared with.
+- `fact` writes the block for you: `fact file=notes/db.md kind=mcp source="jira INFRA-1" claim="is open" meta='{"by": "claude", "as_of": "2026-11-23"}' result=...`. `source` is the kind's own words and `claim`
+  is what the source says. For a kind that only reads files (`file`, `internal`, `key`, `git`, `until`) it checks first and refuses a claim the source does not hold: never pass `check=false` to get one through.
+  Put your own id in `by` (the exact `<tool>/<model>` string, never invented). `result` is what the call returned; its watched value is the baseline for `mcp`.
+- The older form, `fact` with `resource` and no `claim`, records a frontmatter `sources` entry in an OKF concept and returns the footnote marker.
 
 Checking:
 

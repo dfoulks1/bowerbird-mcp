@@ -6,8 +6,6 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
 
 ### Still to build
 
-- [ ] **`fact` writes blocks** in the one grammar (`[fact.KIND]{metadata}(source) claim [fact.end]`, ADR-003). `fact` writes the block into the document (it records a frontmatter `sources` entry today), for a person and an agent alike;
-      `result=-` and `result=@file`; a `--harvest` capture of a page's words into a block.
 - [ ] **Agent-run `factcheck` beyond the local kinds.** `url` and `mcp` still need a person at a terminal (`--fetch`). Decide what an agent may run, and what the plan and
       prompt look like.
 - [ ] **OKF through import and export** (decided 2026-11-23). OKF keeps facts (`sources`) and reviews (`verified`) in frontmatter; it should use the records every other format
@@ -17,7 +15,15 @@ Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the bra
       side is still in the hook and `serve`.
 - [ ] **The quorum's M in the docs hook.** The hook reads only the ledger, so a badge says who signed (`by ann, bo`) but not "2 of 3".
 - [ ] **ADR-001's header** still says `built: not started`. The loader, `file`, `internal` and the pack are built (proof: `test_bowerbird_mcp.py`, `addons/fact-pack/`); make it
-      `partial` until `fact` writes blocks, then `landed`. Editing it stales its seal.
+      `landed`. Editing it stales its seal.
+
+### Documentation passes
+
+- [ ] **Facts pass.** Facts have grown in `docs-src/formats/okf.md` and its facts section is now long and layered. Candidate: give facts a page of their own (the grammar, the nine kinds, writing,
+      checking, drift, the bibliography), keep OKF's page to what is OKF's, and make every example use the one grammar. Check each command shown against the code, and the mentions in
+      `README.md`, `getting-started.md`, `cli.md`, `guide.md`, `BOWERBIRD.md` and the `tools.md` docstrings.
+- [ ] **Formats pass.** `formats.md` and each format page (the six formats and four add-ons) read as one set: the same sections in the same order, the same words for the same thing, the
+      tool tables right for every format, and the README and getting-started in step. Check every example against the code.
 
 ### Needs a person or a real environment
 

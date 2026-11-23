@@ -3,9 +3,8 @@ status: proposed
 status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"
 owner: dfoulks
 kind: design
-built: partial
+built: landed
 proof: test_bowerbird_mcp.py
-owed: "the `fact` tool writing this form"
 supersedes: nothing
 amends: ADR-001 (the form of a fact block)
 consulted: "Claude Sonnet 5.5 (drafting)"
@@ -58,7 +57,7 @@ Drivers:
 
 ## Consequences
 
-- `fact` (the tool) should write this form, so an agent's fact is a block, not a `sources` entry (still to build).
+- `fact` (the tool) writes this form (`kind`, `source`, `claim`, `meta`), so an agent's fact is a block; without `claim` it is still the older `sources` entry.
 - The bibliography (the docs hook and `serve`) shows the metadata, and `factcheck` lists a fact as due when its `stale_after` says so.
 - `lint` has `bad_fact_meta` (a wrong value in a key with a meaning) and reports a mapping that never closes.
 - Closing a `)` or `}` inside a string needs an escape (`%29`, `\\u007d`); a source with a literal `)` still ends at the first one.

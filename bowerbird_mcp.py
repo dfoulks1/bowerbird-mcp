@@ -599,7 +599,7 @@ def formats_in_use() -> set:
 # and adr on top of markdown (it can also move a record).
 # Every other tool is written for OKF files; the command line still has them all.
 BASE = {"passages", "reindex", "seal"}
-MARKDOWN = BASE | {"get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new", "lint"}
+MARKDOWN = BASE | {"get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new", "lint", "fact", "factcheck"}
 ADOC = BASE | {"heatmap"}
 TIERS = {"seal-only": {"seal"}, "skos": BASE, "asciidoc": ADOC, "markdown": MARKDOWN, "adr": MARKDOWN | {"move"}}
 
@@ -3743,17 +3743,130 @@ def fact_sha256(text: str) -> str:
     return hashlib.sha256(norm.encode("utf-8")).hexdigest()
 
 
+def fact_text(kind: str, source, claim: str, meta: dict | None) -> tuple:
+    """(the block, its parsed form): `[fact.KIND]{meta}(source) claim [fact.end]`, written the one way, the metadata as JSON (which is also YAML). source is the kind's own words
+    or a list of them; a `)` in it is written %29. Refuses what would not read back as the same fact."""
+    F = facts_mod()
+    ft = F.FACT_TYPES.get(kind)
+    if ft is None:
+        pack = " (the fact pack: pip install 'bowerbird-mcp[fact-pack]')" if kind in F.PACK else ""
+        raise ValueError(f"{kind!r} is not a kind of fact{pack} | fix: {', '.join(F.FACT_TYPES)}")
+    words = " ".join(map(str, source)) if isinstance(source, (list, tuple)) else str(source or "")
+    words = " ".join(words.split())
+    if bad := ft.valid(words):
+        raise ValueError(f"[fact.{kind}] {bad} | fix: source like {ft.sample!r}")
+    claim = claim.strip()
+    if not claim or "[fact." in claim:
+        raise ValueError("the claim is the words the source says, and it holds no [fact. tag | fix: pass claim")
+    meta = dict(meta or {})
+    if bad := F.meta_problems(meta):
+        raise ValueError(f"metadata {', '.join(bad)} | fix: by and note are text, at and as_of dates, confidence 0 to 1 or low, medium, high, tags a list, stale_after days or a date")
+    enc = words.replace(")", "%29")
+    text = f"[fact.{kind}]" + (json.dumps(meta, ensure_ascii=False) if meta else "") + f"({enc}) {claim} [fact.end]"
+    blocks, problems = F.parse(text)
+    if problems or len(blocks) != 1 or blocks[0].claim != claim or blocks[0].source != enc:
+        raise ValueError(f"that does not read back as one fact ({problems[0][2].split(' | ')[0] if problems else 'the source or claim changed'}) | fix: write a `)` in the source as %29")
+    return text, blocks[0]
+
+
+def insert_at(text: str, block: str, after: str) -> tuple:
+    """(the text with the block put in, the line it starts on): at the end, after a line number (`12` or `line:12`), or at the end of the section a heading opens."""
+    lines = text.rstrip("\n").split("\n")
+    at = len(lines)
+    if after:
+        m = re.fullmatch(r"(?:line:)?(\d+)", after.strip())
+        if m:
+            at = min(int(m.group(1)), len(lines))
+        else:
+            heads = [(i, len(h.group(1)), h.group(2)) for i, ln in enumerate(lines) if (h := re.match(r"(#{1,6})[ \t]+(.+?)[ \t#]*$", ln))]
+            hit = next((k for k, (_, _, name) in enumerate(heads) if slug(name) == slug(after)), None)
+            if hit is None:
+                raise ValueError(f"no heading {after!r} and not a line number | fix: after is a heading's text, or a line number")
+            end = next((i for i, lev, _ in heads[hit + 1:] if lev <= heads[hit][1]), len(lines))
+            at = end
+    head, tail = lines[:at], lines[at:]
+    while head and head[-1] == "":  # one blank line each side of the block, however many were there
+        head.pop()
+    while tail and tail[0] == "":
+        tail.pop(0)
+    new = [*head, "", *block.split("\n"), *([""] if tail else []), *tail]
+    return "\n".join(new).rstrip("\n") + "\n", len(head) + 2
+
+
+def fact_block(file: str, kind: str, source, claim: str, fmeta, after: str, check: bool, result: str, harvest: bool, bundle: str) -> dict:
+    """The block mode of `fact`: write one `[fact.*]` block into a document of any format. Checked first when the kind only reads files here, so words the source does not say
+    are refused, not written. A person at a terminal may harvest (pick a quotation from a page) or give result as `-` (stdin) or `@file`."""
+    F = facts_mod()
+    if F is None:
+        raise ValueError("fact blocks need bowerbird_facts.py beside this file")
+    if harvest:
+        if not (CLI and at_terminal()):
+            raise ValueError("harvest is for a person at a terminal | fix: run `bowerbird-mcp fact --harvest` yourself, or pass claim")
+        if kind != "url":
+            raise ValueError("harvest reads a page | fix: kind=url")
+        print(f"fact --harvest will fetch {source}", file=sys.stderr)
+        if input("Fetch it? [y/N] ").strip().lower() != "y":
+            return {"written": False, "note": "nothing fetched"}
+        paras = [" ".join(x.split()) for x in re.split(r"\n\s*\n|(?<=[.!?])\s{2,}", F.page_text(str(source))) if len(x.split()) >= 4][:40]
+        for i, x in enumerate(paras, 1):
+            print(f"{i:>3}  {x[:200]}", file=sys.stderr)
+        pick = [int(n) for n in re.findall(r"\d+", input("Quote which? (numbers, like 3 or 3,5) ")) if 0 < int(n) <= len(paras)]
+        if not pick:
+            return {"written": False, "note": "nothing chosen"}
+        claim = "\n\n".join(paras[i - 1] for i in pick)
+    if result in ("-",) or result.startswith("@"):
+        if not CLI:
+            raise ValueError("result=- and result=@file are for the command line | fix: pass the result itself")
+        result = sys.stdin.read() if result == "-" else Path(os.path.expanduser(result[1:])).read_text(encoding="utf-8")
+    fmeta = {**(fmeta or {})}
+    fmeta.setdefault("at", now()[:10])
+    text, b = fact_text(kind, source, claim, fmeta)
+    okf = fmt_of(next((q for q in (ROOT / file, ROOT / f"{file}.md") if q.is_file()), ROOT / file)) == "okf"
+    if okf:
+        p, r = locate(file, bundle)
+    else:
+        p, r = confined(ROOT, file if file.endswith(".md") else file + ".md"), ROOT
+        if not p.is_file():
+            raise ValueError(f"{file} is not a file here | fix: pass its path from the collection root")
+    ft = F.FACT_TYPES[kind]
+    status = method = value = None
+    declared = (CFG.get("facts") or {}).get("mcp", {})
+    if ft.local and check and ft.check:
+        status, method, value = ft.check(p, b, None, declared)
+        if status != "checked":
+            raise ValueError(f"not written: the source does not hold those words ({method}) | fix: quote what it says, or pass check=false")
+    if result and kind == "mcp":
+        server = b.source.split()[0]
+        d = declared.get(server) or {}
+        value = F.watched(result, d.get("watch", ""))
+        status, method = "checked", "baseline recorded"
+    t = read(p) or ""
+    new, line = insert_at(t, text, after)
+    commit(r, {p: new}, True, f"**Update**: Cited a {kind} fact in [{title_of(meta(new)[0] or {}, new, p)}](/{rel(p, r)}).") if okf else write(p, new)
+    if status:
+        F.record(p.parent, p.name, b.id, kind, b.source, status, method, now(), value)
+    return {"written": True, "file": rel(p, ROOT), "line": line, "id": b.id, "block": text, "checked": status}
+
+
 @expose()
 def fact(file: str, resource: str = "", id: str = "", title: str = "", server: str = "", tool: str = "",
          args: dict | None = None, result: str = "", stale_days: int = 0, author: str = "", usage_count: int | None = None,
-         last_modified: str = "", bundle: str = "") -> dict:
-    """Record a fact: where a claim came from, as a §5.1 `sources` entry with `retrieved_at` (when). A fact is a reproducible
+         last_modified: str = "", bundle: str = "", kind: str = "", source: str = "", claim: str = "", meta: dict | None = None, after: str = "",
+         check: bool = True, harvest: bool = False) -> dict:
+    """Write a fact into a document, in any format, as a block: `[fact.KIND]{metadata}(source) claim [fact.end]`. Pass kind (url, mcp, file, internal, or a fact-pack kind), source
+    (the kind's own words, such as `jira INFRA-1` or `src/app.py#L10-20`) and claim (the words the source says), and optionally meta (by, as_of, confidence, note, tags, stale_after; `at` is
+    added), and after (a heading's text, or a line number; the default is the end). A kind that only reads files here (file, internal, key, git, until) is checked first and
+    refused when the source does not hold the claim, unless check=false. For mcp, result (what the call returned) is recorded as the baseline. At a terminal, result can be `-` (stdin) or
+    `@file`, and harvest=true with kind=url and source fetches the page and lets you pick the passage to quote. Without claim this is the older form: record a fact as a
+    §5.1 `sources` entry in an OKF concept, which is this: where a claim came from, as a `sources` entry with `retrieved_at` (when). A fact is a reproducible
     result. When an MCP tool produced it, pass server, tool and args, the exact call (`via`, how): that is the recipe `factcheck`
     replays. Pass result, what the call returned, and its `fact_sha256` (sha256 of the result, JSON canonicalized, other text
     with whitespace collapsed) is kept: it is what `factcheck` compares a later result with, to find drift. resource: a real
     URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own
     credibility signals (§5.1), when you know them. stale_days>0 sets stale_after. Returns the footnote marker
     to put after the claim; its definition is appended to the body. Reusing an id replaces that entry."""
+    if claim or harvest:
+        return fact_block(file, kind, source or resource, claim, meta, after, check, result, harvest, bundle)
     p, r = locate(file, bundle)
     t, d = loaded(p, r)
     if last_modified and not when(last_modified):

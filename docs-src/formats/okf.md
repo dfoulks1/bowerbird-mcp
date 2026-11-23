@@ -170,7 +170,7 @@ The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]
 - **`[fact.internal](docs/tools.md#links)`** is another page of this collection: a path from the collection root, optionally `#Heading` (matched by its anchor, so
   `#Part Two` and `#part-two` are the same). The claim's words must still be on the page, or under that heading down to the next heading of the same or a higher
   level. A missing page or heading is a drift. The page's seal is not consulted: this checks the words, not who reviewed them.
-- **The fact pack**, `pip install 'bowerbird-mcp[fact-pack]'`, brings five more kinds (the [fact pack](fact-pack.md) page has each in full). Without it, a page that uses one is a `lint` error that says what to install.
+- **The fact pack**, `pip install 'bowerbird-mcp[fact-pack]'`, brings five more kinds (the [fact pack](../fact-pack.md) page has each in full). Without it, a page that uses one is a `lint` error that says what to install.
   - **`[fact.key](pyproject.toml project.version)`**: a value at a path in a JSON, YAML or TOML file (`a.b.0` for a list item; TOML needs Python 3.11 or `tomli`).
     The first check records the value and later ones must match it, like an MCP fact. The file is found as for `file`. A missing file or key is a drift.
   - **`[fact.git](tag v2.3.0)`** or **`[fact.git](file main docs/x.md)`**: a tag, or a file at a revision, in the repository around the document. The first check records
@@ -230,10 +230,23 @@ the drift holds. A check that passes does not undo a drift.
 (`.waxseals.yaml`, `.facts.yaml`); [`okf export` and `okf import`](../cli.md#moving-an-okf-concepts-history-okf-export-and-okf-import) move them
 between the two, previewing first.
 
-**For an agent**, `fact` records a fact as a `sources` entry in the frontmatter (a call as `via: {server, tool, args}`, and
-`result`, what it returned, as a `fact_sha256`), prints the footnote marker for the claim, and `factcheck file=... id=... result=...`
+**Writing a fact.** `fact` writes the block for you, in any format, for a person at a terminal and an agent alike:
+
+```sh
+bowerbird-mcp fact notes/deploy.md kind=file source='deploy.sh#L10-14' claim='rollback runs the previous tag' after='Rollback'
+bowerbird-mcp fact notes/db.md kind=mcp source='jira INFRA-1' claim='is open' meta='{"by": "ann", "confidence": "high"}' result=@issue.json
+```
+
+`kind` and `source` are the kind's own words, and `claim` is what the source says. `meta` is the optional metadata (`at`, the day it was written, is added), and `after` is a heading's text
+or a line number (the default is the end of the file). A `)` in the source is written `%29`. A kind that only reads files here (`file`, `internal`, and the pack's `key`, `git`, `until`) is
+**checked first, and refused when the source does not hold the claim**, so a quotation that is not there never reaches the page; `check=false` writes it anyway. For `mcp`, `result` is what
+the call returned: its watched value becomes the baseline a later check compares with. At a terminal `result` can be `-` (standard input) or `@file`, and `harvest=true` with `kind=url`
+fetches the page, shows its paragraphs and asks which to quote. An agent cannot harvest, or read `-` or `@file`.
+
+**The older form, for OKF.** `fact` with a `resource` and no `claim` records a fact as a `sources` entry in the frontmatter (a call as `via: {server, tool, args}`, and
+`result`, what it returned, as a `fact_sha256`) and prints the footnote marker for the claim; `factcheck file=... id=... result=...`
 compares a result an agent got by replaying the call with it. Same result: the check is noted in `.facts.yaml`. A different one is a
-drift. An agent runs no `--fetch`.
+drift. An agent runs no `--fetch` for `url` and `mcp`; `file`, `internal` and the pack's read-only kinds it may check itself.
 
 ### Bundles, `index.md` and `log.md`
 

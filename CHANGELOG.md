@@ -19,6 +19,9 @@
 - **Fact badges and a bibliography.** A fact block is shown as its claim and a badge of its last check that links to an entry in a generated bibliography of the page's facts: at the bottom
   of the page in the docs hook, and on a Facts tab in the right-hand pane in `serve`. `serve` and the hook also say who sealed a page (several people, with the seal extensions: `signed 2 of 3: ann, bo`, and the
   Seal dialog says who has signed so far). One function, `bowerbird_facts.render`, feeds both.
+- **`fact` writes the block.** `fact` with `kind`, `source` and `claim` writes `[fact.KIND]{metadata}(source) claim [fact.end]` into a document of any format (`after` a heading or a line; the end by default), checks a
+  file-reading kind first and refuses a claim its source does not hold, records an `mcp` baseline from `result` (`-` or `@file` at a terminal), and with `harvest=true` lets a person pick a passage of a page. `fact` and `factcheck` are now
+  offered to markdown and ADR servers. Without `claim` it is the older `sources` form.
 - **One grammar for a fact: `[fact.KIND]{metadata}(source) the claim [fact.end]`.** The `{metadata}` is optional (the 2.2.0 form still reads): a JSON or YAML mapping with the keys `by`, `at`, `as_of`,
   `confidence`, `note`, `tags` and `stale_after` (any other key is kept), shown in the bibliography; `stale_after` makes `factcheck` list a fact as due. An agent may write the metadata as JSON and the
   source as a JSON string or array of strings. The metadata is not part of the fact's id. `lint` has a new `bad_fact_meta` warning, and a mapping that never closes is a `bad_fact` error.

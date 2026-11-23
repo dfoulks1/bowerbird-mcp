@@ -107,9 +107,9 @@ bowerbird-mcp dirs -O text
 
 ## fact
 
-Role: `write`. Offered by a server for: OKF.
+Role: `write`. Offered by a server for: OKF, Markdown, ADR.
 
-Record a fact: where a claim came from, as a §5.1 `sources` entry with `retrieved_at` (when). A fact is a reproducible result. When an MCP tool produced it, pass server, tool and args, the exact call (`via`, how): that is the recipe `factcheck` replays. Pass result, what the call returned, and its `fact_sha256` (sha256 of the result, JSON canonicalized, other text with whitespace collapsed) is kept: it is what `factcheck` compares a later result with, to find drift. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.
+Write a fact into a document, in any format, as a block: `[fact.KIND]{metadata}(source) claim [fact.end]`. Pass kind (url, mcp, file, internal, or a fact-pack kind), source (the kind's own words, such as `jira INFRA-1` or `src/app.py#L10-20`) and claim (the words the source says), and optionally meta (by, as_of, confidence, note, tags, stale_after; `at` is added), and after (a heading's text, or a line number; the default is the end). A kind that only reads files here (file, internal, key, git, until) is checked first and refused when the source does not hold the claim, unless check=false. For mcp, result (what the call returned) is recorded as the baseline. At a terminal, result can be `-` (stdin) or `@file`, and harvest=true with kind=url and source fetches the page and lets you pick the passage to quote. Without claim this is the older form: record a fact as a §5.1 `sources` entry in an OKF concept, which is this: where a claim came from, as a `sources` entry with `retrieved_at` (when). A fact is a reproducible result. When an MCP tool produced it, pass server, tool and args, the exact call (`via`, how): that is the recipe `factcheck` replays. Pass result, what the call returned, and its `fact_sha256` (sha256 of the result, JSON canonicalized, other text with whitespace collapsed) is kept: it is what `factcheck` compares a later result with, to find drift. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.
 
 ```sh
 bowerbird-mcp fact db.md --resource https://www.postgresql.org/docs/release/ --title 'PostgreSQL releases' --bundle eng
@@ -131,10 +131,17 @@ bowerbird-mcp fact db.md --server jira --tool get_issue --args '{issue_key:INFRA
 | `usage_count` | `-u, --usage-count USAGE_COUNT` | `int` | unset |
 | `last_modified` | `-l, --last-modified LAST_MODIFIED` | `str` | `''` |
 | `bundle` | `-b, --bundle BUNDLE` | `str` | `''` |
+| `kind` | `-k, --kind KIND` | `str` | `''` |
+| `source` | `--source SOURCE` | `str` | `''` |
+| `claim` | `-c, --claim CLAIM` | `str` | `''` |
+| `meta` | `-m, --meta META` | `json object` | unset |
+| `after` | `--after AFTER` | `str` | `''` |
+| `check` | `-C, --check` | `bool` | `True` |
+| `harvest` | `-H, --harvest` | `bool` | `False` |
 
 ## factcheck
 
-Role: `lifecycle`. Offered by a server for: OKF.
+Role: `lifecycle`. Offered by a server for: OKF, Markdown, ADR.
 
 Check facts for drift. Without result it only lists the facts due (sources retrieved at least older_than_days ago, or on a concept past stale_after; file and id narrow it), each with `cites`, the lines whose claims rest on it. `calls` replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). `manual` ones need opening. Nothing is executed here. With result (what the replayed call returned now), for one fact (file and id) it compares fact_sha256s with the one `fact` recorded. Same: the check is recorded in `.facts.yaml` beside the file (the document itself is not changed, so no review of it is disturbed). Different: the fact has drifted, so that is recorded too and every review before that moment stops holding (`seal check` flags the file; a human reviews it again after the claim is corrected and the new result recorded with `fact`). A fact with no fact_sha256 yet has nothing to compare: the result becomes its baseline. The fact blocks in the documents (`[fact.KIND]{optional metadata}(<source>) <claim> [fact.end]`, such as `[fact.url](<address>) <claim> [fact.end]`, `[fact.mcp](<server> <key>) <claim> [fact.end]`, `[fact.file](<path>#L10-20) <claim> [fact.end]`, `[fact.internal](<page>#Heading) <claim> [fact.end]`) are listed under `blocks` with their last check (unchecked, checked, drifted; kept in `.facts.yaml` beside the document). fetch=true, for a person at a terminal, shows what it will fetch or call, asks, then checks each block against a fresh result: a page must still hold the block's words (same words, else similar meaning with `semantic: true`), an MCP call (only those declared under `facts.mcp` in bower.yaml) must still return the value it did. A drift ends the reviews of that file made before it, and the command exits 1. A `file` fact (a path that is absolute, `~/…` or relative to the document, optionally the lines `#L10-20`) must still hold its words in those lines; an `internal` fact (a page of this collection from the root, optionally `#Heading`) must still hold them on the page or in that section. Both only read files here, so with file and id and no result you may check one yourself: it is recorded like any other check.
 

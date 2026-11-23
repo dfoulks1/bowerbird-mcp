@@ -1128,7 +1128,7 @@ assert [got[f"docs/adr/000{n}-" + x + ".md"]["status"] for n, x in ((1, "record-
     == ["Accepted", "superseded by ADR-0005", "proposed"], got
 assert got["docs/adr/0001-record-decisions.md"]["type"] == "adr" and got["docs/index.md"]["type"] is None
 assert got["docs/index.md"]["status"] == "stable" and got["docs/index.md"]["tier"] == "unverified"
-assert bb.offered() == bb.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new", "lint"}
+assert bb.offered() == bb.MARKDOWN == {"passages", "reindex", "seal", "get", "search", "dirs", "links", "list", "status", "heatmap", "create", "config", "new", "lint", "fact", "factcheck"}
 for f, want in (("adr", bb.MARKDOWN | {"move"}), ("skos", bb.BASE), ("asciidoc", bb.ADOC), ("seal-only", {"seal"})):  # the tiers
     bb.OPTS["format"] = f
     assert bb.offered() == want, (f, bb.offered())
@@ -2592,6 +2592,79 @@ def meta_vault(d):
     got = [f for f in bb.lint(limit=0)["findings"] if f["kind"] == "bad_fact_meta"]
     assert len(got) == 1 and "confidence, tags" in got[0]["message"] and got[0]["severity"] == "warning", got
 in_vault("markdown", {"n.md": "x\n"}, meta_vault)
+
+
+# `fact` writes the block (ADR-003), in any format: checked first when the kind only reads files, placed where asked, the baseline recorded for an mcp fact
+def writer(d):
+    import builtins
+    (d / "data.txt").write_text("alpha\nbeta\ngamma\n")
+    (d / "n.md").write_text("# A\n\n## S1\n\ntext one\n\n## S2\n\ntext two\n")
+    got = bb.fact(file="n.md", kind="file", source="data.txt#L2", claim="beta", meta={"by": "claude", "confidence": "high"}, after="S1")
+    blk = f'[fact.file]{{"by": "claude", "confidence": "high", "at": "{bb.now()[:10]}"}}(data.txt#L2) beta [fact.end]'
+    assert got["written"] and got["block"] == blk and got["checked"] == "checked", got
+    body = (d / "n.md").read_text()
+    assert body.index("## S1") < body.index(blk) < body.index("## S2") and "text one\n\n[fact.file]" in body  # at the end of S1's section
+    assert [r["status"] for r in bb.fact_rows("n.md")] == ["checked"] and bb.fact_rows("n.md")[0]["meta"]["by"] == "claude"  # parsed back, and the check is recorded
+    assert F.parse(blk)[0][0].id == F.parse("[fact.file](data.txt#L2) beta [fact.end]")[0][0].id == got["id"]  # the id ignores the metadata
+    refused = raises(bb.fact, file="n.md", kind="file", source="data.txt#L2", claim="alpha")  # alpha is on line 1: not what those lines say
+    assert "not written" in refused and "alpha" not in (d / "n.md").read_text().split("## S2")[1]
+    assert bb.fact(file="n.md", kind="file", source="data.txt#L2", claim="alpha", check=False)["written"]  # a person may say they know better
+    # the other kinds: no check at write time; a `)` in the source, a JSON list of words, a line number, the end of the file
+    assert "(https://x.test/a_(b%29) The words. [fact.end]" in bb.fact(file="n.md", kind="url", source="https://x.test/a_(b)", claim="The words.", after="line:1")["block"]  # a `)` is written %29
+    w = bb.fact(file="n.md", kind="mcp", source=["jira", "INFRA-1"], claim="is open")
+    assert w["block"].startswith("[fact.mcp]{") and "(jira INFRA-1) is open [fact.end]" in w["block"] and (d / "n.md").read_text().rstrip().endswith("[fact.end]")
+    for bad, why in ((dict(kind="nope", source="x", claim="c"), "not a kind of fact"), (dict(kind="key", source="a b", claim="c"), "fact pack"), (dict(kind="url", source="no", claim="c"), "address"),
+                     (dict(kind="url", source="https://x.test", claim="a [fact.end] b"), "claim"), (dict(kind="url", source="https://x.test", claim="c", meta={"confidence": 9}), "metadata confidence"),
+                     (dict(kind="url", source="https://x.test", claim="c", after="Nope"), "no heading")):
+        assert why in raises(bb.fact, file="n.md", **bad), (bad, why)
+    assert "is not a file here" in raises(bb.fact, file="gone.md", kind="url", source="https://x.test", claim="c")
+    # an mcp fact with its result: the watched value is the baseline, so a later check compares with it
+    bb.CFG["facts"] = {"mcp": {"jira": {"tool": "get_issue", "arg": "issue_key", "watch": "fields.status.name"}}}
+    try:
+        w2 = bb.fact(file="n.md", kind="mcp", source="jira INFRA-2", claim="is in progress", result='{"fields": {"status": {"name": "In Progress"}}}')
+        assert F.read_state(d).get(("n.md", w2["id"]), {}).get("value") == "In Progress" and w2["checked"] == "checked"
+        # result=- and result=@file are the command line's; an agent over MCP is refused
+        (d / "res.json").write_text('{"fields": {"status": {"name": "Done"}}}')
+        assert "command line" in raises(bb.fact, file="n.md", kind="mcp", source="jira INFRA-3", claim="done", result="@res.json")
+        bb.CLI = True
+        try:
+            w3 = bb.fact(file="n.md", kind="mcp", source="jira INFRA-3", claim="done", result=f"@{d / 'res.json'}")
+            assert F.read_state(d)[("n.md", w3["id"])]["value"] == "Done"
+            saved_in = sys.stdin
+            sys.stdin = io.StringIO('{"fields": {"status": {"name": "Stdin"}}}')
+            try:
+                w4 = bb.fact(file="n.md", kind="mcp", source="jira INFRA-4", claim="stdin", result="-")
+            finally:
+                sys.stdin = saved_in
+            assert F.read_state(d)[("n.md", w4["id"])]["value"] == "Stdin"
+            # harvest: a person at a terminal picks a passage of a page; an agent cannot
+            saved = (builtins.input, bb.at_terminal, F.page_text)
+            F.page_text = lambda url, *a, **k: "First paragraph has enough words.\n\nSecond paragraph is the one we quote here.\n\nThird one is also long enough."
+            bb.at_terminal = lambda: True
+            answers = iter(["y", "2"])
+            builtins.input = lambda _="": next(answers)
+            try:
+                h = bb.fact(file="n.md", kind="url", source="https://x.test/p", harvest=True)
+                assert h["written"] and "Second paragraph is the one we quote here. [fact.end]" in h["block"] and "First paragraph" not in h["block"]
+                bb.at_terminal = lambda: False
+                assert "terminal" in raises(bb.fact, file="n.md", kind="url", source="https://x.test/p", harvest=True)
+            finally:
+                builtins.input, bb.at_terminal, F.page_text = saved
+        finally:
+            bb.CLI = False
+    finally:
+        bb.CFG.pop("facts", None)
+    assert len(F.parse((d / "n.md").read_text())[0]) == 8 and not F.parse((d / "n.md").read_text())[1]  # every block written reads back, and nothing else is wrong with the file
+in_vault("markdown", {"n.md": "x\n"}, writer)
+
+# the same, in an OKF bundle (it goes through the bundle's commit and log), and the older form of `fact` is still there
+def writer_okf(d):
+    (d / "src.txt").write_text("one two three\n")
+    w = bb.fact(file="a", kind="file", source="src.txt", claim="one two three")
+    assert w["written"] and "[fact.file]" in (d / "a.md").read_text() and bb.fact_rows("a.md")[0]["status"] == "checked"
+    old = bb.fact(file="a", resource="https://x.test/p", title="A page")
+    assert old["footnote"] == "[^p]" and "sources" in (d / "a.md").read_text()
+in_vault("okf", {"index.md": '---\nokf_version: "0.2"\n---\n# KB\n', "a.md": "---\ntype: Note\ndescription: A.\n---\n# A\n\nBody text here.\n"}, writer_okf)
 
 
 # the collection's files as resources: bowerbird://{bower}/{path}; the root is a bower, named by its folder; read-only, confined, no dotfiles.
