@@ -115,18 +115,24 @@
           
         
           
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../facts/">Facts</a>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link active"
-                 aria-current="page"
-                 href="./">Fact pack</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Facts
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../facts/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">Fact pack</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -135,48 +141,6 @@
               <a class="nav-link "
                  
                  href="../sealing/">Sealing</a>
-            </li>
-          
-        
-          
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle "
-                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Decisions
-              </a>
-              <ul class="dropdown-menu">
-                
-                  <li>
-                    <a class="dropdown-item "
-                       href="../decisions/INDEX/">Index</a>
-                  </li>
-                
-                  <li>
-                    <a class="dropdown-item "
-                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
-                  </li>
-                
-                  <li>
-                    <a class="dropdown-item "
-                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
-                  </li>
-                
-                  <li>
-                    <a class="dropdown-item "
-                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
-                  </li>
-                
-                  <li>
-                    <a class="dropdown-item "
-                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
-                  </li>
-                
-                  <li>
-                    <a class="dropdown-item "
-                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
-                  </li>
-                
-              </ul>
             </li>
           
         
@@ -226,15 +190,12 @@
                        href="../troubleshooting/">Troubleshooting</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../contributing/">Contributing</a>
+                  </li>
+                
               </ul>
-            </li>
-          
-        
-          
-            <li class="nav-item">
-              <a class="nav-link "
-                 
-                 href="../contributing/">Contributing</a>
             </li>
           
         
@@ -398,7 +359,7 @@ kind, the version (<code>bowerbird-mcp --version</code>) and the smallest file t
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
             
-              <a class="btn btn-outline-secondary" href="../facts/">&larr; Facts</a>
+              <a class="btn btn-outline-secondary" href="../facts/">&larr; Overview</a>
             
             
               <a class="btn btn-outline-secondary" href="../sealing/">Sealing &rarr;</a>

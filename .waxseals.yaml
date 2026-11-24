@@ -6,7 +6,7 @@
 - {file: NOTICE, sha256: 0b42944ba49fcb6510b7c1a2e96149e21fee412ed4effa8d4cfdb79337b75a17, by: 'human:dfoulks', at: '2026-11-20T15:19:13Z', bowerbird: 2.2.0}
 - {file: README.md, sha256: 024e5df9b4a51fe926b9061b8777dc71f1cdc4200631dd977895ea378598a1bd, by: 'human:dfoulks', at: '2026-11-24T00:25:21Z', bowerbird: 2.3.0}
 - {file: SECURITY.md, sha256: 41624c8cedfddbd9ef0c8615e33136bb6e9d33e1aa55f91f2fe13cfb7f63eaf3, by: 'human:dfoulks', at: '2026-11-23T16:01:29Z', bowerbird: 2.2.0}
-- {file: TODO.md, sha256: cc11a95507cb86fb40e6dc4e2b76d0d0d43cf39d5341576a31ddf0ec23ce3e9f, by: 'human:dfoulks', at: '2026-11-23T13:20:40Z', bowerbird: 2.2.0}
+- {file: TODO.md, sha256: ca0dafc470bd0fb1695ebde506c3d092550632a0c734ca551aaf0477bd734b71, by: 'human:dfoulks', at: '2026-11-24T01:07:48Z', bowerbird: 2.3.0}
 - {file: addons/foam/bowerbird_foam.py, sha256: 8428aa252a4edc57477044236678fa3bc1bdbfb3a20e8502e06660d0d486f71e, by: 'human:dfoulks', at: '2026-11-23T15:20:27Z', bowerbird: 2.2.0}
 - {file: addons/obsidian/bowerbird_obsidian.py, sha256: 03e10be17f05faf275e5c026e8392734003eff0118872c88a7c72a96061cb667, by: 'human:dfoulks', at: '2026-11-23T15:20:43Z', bowerbird: 2.2.0}
 - {file: bowerbird_dendron.py, sha256: 91c43b5ab239491f1b4eaf93500526ff7b68c68a44760a6acedd2f11d18dee88, by: 'human:dfoulks', at: '2026-11-24T00:24:08Z', bowerbird: 2.3.0}
