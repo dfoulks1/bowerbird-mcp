@@ -1,6 +1,6 @@
 # TODO
 
-Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the branch `2.3` (not pushed or merged).
+Only what is open. What is done is in `CHANGELOG.md`. The 2.3 work is on the branch `2.3` (pushed to origin; not merged to `main`, not tagged).
 
 ## 2.3
 
@@ -14,8 +14,8 @@ Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by 
 
 ### Release
 
-- [ ] **Seal.** `seal check=true` is the list (about 40 files: the docs pages, the root `.md` files, the code and test files; the `docs-src/tools.md` page is derived and needs none). Three old
-      ledger lines for files that moved or went (`addons/foam/...`, `addons/obsidian/...`, `bowerbird_seal.py`) are orphan warnings: delete those lines in `.waxseals.yaml`. `prompts/` is exempt.
+- [ ] **Seal** what `seal check=true` still lists: `CHANGELOG.md`, `TODO.md`, `pyproject.toml`, `uv.lock`, `tools/QA.sh`, and `docs-src/decisions/` `INDEX.md`, `README.md`, `TEMPLATE.md`. Three old ledger lines for
+      files that moved or went (`addons/foam/...`, `addons/obsidian/...`, `bowerbird_seal.py`) are orphan warnings: delete them from `.waxseals.yaml`. `prompts/` and the config files are exempt.
 - [ ] **Rebuild and commit.** `tools/QA.sh --rebuild` (badges come from the ledger, so after the seal); it must end `QA ok`. Commit the seals, ledgers and `docs/`. Untracked `docs-src/prompts/fact-test.md` and its `.facts.yaml`: delete or seal.
 - [ ] **Merge, tag, build, upload, check:** the steps in `docs-src/releasing.md` (3 to 8): `git switch main && git merge --ff-only 2.3`, tag, build from the tag, `uvx twine upload dist/bowerbird_mcp-2.3.0*`, then check the install. One package; no `gh release`.
 

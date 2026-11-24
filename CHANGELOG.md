@@ -62,6 +62,25 @@
   them, and `lint` warns (`dead_link`, `dead_anchor`) when one does not resolve. A name matches the file's path (`.md` optional, case ignored), the shortest path first,
   then the nearest to the page. `#^block` ids are ignored. `move` keeps them; a rename leaves them behind for `lint` to report (they are not rewritten yet).
 
+### Fixed
+- **A page that redirects to another host, or has almost no text, is an error, not a drift.** A login, a block or a script-built page made `factcheck` call a url fact drifted, which ends the file's reviews; it now says
+  what it found (`redirected to ...`, `almost no text`) and records nothing.
+- **A `)` in a source is written `%29`**, and a `file` source with one is read back right. `[fact.until](2999-01-01)` and `[fact.file](a.txt)` are no longer taken for links by `lint`.
+- **`fact kind=url source=https://...` from the command line** is kept as written, no longer made into a path. A YAML date in a block's metadata (`as_of: 2026-11-23`) no longer breaks the `factcheck` listing.
+- **`okf import`** gives a block fact of any kind a resource that says its kind (`file:src.txt`, not `mcp://...`), and a missing `.mcp.json` is "no server", not a traceback.
+- **A file named only for a date** (`2024-05-01.md`, a Logseq journal `2020_09_14.md`) is a daily note, not a decision record, so sealing it no longer asks for a `decision`.
+- **A person running `factcheck id=N`** on a fact that fetches, calls or runs something is shown the plan and asked first, as `--fetch` does.
+- **`seal.extensions: true` with the module unable to load** is said when the tool starts, not at the first write.
+
+### Docs
+- **Decisions.** ADR-001 to ADR-005 (fact kinds, format plugins, the fact block grammar, OKF records in files, the seal extensions) are under Decisions in the site, with an index; ADR-001, ADR-002 and ADR-005 have an amendment for the one package.
+- **Pages:** Facts, Fact pack, a page for each of Obsidian, Foam, Dendron and Logseq (what each was tested against, and where to report a problem), and sealing, serve, badges, CLI and the guide brought to 2.3.0. A pass checked every page against the code.
+- **Agent rules are shorter.** `BOWERBIRD.md` is about 1,490 tokens (it was about 2,120 once the fact rules were in), so the tool definitions plus these rules cost an agent about 5,500 tokens. No rule was dropped.
+- `releasing.md` has the steps in the order that works, for the one package.
+
+### Development
+- `tools/QA.sh` builds the wheel and checks it holds the six add-on modules, and type-checks them with the rest. `seal.exempt` leaves out `.gitignore`, `.mcp.json`, `.kiro/` and `.github/`.
+
 ## 2.2.0 (2026-11-20)
 
 ### Added
