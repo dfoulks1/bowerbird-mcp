@@ -23,7 +23,7 @@ Each step needs the one before it. Steps 5, 7, 8 and 9 are public acts: stop and
 
 1. **Version.** `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), then `uv lock`. Add the `CHANGELOG.md` section. `grep -rn 'OLD.VERSION'` finds anything left behind.
 2. **Seal.** A person seals the pages they reviewed (`seal check=true` lists what waits). Do this before the build: the badges on the site come from the ledger, so a build made before a seal is stale.
-3. **Rebuild the site and check.** `tools/QA.sh --rebuild` regenerates `docs-src/tools.md`, rebuilds `docs/`, and runs every check (every Python, every backend, docs fresh, lock matches, the wheel holds the six add-on modules, ruff, mypy). It must end `QA ok`. Then commit the sealed pages, the ledgers and `docs/` on the release branch, with the `Co-Authored-By` trailer and a "human review pending" line until a person has reviewed the AI-authored files.
+3. **Rebuild the site and check.** (To redo only the site, see [Rebuilding the docs on their own](#rebuilding-the-docs-on-their-own).) `tools/QA.sh --rebuild` regenerates `docs-src/tools.md`, rebuilds `docs/`, and runs every check (every Python, every backend, docs fresh, lock matches, the wheel holds the six add-on modules, ruff, mypy). It must end `QA ok`. Then commit the sealed pages, the ledgers and `docs/` on the release branch, with the `Co-Authored-By` trailer and a "human review pending" line until a person has reviewed the AI-authored files.
 4. **Merge.** Fast-forward `main` to the release branch (`git switch main && git merge --ff-only 2.3`), or a PR if you want one. Nothing goes to PyPI from an unmerged branch.
 5. **Tag** the merge commit on `main`: `git tag -a vX.Y.Z -m "..." <sha> && git push origin main vX.Y.Z`.
 6. **Build from the tag.** Delete the old `dist/` first, or a stale file rides along.
@@ -34,6 +34,18 @@ Each step needs the one before it. Steps 5, 7, 8 and 9 are public acts: stop and
 8. **Check what shipped.** PyPI can take a few minutes to show it. In a clean directory: `uvx bowerbird-mcp@X.Y.Z --version`; `uvx --from 'bowerbird-mcp[fact-pack]==X.Y.Z' bowerbird-mcp --version`
    (an extra resolves); and, if the release touches serve, `uvx --from 'bowerbird-mcp[serve]' bowerbird-mcp serve start`.
 9. **Back to work.** `git checkout main` (it is where the release is). No GitHub release is cut unless the owner asks for one: the tag and the CHANGELOG are the record.
+
+## Rebuilding the docs on their own
+
+`tools/QA.sh --rebuild` runs the whole stack (every Python, then the docs). To redo only the site, for instance after sealing a few more pages, run these two from the repository root:
+
+```sh
+uv run --python 3.12 docs_tools.py                          # docs-src/tools.md, from the tools' docstrings (changes nothing if it is current)
+uvx --with pymdown-extensions mkdocs build --strict         # docs-src/ -> docs/, and fails on any warning
+```
+
+Seal first: the badges are drawn from the ledger, so a build made before a seal is stale. `git status docs/` then shows what changed; commit it with the seals. Before the tag, still run
+`tools/QA.sh` once (no `--rebuild`): it checks that `docs/` matches `docs-src/` and runs everything else.
 
 ## Public acts
 
