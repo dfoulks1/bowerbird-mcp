@@ -78,8 +78,8 @@ seal: {extensions: true, quorum: 2}
   the count is earned, not guessed. **It is a human signal**: a machine check (`by=<tool>`) or a generator's `derived` line is never counted, however many there are. `list` and `passages` show it (`seals: 2`), a search ranks a file a little higher for each (the way it does for each link to it), and `seal check` lists the
   `most_sealed`. Only live seals count: an edit ends them, so a changed file drops to 0. Off, none of this appears.
 - A folder can set its own, since `seal` is one of the keys a [bower](formats.md) may override.
-- **The add-on** is called `seal-extensions` (`bowerbird-seal-extensions`, in `addons/seal-extensions/`): `uv tool install 'bowerbird-mcp[seal-extensions]'`. Installing it is not enough: the
-  setting is what turns the behaviour on. Without the add-on, seals work as before, one latest review per file, comments included, and a collection that sets `extensions: true` is told to install it
+- **The add-on** is called `seal-extensions`. It ships in the one `bowerbird-mcp` package (`bowerbird_seal_extensions.py`), and `uv tool install 'bowerbird-mcp[seal-extensions]'` adds nothing more. The
+  setting is what turns the behaviour on. With the setting off, seals work as before, one latest review per file, comments included. If the add-on cannot load (a damaged install), a collection that sets `extensions: true` is told so
   rather than quietly losing seals (a write that would keep only the last seal is refused).
 - Turn it off again and the ledger still reads: the latest seal of each line counts.
 - The optional parts of sealing live here, so they stay out of core: several signers and a quorum today, and the rest of the optional features (seal count, tally, break on purpose) as they are built.

@@ -85,8 +85,15 @@ Drivers:
 - 2026-11-23: ratified by dfoulks, as `decision: accepted` in the seal dialog (ledger entry at 2026-11-23T13:26Z). Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's answers; awaiting ratification"`. The header was updated here because the dialog records the decision in `.waxseals.yaml` only, not in the ADR header.
 
 - 2026-11-23: amended, at the owner's request (see the section below); the ruled text is unchanged. Earlier header values, word for word: `built: not started`, `proof: "queued in TODO.md (2.3 and Later, the wikilink family)"`.
+- 2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.
 
 ## Amendment — 2026-11-23, dfoulks (at the owner's request)
 
 Touches the header and Asks left open, not the Decision. Built now: the shared wikilink resolver, `register_format`, and the four extras `obsidian`, `foam`, `dendron` and `logseq`. Owed: `[org-roam]` and `[sphinx]`.
 Ask 2 is answered by the code: the entry-point group is `bowerbird.formats`, and the distributions are `bowerbird-obsidian`, `bowerbird-foam`, `bowerbird-dendron` and `bowerbird-logseq` (in `addons/`). Asks 1, 3 and 4 stay open. The ruled text above is left as it was. The line number `bowerbird_mcp.py:84` in the Context is from 2.2.0 code; the default format is now at line 66.
+
+## Amendment — 2026-11-23, dfoulks (at the owner's request): one package
+
+Touches the Decision, Context and Consequences wherever each format's part is its own distribution (`bowerbird-obsidian`, `bowerbird-foam`, `bowerbird-dendron`, `bowerbird-logseq`). The ruled text above is left as it was; read it with this change.
+
+Packaging changed to one wheel. The owner's words: "I want one pypi package instead of several, I hate dependency management." The four format modules ship in `bowerbird-mcp` (`bowerbird_obsidian.py` and the rest), registered as Bowerbird starts. The extras `obsidian`, `foam`, `dendron` and `logseq` stay as switches that add nothing, so every `pip install 'bowerbird-mcp[obsidian]'` line stays valid. The entry-point group `bowerbird.formats` remains open to third-party formats, and the registry and shared wikilink base are unchanged.

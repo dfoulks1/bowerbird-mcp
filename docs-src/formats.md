@@ -42,8 +42,8 @@ Markdown, ADR and the four add-on formats are all Markdown files, so they share 
 ## Format add-ons
 
 Obsidian, Foam, Dendron and Logseq write notes the same way (Markdown with `[[wikilinks]]`) and differ in the details: which side the alias is on, how a
-name finds a file, which folders are the tool's own. Bowerbird reads the shared part itself. What is particular to one tool lives in an add-on you install
-as an extra. Bowerbird finds it through the entry point group `bowerbird.formats`, and `format: <name>` in `bower.yaml` selects it:
+name finds a file, which folders are the tool's own. Bowerbird reads the shared part itself. What is particular to one tool lives in an add-on that ships in the one `bowerbird-mcp` package
+(a module beside the others), and `format: <name>` in `bower.yaml` selects it. The extra of the same name installs nothing more; it keeps the install line valid:
 
 | Format | Install | Page |
 |---|---|---|
@@ -52,12 +52,12 @@ as an extra. Bowerbird finds it through the entry point group `bowerbird.formats
 | `dendron` | `pip install 'bowerbird-mcp[dendron]'` | [Dendron](formats/dendron.md) |
 | `logseq` | `pip install 'bowerbird-mcp[logseq]'` | [Logseq](formats/logseq.md) |
 
-Without the add-on, `format: obsidian` (or one of the others) stops with a message that says what to install. Two other add-ons are not formats: the [fact pack](fact-pack.md) (five more kinds of fact)
+Two other add-ons are not formats: the [fact pack](fact-pack.md) (five more kinds of fact)
 and `seal-extensions` (several people seal one version; see [Sealing](sealing.md#several-signers-and-a-quorum-the-seal-extensions-add-on)).
 
 An add-on's files are Markdown, so each format behaves as [Markdown](formats/markdown.md) (same tools, same sealing) with its own reading of links, tags and names.
 
-**Writing one.** An add-on is a Python package with an entry point in the group `bowerbird.formats`, naming a function that takes the `bowerbird_mcp`
+**Writing one.** A third-party add-on is a Python package with an entry point in the group `bowerbird.formats` (the four above are bundled and need none), naming a function that takes the `bowerbird_mcp`
 module and calls `register_format(name, ...)`. Every argument after the name is optional:
 
 | Argument | What it does |
@@ -75,8 +75,8 @@ module and calls `register_format(name, ...)`. Every argument after the name is 
 | `names` | Turns a file's text and frontmatter into the other names its page answers to (aliases, a `title::`). |
 | `resolve` | Turns a link as written into a file: a path, `None` (no file, and not broken) or `False` (not this tool's: use the default). |
 
-A format that fails to load is said once on stderr and left out, so a broken add-on does not stop Bowerbird. The four above are in this repository
-under `addons/`; read one for a working example.
+A format that fails to load is said once on stderr and left out, so a broken add-on does not stop Bowerbird. The four above are modules at the root of this repository
+(`bowerbird_obsidian.py` and the rest); read one for a working example.
 
 ## Changing your mind
 

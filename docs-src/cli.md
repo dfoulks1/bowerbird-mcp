@@ -26,15 +26,14 @@ The base install is small: search, lint, seal, the MCP server and this command l
 | `skos` | `rdflib` | `format: skos` |
 | `sqlite-vec` | `sqlite-vec` | `vector_index: sqlite-vec` |
 | `hnsw` | `hnswlib` | `vector_index: hnsw` |
-| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum; `seal: {extensions: true, count: true}`: how many people hold a file |
-| `fact-pack` | the add-on `bowerbird-fact-pack` | more kinds of [fact](facts.md): `key`, `git`, `until`, `manual`, `script` ([the pack](fact-pack.md)) |
-| `obsidian` | the add-on `bowerbird-obsidian` | `format: obsidian`, an [Obsidian vault](formats/obsidian.md) (wikilinks, aliases, inline tags) |
-| `foam` | the add-on `bowerbird-foam` | `format: foam`, a [Foam workspace](formats/foam.md) |
-| `dendron` | the add-on `bowerbird-dendron` | `format: dendron`, a [Dendron workspace](formats/dendron.md) (dotted names, hierarchies) |
-| `logseq` | the add-on `bowerbird-logseq` | `format: logseq`, a [Logseq graph](formats/logseq.md) (journals, namespaces) |
+| `seal-extensions` | nothing, it is in the wheel | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum; `seal: {extensions: true, count: true}`: how many people hold a file |
+| `fact-pack` | `tomli` on Python below 3.11 (the code is in the wheel) | more kinds of [fact](facts.md): `key`, `git`, `until`, `manual`, `script` ([the pack](fact-pack.md)) |
+| `obsidian` | nothing, it is in the wheel | `format: obsidian`, an [Obsidian vault](formats/obsidian.md) (wikilinks, aliases, inline tags) |
+| `foam` | nothing, it is in the wheel | `format: foam`, a [Foam workspace](formats/foam.md) |
+| `dendron` | nothing, it is in the wheel | `format: dendron`, a [Dendron workspace](formats/dendron.md) (dotted names, hierarchies) |
+| `logseq` | nothing, it is in the wheel | `format: logseq`, a [Logseq graph](formats/logseq.md) (journals, namespaces) |
 
-An add-on row is a separate package (`bowerbird-obsidian` and the rest, in `addons/` of the repository): the extra installs it next to Bowerbird, and its own setting turns it on (`format: obsidian`, `seal: {extensions: true}`).
-The add-ons are at the same version as Bowerbird.
+An add-on row is one module of the one `bowerbird-mcp` wheel: the code is always installed, the extra is only the name you ask for, and its own setting turns it on (`format: obsidian`, `seal: {extensions: true}`).
 
 Name one, or several, the same way each time:
 

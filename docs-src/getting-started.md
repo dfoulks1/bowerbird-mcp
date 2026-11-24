@@ -65,7 +65,7 @@ A collection holds one kind of thing, and you say which when you make it:
 | `seal-only` | any text files (code, configuration) with nothing searched: just a guaranteed human review of each |
 
 Leave `holds=` out and `create` guesses from the folder, then asks you for what it cannot know. The choice is written to
-`bower.yaml` as `format:`, and you can change it later by editing that line. (An Obsidian, Foam, Dendron or Logseq folder is Markdown read with that tool's rules for links: install the add-on, `pip install 'bowerbird-mcp[obsidian]'` and so on, and write `format: obsidian` by hand. See [Formats](formats.md#format-add-ons).) Here it is `markdown`:
+`bower.yaml` as `format:`, and you can change it later by editing that line. (An Obsidian, Foam, Dendron or Logseq folder is Markdown read with that tool's rules for links: the add-on ships in the one package (`pip install 'bowerbird-mcp[obsidian]'` and so on stays valid), so write `format: obsidian` by hand. See [Formats](formats.md#format-add-ons).) Here it is `markdown`:
 
 ```sh
 uvx bowerbird-mcp create -t markdown -a "Infra runbooks." --apply -O text

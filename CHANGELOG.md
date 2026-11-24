@@ -7,12 +7,15 @@
   `bower.yaml` beside it stops the run with `git mv kbmcp.yaml bower.yaml`; the rest are ignored.
 
 ### Changed
+- **One package.** The six add-ons (`seal-extensions`, `fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`) are modules in the one `bowerbird-mcp` wheel, not packages of their own: one install, one version, one upload.
+  Bowerbird registers them as it starts. The extras of the same name stay, so every `pip install 'bowerbird-mcp[obsidian]'` line is valid; they are switches that add nothing (`fact-pack` adds `tomli` on Python below 3.11).
+  The entry-point groups (`bowerbird.formats`, `bowerbird.fact_types`, `bowerbird.seal`) stay open to third-party add-ons.
 - **`list` and `status` tell the truth about an edited OKF concept.** An OKF concept's reviews are in its frontmatter, bound to its text; `list` and `status` showed one edited since as `human-reviewed` (a search and `seal check`
   already said it was stale). They now say `unverified`.
 - **`seal.count`: how many people hold a file** (a human signal: a machine check is never counted). With `seal: {extensions: true, count: true}`, `list` and `passages` show `seals: N` (the different people whose seal of the current version holds), a search
   ranks a file a little higher for each, and `seal check` returns the `most_sealed`.
-- **Seal extensions are an add-on.** The code for several signers and a quorum moved out of core to `addons/seal-extensions` (`bowerbird-seal-extensions`, found through the `bowerbird.seal` entry point);
-  `pip install 'bowerbird-mcp[seal-extensions]'` installs it. A collection that sets `seal.extensions: true` without it is told what to install, and a write that would lose seals is refused. A multi-seal ledger line
+- **Seal extensions are an add-on.** The code for several signers and a quorum moved out of core to its own module, `bowerbird_seal_extensions.py`, registered as Bowerbird starts;
+  the `seal-extensions` extra is the name of the switch. A collection that sets `seal.extensions: true` while it cannot load is told so, and a write that would lose seals is refused. A multi-seal ledger line
   now carries its `quorum`, so the docs badge says `by ann, bo (2 of 3 needed)`.
 - **Distributed ledgers.** A seal goes into a `.waxseals.yaml` in the file's own folder, with the file's name relative to that folder, so seals live
   beside what they cover and move with the folder. A root `.waxseals.yaml` from before 2.3 is still read; a file's line leaves it when the file is sealed again.
@@ -41,15 +44,15 @@
 - **One grammar for a fact: `[fact.KIND]{metadata}(source) the claim [fact.end]`.** The `{metadata}` is optional (the 2.2.0 form still reads): a JSON or YAML mapping with the keys `by`, `at`, `as_of`,
   `confidence`, `note`, `tags` and `stale_after` (any other key is kept), shown in the bibliography; `stale_after` makes `factcheck` list a fact as due. An agent may write the metadata as JSON and the
   source as a JSON string or array of strings. The metadata is not part of the fact's id. `lint` has a new `bad_fact_meta` warning, and a mapping that never closes is a `bad_fact` error.
-- **The fact pack, `bowerbird-mcp[fact-pack]`** (`addons/fact-pack/`): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
-  and `script` (a command declared in the root `bower.yaml`, an argument list with no shell; a person at a terminal is shown the command first, an agent is not). It registers through the new `bowerbird.fact_types` entry point; `facts:` takes
-  `scripts:` and `manual_days:`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.
+- **The fact pack, `bowerbird-mcp[fact-pack]`** (`bowerbird_fact_pack.py`, in the wheel): the kinds `key` (a value in a JSON, YAML or TOML file), `git` (a tag, or a file at a revision), `until` (an end date), `manual` (a person is asked)
+  and `script` (a command declared in the root `bower.yaml`, an argument list with no shell; a person at a terminal is shown the command first, an agent is not). It registers through the new `bowerbird.fact_types` group; `facts:` takes
+  `scripts:` and `manual_days:`. If the pack cannot load, a page that uses one of its kinds is a `lint` error that says what to install.
 - **Fact kinds `file` and `internal`.** `[fact.file](path#L10-20)` reads a file (absolute, `~/`, or relative to the document; no network), `[fact.internal](page.md#Heading)` reads a page or a section of
   this collection. Their checks only read files, so `factcheck file=... id=...` runs one with no prompt, for an agent too, and records it beside the document.
 - **The format add-ons read more.** Inline `#tags` (and Logseq's `#[[two words]]`, `tags::`), frontmatter `aliases` and `alias` (and Logseq's `title::` and `alias::`) as other names a page answers to,
   Foam's `./`, `../` and `/` path links, Dendron's `dendron://vault/note` links scoped to the vault (from `dendron.yml`) with `#tag` and `@user` as links to `tags.*` and `user.*`, Logseq's
   `((uuid))` block references and the file name and journal title formats of its `config.edn`. A format sets these through `register_format(tags=, names=, resolve=)`.
-- **Format add-ons: `obsidian`, `foam`, `dendron`, `logseq`.** Each is its own package under `addons/` (`bowerbird-obsidian`, ...), found through the `bowerbird.formats` entry point and
+- **Format add-ons: `obsidian`, `foam`, `dendron`, `logseq`.** Each is a module in the wheel (`bowerbird_obsidian.py`, ...), registered through the `bowerbird.formats` group and
   selected with `format:` in `bower.yaml`; its files are markdown, read with that tool's rules for links (the alias side, how a name finds a file, the folders that are the tool's
   own, stub and journal pages). `register_format` in core takes `about`, `skip`, `alias_first`, `page`, `clean`, `links`, `virtual`, `quiet` and `lint`. A format that fails to load is
   said on stderr and left out. Each has a page under Formats.

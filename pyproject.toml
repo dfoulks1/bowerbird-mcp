@@ -32,7 +32,13 @@ semantic = ["fastembed"]  # `semantic: true` in bower.yaml: match passages by me
 sqlite-vec = ["sqlite-vec"]
 hnsw = ["hnswlib"]
 skos = ["rdflib"]  # format: skos
-seal-extensions = []  # `seal: {extensions: true, quorum: 2}`: several people seal one version; no dependency, the name is the switch
+# The add-on code is in the wheel; these names are switches, so every `pip install 'bowerbird-mcp[obsidian]'` line stays valid.
+seal-extensions = []  # `seal: {extensions: true, quorum: 2}`: several people seal one version; the code is in the wheel, the name is the switch
+fact-pack = ["tomli; python_version < '3.11'"]  # more fact kinds (npm, pypi, github, ...); the code is in the wheel, tomli reads pyproject on Python below 3.11
+obsidian = []  # `format: obsidian`; the code is in the wheel, the name is the switch
+foam = []  # `format: foam`
+dendron = []  # `format: dendron`
+logseq = []  # `format: logseq`
 serve = ["markdown"]  # `bowerbird-mcp serve`
 syntax = ["pygments"]  # `bowerbird-mcp[serve,syntax]`: serve highlights code files
 
@@ -48,7 +54,8 @@ bowerbird-mcp = "bowerbird_mcp:main"
 bowerbird = "bowerbird_mcp:main"  # a shorter command for the same tool
 
 [tool.setuptools]
-py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo", "bowerbird_facts", "bowerbird_okf"]
+py-modules = ["bowerbird_mcp", "bowerbird_serve", "bowerbird_logo", "bowerbird_facts", "bowerbird_okf",
+             "bowerbird_fact_pack", "bowerbird_seal_extensions", "bowerbird_obsidian", "bowerbird_foam", "bowerbird_dendron", "bowerbird_logseq"]
 
 # The file still runs as a PEP 723 script (`uv run bowerbird_mcp.py`); the table above
 # makes it installable too: `uvx --from git+<repo> bowerbird-mcp`.

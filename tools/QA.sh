@@ -47,20 +47,21 @@ diff -r -x 'sitemap.xml*' "$TMP/site" docs >/dev/null || fail "docs/ is stale | 
 step "uv.lock matches pyproject.toml"
 uv lock --check
 
-step "the add-ons (addons/*): each at core's version, depending on it, and each builds"
-core="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"
-for d in addons/*/; do
-  v="$(sed -n 's/^version = "\([^"]*\)".*/\1/p' "$d/pyproject.toml")"
-  [ "$v" = "$core" ] || fail "$d is at $v, core at $core | fix: the add-ons move in lockstep with bowerbird-mcp"
-  grep -q "bowerbird-mcp>=${core%.*},<" "$d/pyproject.toml" || fail "$d does not depend on bowerbird-mcp>=${core%.*},<N | fix: its dependencies line"
-  uv build -q --out-dir "$TMP/dist" "$d" || fail "$d does not build"
-done
-printf '%s add-ons built\n' "$(ls addons | wc -l)"
+step "the wheel builds, and holds the six bundled add-ons"
+uv build -q --out-dir "$TMP/dist" || fail "bowerbird-mcp does not build"
+python3 - "$TMP/dist" <<'PY' || fail "the wheel lacks a bundled add-on module"
+import glob, sys, zipfile
+names = set(zipfile.ZipFile(glob.glob(sys.argv[1] + "/*.whl")[0]).namelist())
+need = [f"bowerbird_{n}.py" for n in ("fact_pack", "seal_extensions", "obsidian", "foam", "dendron", "logseq")]
+missing = [n for n in need if n not in names]
+sys.exit(f"missing: {missing}" if missing else 0)
+PY
+echo "wheel holds the six add-on modules"
 
 step "ruff (the [tool.ruff] settings in pyproject.toml) and mypy: both run, then both are reported"
 lint=0
 uvx ruff check . || lint=1
-uv run --with mypy --with types-PyYAML --with types-Markdown --with types-Pygments mypy bowerbird_mcp.py bowerbird_serve.py bowerbird_facts.py bowerbird_okf.py docs_tools.py addons/*/bowerbird_*.py || lint=1
+uv run --with mypy --with types-PyYAML --with types-Markdown --with types-Pygments mypy bowerbird_mcp.py bowerbird_serve.py bowerbird_facts.py bowerbird_okf.py docs_tools.py bowerbird_fact_pack.py bowerbird_seal_extensions.py bowerbird_obsidian.py bowerbird_foam.py bowerbird_dendron.py bowerbird_logseq.py || lint=1
 [ "$lint" = 0 ] || fail "ruff or mypy reported findings (above) | fix: see TODO.md; uvx ruff check . --fix clears the safe ruff ones"
 
 printf '\nQA ok (%s)\n' "$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"

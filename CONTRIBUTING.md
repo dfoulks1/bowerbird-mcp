@@ -51,17 +51,14 @@ changes nothing in the working tree and stops at the first failure.
 
 ## Releasing
 
-1. Set `version` in `pyproject.toml`, `VERSION` in `bowerbird_mcp.py` (a test checks they agree) and in each of the six add-ons in
-   `addons/*/pyproject.toml` (lockstep: `seal-extensions`, `fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`), run `uv lock` (the
+1. Set `version` in `pyproject.toml`, `VERSION` in `bowerbird_mcp.py` (a test checks they agree), run `uv lock` (the
    lockfile records the version), and add a section to `CHANGELOG.md`. For a new major version, also change the pin `create`
    writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1` example in
    `docs-src/formats/skos.md`. Then run `tools/QA.sh`.
 2. Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to `main`.
 3. Tag and publish a GitHub release, `git tag -a vX.Y.Z` then `gh release create vX.Y.Z`, with the
    `CHANGELOG.md` section as the notes. This only creates the release: nothing publishes automatically.
-4. Publish to PyPI by hand, from the tag, after the checks above pass. The six add-ons go first (each is its own package,
-   `uv build addons/NAME --out-dir dist`, then `uvx twine upload dist/bowerbird_NAME-X.Y.Z*`). Their extras are added to
-   `pyproject.toml` only now, then `uv lock`, then Bowerbird itself:
+4. Publish to PyPI by hand, from the tag, after the checks above pass. One package, `bowerbird-mcp`: the six add-ons are modules in its wheel.
 
    ```sh
    git checkout vX.Y.Z && uv build && uvx twine check dist/bowerbird_mcp-X.Y.Z* && uvx twine upload dist/bowerbird_mcp-X.Y.Z*

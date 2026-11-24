@@ -56,7 +56,7 @@ Any other key is kept and shown. `lint` warns of a wrong value in a key that has
 
 ## The kinds
 
-Nine kinds. The first four are in `bowerbird-mcp`; the other five are the [fact pack](fact-pack.md), an add-on you install with `pip install 'bowerbird-mcp[fact-pack]'`. Without the pack, a page that uses one of its kinds is a `lint` error that says what to install.
+Nine kinds. The first four are in `bowerbird-mcp`; the other five are the [fact pack](fact-pack.md), an add-on that ships in the same package (`pip install 'bowerbird-mcp[fact-pack]'` stays valid; it adds `tomli` on Python below 3.11).
 
 | Kind | Source | Holds while | An agent may check it |
 |---|---|---|---|

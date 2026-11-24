@@ -56,6 +56,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+fact-pack = [
+    { name = "tomli", marker = "python_full_version < '3.11'" },
+]
 hnsw = [
     { name = "hnswlib" },
 ]
@@ -91,8 +94,9 @@ requires-dist = [
     { name = "pyyaml" },
     { name = "rdflib", marker = "extra == 'skos'" },
     { name = "sqlite-vec", marker = "extra == 'sqlite-vec'" },
+    { name = "tomli", marker = "python_full_version < '3.11' and extra == 'fact-pack'" },
 ]
-provides-extras = ["semantic", "sqlite-vec", "hnsw", "skos", "seal-extensions", "serve", "syntax"]
+provides-extras = ["semantic", "sqlite-vec", "hnsw", "skos", "seal-extensions", "fact-pack", "obsidian", "foam", "dendron", "logseq", "serve", "syntax"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "ruff" }]

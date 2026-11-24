@@ -5,8 +5,8 @@
 **Use it when** a claim rests on something other than a web page, a file or another page of the collection: a value in a config file, a tag in git, a date, a
 command's output, or something only a person can say.
 
-`bowerbird-mcp` has four kinds of [fact](facts.md): `url`, `mcp`, `file` and `internal`. The pack adds five. It is a separate
-package (`bowerbird-fact-pack`, in `addons/fact-pack/`), so what runs a command or reads your repository is off until you install it.
+`bowerbird-mcp` has four kinds of [fact](facts.md): `url`, `mcp`, `file` and `internal`. The pack adds five. It ships in the same package
+(`bowerbird_fact_pack.py`), so what runs a command stays off until the root `bower.yaml` declares a script, and a person answers `y` to the plan.
 
 ## Install
 
@@ -14,7 +14,7 @@ package (`bowerbird-fact-pack`, in `addons/fact-pack/`), so what runs a command 
 pip install 'bowerbird-mcp[fact-pack]'        # or: uvx --from 'bowerbird-mcp[fact-pack]' bowerbird-mcp ...
 ```
 
-Bowerbird finds the pack through the `bowerbird.fact_types` entry point. Without it, a page that uses one of its kinds is a `lint` error that says what to install, and the docs
+The extra adds nothing but `tomli` on Python below 3.11 (to read TOML); the code is in the wheel, and Bowerbird registers it as it starts. If it cannot load (a damaged install), a page that uses one of its kinds is a `lint` error that says what to install, and the docs
 build still shows the block from its recorded state.
 
 ## The five kinds

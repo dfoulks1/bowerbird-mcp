@@ -15,12 +15,10 @@ Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by 
 ### Release
 
 - [ ] Re-seal what `seal check` still lists (the ADRs are sealed; `docs-src/tools.md` is derived). Docs pages: `docs-src/` agents, badges, cli, facts, fact-pack, formats, formats/* (adr, asciidoc, dendron, foam,
-      logseq, markdown, obsidian, okf, skos), getting-started, sealing, serve, troubleshooting, decisions/INDEX, README and TEMPLATE. Repo files: `README.md`, `BOWERBIRD.md`, `TODO.md`, `CHANGELOG.md`, and the
-      six `addons/*/README.md`. `prompts/*.md` are drafts: seal them or leave the folder out (`seal.exempt`).
+      logseq, markdown, obsidian, okf, skos), getting-started, sealing, serve, troubleshooting, decisions/INDEX, README and TEMPLATE. Repo files: `README.md`, `BOWERBIRD.md`, `TODO.md`, `CHANGELOG.md`. `prompts/*.md` are drafts: seal them or leave the folder out (`seal.exempt`).
 - [ ] Then `tools/QA.sh --rebuild` to rebuild `docs/` (the badges are drawn from the ledger, so it must follow the re-seal), and commit it.
-- [ ] Build and upload the add-on distributions to PyPI first (`bowerbird-fact-pack`, `bowerbird-seal-extensions` and the four format add-ons: all are at 2.3.0 and build clean), then add the extras to
-      `pyproject.toml` (`fact-pack`, `seal-extensions`, `obsidian`, `foam`, `dendron`, `logseq`; replace the empty `seal-extensions = []`; `uv.lock` cannot resolve them before), then core. Tag; no `gh release`.
-- [ ] Merge `2.3`: `main` is behind it with nothing of its own, so it is a fast-forward (`git switch main && git merge --ff-only 2.3`), after the seal and `docs/` commit and before the tag.
+- [ ] Build and upload the one package: `uv build`, `uvx twine upload dist/bowerbird_mcp-2.3.0*` (the six add-ons are modules in the wheel; the extras are already in `pyproject.toml`). Then tag; no `gh release`.
+- [ ] Merge `2.3`: `main` is behind it with nothing of its own, so it is a fast-forward (`git switch main && git merge --ff-only 2.3`), the same commit the tag names.
 
 ## Later
 
@@ -36,7 +34,7 @@ Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by 
 
 ### Seals
 
-Everything optional about sealing belongs to the `seal-extensions` add-on (`addons/seal-extensions`), each feature off by default and switched on under `seal:` in `bower.yaml`; plain seals work unchanged
+Everything optional about sealing belongs to the `seal-extensions` add-on (`bowerbird_seal_extensions.py`, in the one package), each feature off by default and switched on under `seal:` in `bower.yaml`; plain seals work unchanged
 without it. Built there: several signers, a quorum and `seal.count`. The rest joins them:
 
 - [ ] **Vote tally** (`seal.tally`: threshold, gate or inform). A seal as a vote. A tally counts distinct human sealers per file or ADR from the ledger, each only while the sha256

@@ -17,8 +17,7 @@ format: obsidian
 about: My notes.
 ```
 
-The add-on is its own package (`bowerbird-obsidian`, in this repository, released with `bowerbird-mcp`). The extra pulls it in, and Bowerbird finds it through the
-`bowerbird.formats` entry point. Without it, `format: obsidian` stops with a message that says to install it. Everything else is the
+The add-on ships in the one `bowerbird-mcp` package (`bowerbird_obsidian.py`): the extra adds nothing, it is the name you ask for, and `format: obsidian` is the switch. Everything else is the
 [Markdown](markdown.md) format: the same tools, the same sealing (`.waxseals.yaml` beside the files), and ADR records in it are sealed
 with an outcome as in [ADR](adr.md).
 

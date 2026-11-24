@@ -27,14 +27,10 @@ os.environ.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
 (coll / "bower.yaml").write_text("")  # the config file marks the collection root
 sys.argv[1:] = ["--config", str(coll / "bower.yaml")]
 sys.path.insert(0, str(HERE))
-import importlib.util as _iu0
-
 import bowerbird_mcp as bb
 
-_se = _iu0.spec_from_file_location("bowerbird_seal_extensions", HERE / "addons" / "seal-extensions" / "bowerbird_seal_extensions.py")
-seal_extensions = _iu0.module_from_spec(_se)
-_se.loader.exec_module(seal_extensions)
-seal_extensions.register(bb)  # what the `bowerbird.seal` entry point does when the add-on is installed
+seal_extensions = sys.modules["bowerbird_seal_extensions"]  # the add-ons ship in the wheel: importing bowerbird_mcp already registered it
+assert bb.SEAL_EXT is not None
 
 
 def create(**kw):
@@ -2284,14 +2280,10 @@ finally:
 
 # format add-ons (2.3): obsidian, foam, dendron and logseq each register a profile of the markdown family; the shared resolver reads their links.
 import importlib.metadata as _im
-import importlib.util as _iu
 
-
-def addon(n):
-    s = _iu.spec_from_file_location(f"bowerbird_{n}", HERE / "addons" / n / f"bowerbird_{n}.py")
-    m = _iu.module_from_spec(s)
-    s.loader.exec_module(m)
-    m.register(bb)
+assert {"obsidian", "foam", "dendron", "logseq"} <= set(bb.PROFILES)  # bundled: registered as the module was imported
+for n in ("obsidian", "foam", "dendron", "logseq"):
+    del bb.PROFILES[n]  # simulate absence, then prove load_plugins brings them back
 
 
 class _EP:  # an entry point, as importlib.metadata hands one out
@@ -2313,8 +2305,7 @@ finally:
 assert "fake" in bb.PROFILES and bb.base("fake") == "markdown" and bb.base("okf") == "okf"  # a profile is read as markdown
 assert "the add-on bad did not load (RuntimeError: broken add-on)" in err.getvalue()  # a broken add-on is said, and left out
 del bb.PROFILES["fake"]
-for n in ("obsidian", "foam", "dendron", "logseq"):
-    addon(n)
+bb.load_plugins()  # the real loader: the bundled modules by name, then any entry points
 assert {"obsidian", "foam", "dendron", "logseq"} <= set(bb.PROFILES)
 
 
@@ -2444,16 +2435,11 @@ in_vault("markdown", {"n.md": "x\n"}, facts_vault)
 
 
 # the fact pack (ADR-001): key, git, until, manual and script, registered through the `bowerbird.fact_types` entry point.
-_fp = _iu.spec_from_file_location("bowerbird_fact_pack", HERE / "addons" / "fact-pack" / "bowerbird_fact_pack.py")
-fact_pack = _iu.module_from_spec(_fp)
-_fp.loader.exec_module(fact_pack)
 FF = bb.facts_mod()
-assert "pip install 'bowerbird-mcp[fact-pack]'" in FF.parse("[fact.key](a b) x [fact.end]")[1][0][2]  # without the pack: told what to install
-_im.entry_points = lambda group=None: [_EP("fact-pack", fact_pack.register)] if group == "bowerbird.fact_types" else []
-try:
-    bb.load_plugins("bowerbird.fact_types")
-finally:
-    _im.entry_points = _orig_eps
+assert set(FF.PACK) <= set(FF.FACT_TYPES)  # bundled: registered as the module was imported
+_gone = {k: FF.FACT_TYPES.pop(k) for k in FF.PACK}  # simulate the pack absent: told what to install
+assert "pip install 'bowerbird-mcp[fact-pack]'" in FF.parse("[fact.key](a b) x [fact.end]")[1][0][2]
+bb.load_plugins("bowerbird.fact_types")  # the real loader brings the pack back
 assert {"key", "git", "until", "manual", "script"} <= set(FF.FACT_TYPES) and FF.FACT_TYPES["key"].local and not FF.FACT_TYPES["script"].local and not FF.FACT_TYPES["manual"].local
 assert "install the fact pack" not in str(FF.parse("[fact.key](a.json x) x [fact.end]")[1])
 
@@ -2719,9 +2705,7 @@ def numbered(d):
 in_vault("markdown", {"n.md": "x\n"}, numbered)
 
 
-# seal-extensions is an add-on (addons/seal-extensions): registered through the `bowerbird.seal` entry point; without it a collection that turns extensions on is told what to install, and loses no seal
-import importlib.metadata as _im2
-
+# seal-extensions is a bundled add-on, registered as bowerbird_mcp is imported; simulated absent (SEAL_EXT cleared), a collection that turns extensions on is refused, and loses no seal
 
 def ext_vault(d):
     text = (d / "a.md").read_text()
@@ -2749,13 +2733,7 @@ def ext_vault(d):
         before = (d / ".waxseals.yaml").read_text()
         assert "seal-extensions add-on" in raises(bb.ledger_put, "a.md", {"file": "a.md", "sha256": bb.content_hash(text, False), "by": "human:cy", "at": "2026-11-23T10:00:09Z"})
         assert (d / ".waxseals.yaml").read_text() == before
-        # the entry point registers it
-        _orig = _im2.entry_points
-        _im2.entry_points = lambda group=None: [_EP("seal-extensions", seal_extensions.register)] if group == "bowerbird.seal" else []
-        try:
-            bb.load_plugins("bowerbird.seal")
-        finally:
-            _im2.entry_points = _orig
+        bb.load_plugins("bowerbird.seal")  # the real loader registers the bundled add-on
         assert bb.seal_mod() is not None and bb.seal_mod().signers([{"by": "human:a"}, {"by": "process:x"}]) == {"human:a"}
     finally:
         bb.OPTS["seal"], bb.SEAL_EXT = saved
@@ -2835,7 +2813,15 @@ def state_vault(d):
 in_vault("markdown", {"a.md": "x\n"}, state_vault)
 
 
-# an add-on found through its entry point as the module is imported, in a fresh interpreter (a hand registration in a test does not prove the loader works)
+# the bundled add-ons register as the module is imported, and a third-party add-on is found through its entry point, in a fresh interpreter (a hand registration in a test does not prove the loader works)
+def bundled_really():
+    code = ("import bowerbird_mcp as b, bowerbird_facts as f; print(b.SEAL_EXT is not None, 'obsidian' in b.PROFILES, set(f.PACK) <= set(f.FACT_TYPES))")
+    r = subprocess.run([sys.executable, "-c", code], cwd=Path(tempfile.mkdtemp()), capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(HERE)}, check=False)
+    assert r.stdout.strip() == "True True True" and "did not load" not in r.stderr, (r.stdout, r.stderr[-300:])
+bundled_really()
+
+
+
 def entry_points_really():
     site = Path(tempfile.mkdtemp())
     (site / "fakeseal.py").write_text("import types\ndef register(bb):\n    bb.register_seal_extension(types.SimpleNamespace(merge=None, collapse=None, signers=lambda v: set(), expand=None, marker='real'))\n")
@@ -2928,11 +2914,11 @@ assert bb.adr_named("0001-use-x.md") and bb.adr_named("adr-12.md") and bb.adr_na
 assert bb.adr_meta({}, "x\n", Path("/tmp/c/journals/2020_09_14.md")).get("type") is None and bb.adr_meta({}, "x\n", Path("/tmp/c/0001-x.md")).get("type") == "adr"
 
 
-# seal.extensions on without the add-on: said when the tool starts (a fresh interpreter, no add-on installed)
+# seal.extensions on without the add-on: said when the tool starts (a fresh interpreter, the bundled module made unimportable)
 _c = Path(tempfile.mkdtemp())
 (_c / "bower.yaml").write_text("format: markdown\nseal: {extensions: true}\n")
-_r = subprocess.run([sys.executable, "-c", "import bowerbird_mcp"], cwd=_c, capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(HERE)}, check=False)
-assert "seal.extensions is on but the seal-extensions add-on is not installed" in _r.stderr, _r.stderr[-300:]
+_r = subprocess.run([sys.executable, "-c", "import sys; sys.modules['bowerbird_seal_extensions'] = None; import bowerbird_mcp"], cwd=_c, capture_output=True, text=True, env={**os.environ, "PYTHONPATH": str(HERE)}, check=False)
+assert "seal.extensions is on but the seal-extensions add-on did not load" in _r.stderr, _r.stderr[-300:]
 
 
 # ADR-004: okf: {records: files} keeps an OKF concept's reviews and facts in the ledger and the blocks, like every other format

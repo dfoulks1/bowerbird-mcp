@@ -117,6 +117,7 @@ Drivers:
   1 to 3 were defaulted as listed in the record's Defaulted table; the owner may veto.
 - 2026-11-23: ratified by dfoulks, as `decision: accepted` in the seal dialog (ledger entry at 2026-11-23T13:26Z). Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's answers; awaiting ratification"`. The header was updated here because the dialog records the decision in `.waxseals.yaml` only, not in the ADR header.
 - 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: accepted`, `status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"`.
+- 2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.
 
 ## Amendment — 2026-11-23, dfoulks
 
@@ -131,3 +132,9 @@ declared in the root `bower.yaml` runs (a page never names one), and `manual`, w
 Touches the Context only. The line numbers in the ruled text (`bowerbird_facts.py:56-57` and `:45-53`, `TODO.md:23`, `pyproject.toml:10`) refer to the 2.2.0 code; in 2.3.0 `register()` and `attach()` are at `bowerbird_facts.py:48-57` and the `url` and `mcp` kinds at lines 60-61. The ruled text above is left as it was.
 
 - 2026-11-23: amended (see the section above); the ruled text is unchanged.
+
+## Amendment — 2026-11-23, dfoulks (at the owner's request): one package
+
+Touches the Decision, Context, Alternatives and Consequences wherever the fact pack is `bowerbird-fact-pack`, a separate distribution built from `fact-pack/`, or a package that `bowerbird-mcp[fact-pack]` requires. The ruled text above is left as it was; read it with this change.
+
+Packaging changed to one wheel. The owner's words: "I want one pypi package instead of several, I hate dependency management." The fact pack is now a module of `bowerbird-mcp` (`bowerbird_fact_pack.py`), registered as Bowerbird starts. The `fact-pack` extra stays as a switch: it adds nothing but `tomli` on Python below 3.11, so `pip install 'bowerbird-mcp[fact-pack]'` stays valid. There is no `bowerbird-fact-pack` distribution and no install loop. The entry-point group `bowerbird.fact_types` remains open to third-party packs. The split of kinds between core and pack is unchanged.

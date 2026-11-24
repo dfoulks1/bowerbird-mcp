@@ -61,3 +61,10 @@ Drivers:
 
 - 2026-11-23: drafted from the owner's words: "the seal-extensions are an addon so they go in addons/seal-extensions". Several signers and the quorum moved; the rest is to build.
 - 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"`.
+- 2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.
+
+## Amendment — 2026-11-23, dfoulks (at the owner's request): one package
+
+Touches the Decision, Context, Alternatives and Consequences wherever the add-on is `bowerbird-seal-extensions`, its own package in `addons/seal-extensions/`, or versioned in lockstep. The ruled text above is left as it was; read it with this change.
+
+Packaging changed to one wheel. The owner's words: "I want one pypi package instead of several, I hate dependency management." The seal extensions are a module of `bowerbird-mcp` (`bowerbird_seal_extensions.py`), registered as Bowerbird starts. The `seal-extensions` extra stays as a switch that adds nothing, and `seal: {extensions: true}` still turns the behaviour on. The entry-point group `bowerbird.seal` remains open to third parties. What is optional about sealing is unchanged: it is still off until the setting is on.

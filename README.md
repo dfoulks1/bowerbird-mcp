@@ -86,11 +86,11 @@ The base install is small: search, lint, seal, the MCP server and the CLI. Anyth
 | `syntax` | `pygments` | highlighted code files in `serve` (use with `serve`) |
 | `semantic` | `fastembed` (about 150 MB; the model, about 65 MB, downloads once) | `semantic: true`, matching passages by meaning |
 | `skos` | `rdflib` | `format: skos` |
-| `obsidian`, `foam`, `dendron`, `logseq` | the add-on of that name (`bowerbird-obsidian`, ...) | `format: obsidian` (or the others): a [format add-on](https://bowerbird.voltpop.com/formats/#format-add-ons) |
-| `fact-pack` | the add-on `bowerbird-fact-pack` | five more kinds of fact: `key`, `git`, `until`, `manual`, `script` |
+| `obsidian`, `foam`, `dendron`, `logseq` | nothing, it is in the wheel | `format: obsidian` (or the others): a [format add-on](https://bowerbird.voltpop.com/formats/#format-add-ons) |
+| `fact-pack` | `tomli` on Python below 3.11 (the code is in the wheel) | five more kinds of fact: `key`, `git`, `until`, `manual`, `script` |
 | `sqlite-vec` | `sqlite-vec` | `vector_index: sqlite-vec` |
 | `hnsw` | `hnswlib` | `vector_index: hnsw` |
-| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}` (several people seal one version, with a quorum) and `seal: {extensions: true, count: true}` (how many people hold a file) |
+| `seal-extensions` | nothing, it is in the wheel | `seal: {extensions: true, quorum: 2}` (several people seal one version, with a quorum) and `seal: {extensions: true, count: true}` (how many people hold a file) |
 
 Ask for one, or several, in the same places:
 

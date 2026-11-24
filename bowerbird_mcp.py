@@ -94,20 +94,20 @@ class Profile(typing.NamedTuple):
     resolve: typing.Callable | None = None  # (link as written, citing file, root, [(page name, file)]) -> a Path, None (no file, not broken), or False (not mine: use the default)
 
 
-PROFILES: dict = {}  # format name -> Profile, filled by add-ons (entry point group `bowerbird.formats`)
+PROFILES: dict = {}  # format name -> Profile, filled by add-ons (bundled, or a third party's entry point in the group `bowerbird.formats`)
 
 
-SEAL_EXT = None  # the seal extensions' helpers (merge, collapse, signers), registered by the `bowerbird-mcp[seal-extensions]` add-on through the `bowerbird.seal` entry point
+SEAL_EXT = None  # the seal extensions' helpers (merge, collapse, signers), registered by the bundled seal-extensions add-on (a third-party one may use the `bowerbird.seal` entry point)
 
 
 def register_seal_extension(mod) -> None:
-    """Called by the seal-extensions add-on: it hands over its helpers (see addons/seal-extensions). Defined before the entry points are loaded, which happens as this module is imported."""
+    """Called by the seal-extensions add-on: it hands over its helpers (bowerbird_seal_extensions.py). Defined before the add-ons are loaded, which happens as this module is imported."""
     global SEAL_EXT
     SEAL_EXT = mod
 
 
 def register_format(name: str, **kw) -> Profile:
-    """Add a format of the markdown family, or replace one of that name. An add-on calls this from its entry point."""
+    """Add a format of the markdown family, or replace one of that name. An add-on calls this from its `register`."""
     PROFILES[name] = Profile(name, **kw)
     return PROFILES[name]
 
@@ -122,14 +122,28 @@ def profile():
     return PROFILES.get((globals().get("OPTS") or {}).get("format"))
 
 
+BUNDLED = {  # the add-ons that ship in this wheel, by entry point group: their modules sit beside this one and the extras of the same name are only switches
+    "bowerbird.formats": ("bowerbird_obsidian", "bowerbird_foam", "bowerbird_dendron", "bowerbird_logseq"),
+    "bowerbird.fact_types": ("bowerbird_fact_pack",),
+    "bowerbird.seal": ("bowerbird_seal_extensions",),
+}
+
+
 def load_plugins(group: str = "bowerbird.formats") -> None:
-    """Add-ons (`bowerbird-mcp[obsidian]`, `[foam]`, `[fact-pack]`, ...) register through entry points: each entry of the group is a function that
-    takes this module (the formats add a format with register_format, the `bowerbird.fact_types` add kinds of fact). One that fails to load is said
-    on stderr and left out, so a broken add-on does not stop the tool."""
+    """Register the add-ons of a group: the ones bundled in this wheel (BUNDLED), then any third-party package that names an entry point in the group.
+    Each add-on's `register` takes this module (the formats add a format with register_format, the `bowerbird.fact_types` add kinds of fact). One that
+    fails to load is said on stderr and left out, so a broken add-on does not stop the tool."""
+    import importlib
     from importlib.metadata import entry_points
+    me = sys.modules[__name__]
+    for name in BUNDLED.get(group, ()):
+        try:
+            importlib.import_module(name).register(me)
+        except Exception as e:  # noqa: BLE001
+            print(f"warning: the add-on {name} did not load ({type(e).__name__}: {e}) | fix: reinstall bowerbird-mcp, or drop its format from bower.yaml", file=sys.stderr)
     for ep in entry_points(group=group):
         try:
-            ep.load()(sys.modules[__name__])
+            ep.load()(me)
         except Exception as e:  # noqa: BLE001
             print(f"warning: the add-on {ep.name} did not load ({type(e).__name__}: {e}) | fix: reinstall it, or drop its format from bower.yaml", file=sys.stderr)
 
@@ -520,7 +534,7 @@ for _gone in ("KB_ROOT", "BOWERBIRD_ROOT"):  # a root named by the environment i
                          "bower.yaml, or below it), or name that file with --config")
 ROOT = Path.cwd().resolve()
 load_plugins()
-load_plugins("bowerbird.seal")  # the seal-extensions add-on
+load_plugins("bowerbird.seal")  # the seal-extensions add-on (bundled)
 CFG_DIR, CFG = load_config(ROOT, opt_arg(sys.argv[1:], "--config")[0])
 if CFG_DIR:  # the config file sits at the root of its collection, so its folder is the base
     ROOT = CFG_DIR
@@ -530,8 +544,8 @@ CFG = {**CFG, **env_overrides(ENVIRON)}  # bower.yaml, then .env, then the envir
 
 
 OPTS = {**DEFAULTS, **{k: v for k, v in CFG.items() if k in DEFAULTS}}  # the settings in force at the root
-if OPTS["seal"].get("extensions") and SEAL_EXT is None:  # the setting is on and its add-on is not here: say so now, not at the first write
-    print("warning: seal.extensions is on but the seal-extensions add-on is not installed | fix: pip install 'bowerbird-mcp[seal-extensions]'", file=sys.stderr)
+if OPTS["seal"].get("extensions") and SEAL_EXT is None:  # the setting is on and its add-on did not load: say so now, not at the first write
+    print("warning: seal.extensions is on but the seal-extensions add-on did not load | fix: reinstall bowerbird-mcp", file=sys.stderr)
 
 PER_PATH = ("format", "seal", "about", "hubs", "min_similarity")  # what a bower.yaml below the root may override; the rest is the whole server's (one index, one embedding model, one role list)
 _SCOPES: dict = {}  # by collection root, read once per process: a new nested bower.yaml is seen after a restart
@@ -4177,7 +4191,7 @@ if (_F := facts_mod()):  # the kinds that need the network, an MCP client or the
     _F.attach("mcp", plan=fact_plan_mcp, check=fact_check_mcp)
     _F.attach("file", plan=fact_plan_file, check=fact_check_file)
     _F.attach("internal", plan=fact_plan_internal, check=fact_check_internal)
-    load_plugins("bowerbird.fact_types")  # the kinds an add-on brings (`bowerbird-mcp[fact-pack]`)
+    load_plugins("bowerbird.fact_types")  # the kinds the bundled fact pack brings
     for _name, _d in ((CFG.get("facts") or {}).get("types") or {}).items():  # and the kinds the root bower.yaml declares
         declared_type(_name, _d)
 
