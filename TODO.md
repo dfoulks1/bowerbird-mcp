@@ -14,11 +14,10 @@ Built and committed on `2.3`, ADR-004 included (`okf: {records: files}`, off by 
 
 ### Release
 
-- [ ] Re-seal what `seal check` still lists (the ADRs are sealed; `docs-src/tools.md` is derived). Docs pages: `docs-src/` agents, badges, cli, facts, fact-pack, formats, formats/* (adr, asciidoc, dendron, foam,
-      logseq, markdown, obsidian, okf, skos), getting-started, sealing, serve, troubleshooting, decisions/INDEX, README and TEMPLATE. Repo files: `README.md`, `BOWERBIRD.md`, `TODO.md`, `CHANGELOG.md`. `prompts/*.md` are drafts: seal them or leave the folder out (`seal.exempt`).
-- [ ] Then `tools/QA.sh --rebuild` to rebuild `docs/` (the badges are drawn from the ledger, so it must follow the re-seal), and commit it.
-- [ ] Build and upload the one package: `uv build`, `uvx twine upload dist/bowerbird_mcp-2.3.0*` (the six add-ons are modules in the wheel; the extras are already in `pyproject.toml`). Then tag; no `gh release`.
-- [ ] Merge `2.3`: `main` is behind it with nothing of its own, so it is a fast-forward (`git switch main && git merge --ff-only 2.3`), the same commit the tag names.
+- [ ] **Seal.** `seal check=true` is the list (about 40 files: the docs pages, the root `.md` files, the code and test files; the `docs-src/tools.md` page is derived and needs none). Three old
+      ledger lines for files that moved or went (`addons/foam/...`, `addons/obsidian/...`, `bowerbird_seal.py`) are orphan warnings: delete those lines in `.waxseals.yaml`. `prompts/` is exempt.
+- [ ] **Rebuild and commit.** `tools/QA.sh --rebuild` (badges come from the ledger, so after the seal); it must end `QA ok`. Commit the seals, ledgers and `docs/`. Untracked `docs-src/prompts/fact-test.md` and its `.facts.yaml`: delete or seal.
+- [ ] **Merge, tag, build, upload, check:** the steps in `docs-src/releasing.md` (3 to 8): `git switch main && git merge --ff-only 2.3`, tag, build from the tag, `uvx twine upload dist/bowerbird_mcp-2.3.0*`, then check the install. One package; no `gh release`.
 
 ## Later
 

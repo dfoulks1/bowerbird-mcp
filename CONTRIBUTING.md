@@ -56,8 +56,7 @@ changes nothing in the working tree and stops at the first failure.
    writes into `.mcp.json` (`MCP_JSON` in `bowerbird_mcp.py`) and the `bowerbird-mcp[skos]>=N,<N+1` example in
    `docs-src/formats/skos.md`. Then run `tools/QA.sh`.
 2. Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to `main`.
-3. Tag and publish a GitHub release, `git tag -a vX.Y.Z` then `gh release create vX.Y.Z`, with the
-   `CHANGELOG.md` section as the notes. This only creates the release: nothing publishes automatically.
+3. Tag the merge commit on `main`, `git tag -a vX.Y.Z`, and push the tag. No GitHub release is cut unless the owner asks: the tag and the `CHANGELOG.md` section are the record.
 4. Publish to PyPI by hand, from the tag, after the checks above pass. One package, `bowerbird-mcp`: the six add-ons are modules in its wheel.
 
    ```sh
