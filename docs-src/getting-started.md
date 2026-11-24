@@ -1,6 +1,6 @@
 # Getting started
 
-<!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. The commands were run for real, from an empty folder, with `uvx bowerbird-mcp` (2.1.4; `create` output from 2.2.0 (development)). The seal output comes from an earlier run, where the person sealing is a made-up user called `example`. The Web UI was checked with `curl`, not screenshots. Long output lines are shortened. A person has not reviewed this page yet. -->
+<!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. The commands were run for real, from an empty folder, with `uvx bowerbird-mcp` 2.3.0, except `seal --attest`, which only a person may run: its output is from an earlier run, with the version set to 2.3.0, where the person sealing is a made-up user called `example`. The Web UI was checked with `curl`, not screenshots. Long output lines are shortened. A person has not reviewed this page yet. -->
 
 This page turns an empty folder into a collection, then covers the command line, the browser, an AI assistant, search
 and sealing. You do not need any AI tooling to start, and nothing here sends your files anywhere.
@@ -106,11 +106,11 @@ uvx bowerbird-mcp status -O text
 ```
 
 ```text
-concepts: 3
-by_type: {"(none)": 3}
-by_status: {"stable": 3}
-by_state: {"stable": 3}
-by_tier: {"unverified": 3}
+concepts: 4
+by_type: {"(none)": 3, "guide": 1}
+by_status: {"stable": 4}
+by_state: {"stable": 4}
+by_tier: {"unverified": 4}
 stale: 0
 hubs:
   - file: runbooks/deploy.md, links: 1
@@ -118,7 +118,7 @@ hubs:
 wanted: []
 ```
 
-`by_tier` is the line to watch: it says how many files a person has reviewed. Three files, none yet.
+`by_tier` is the line to watch: it says how many files a person has reviewed. Four files (your three, and `BOWERBIRD.md`, which `create` wrote), none yet.
 
 ```sh
 uvx bowerbird-mcp lint -O text
@@ -320,13 +320,15 @@ uvx bowerbird-mcp passages 'how do I undo a bad release' -O text
 ```
 
 ```text
-total: 1
+total: 12
 gap: false
 hits:
   - bundle: ., file: runbooks/rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 1, text: To roll back a release, redeploy the previous tag, ...
+  - bundle: ., file: BOWERBIRD.md, line: 59, heading: ... > Picking a tool, match: 63, ...
+  ...
 ```
 
-The first `passages` also builds a small search index in a `.bower/` folder beside your files. It is a cache: safe to delete,
+Any one word of the question can match, so sections of `BOWERBIRD.md` (the rules `create` wrote) follow the real answer, which is first at 100. The first `passages` also builds a small search index in a `.bower/` folder beside your files. It is a cache: safe to delete,
 and it ignores itself in git. For each section you get:
 
 - **file and line**, so an answer can say exactly where it came from;
@@ -404,10 +406,11 @@ uvx bowerbird-mcp seal -c -O text
 ```
 
 ```text
+BOWERBIRD.md: error: unsigned: no review by a human | fix: a human reviews it: seal BOWERBIRD.md --attest
 runbooks/deploy.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/deploy.md --attest
 runbooks/mail-relay.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/mail-relay.md --attest
 runbooks/rollback.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/rollback.md --attest
-bowerbird-mcp seal: FAILED: 3 file(s) checked, 3 finding(s)
+bowerbird-mcp seal: FAILED: 4 file(s) checked, 4 finding(s)
 ```
 
 `-c` (`--check`) changes nothing and exits with a failure code, which is what makes it useful in a hook or in CI (part 7).
@@ -425,14 +428,14 @@ uvx bowerbird-mcp seal runbooks/deploy.md --attest
 edited: {".": ["runbooks/.waxseals.yaml"]}
 file: runbooks/deploy.md
 sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
-bowerbird: 2.0.0
+bowerbird: 2.3.0
 tier: human-reviewed
 ```
 
 The review goes into a `.waxseals.yaml` in the file's folder (commit it), and your file is not touched. Here that is `runbooks/.waxseals.yaml`, and the line names the file from that folder:
 
 ```yaml
-- {file: deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.0.0}
+- {file: deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.3.0}
 ```
 
 One line per file, and only the latest seal is kept: seal it again and the line is replaced (git has the earlier ones). In
@@ -447,10 +450,11 @@ uvx bowerbird-mcp seal -c -O text
 ```
 
 ```text
+BOWERBIRD.md: error: unsigned: no review by a human | fix: a human reviews it: seal BOWERBIRD.md --attest
 runbooks/deploy.md: error: stale_signature: edited since it was reviewed | fix: review it again: seal runbooks/deploy.md --attest
 runbooks/mail-relay.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/mail-relay.md --attest
 runbooks/rollback.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/rollback.md --attest
-bowerbird-mcp seal: FAILED: 3 file(s) checked, 3 finding(s)
+bowerbird-mcp seal: FAILED: 4 file(s) checked, 4 finding(s)
 ```
 
 The `sha256` ties the review to the file's exact contents, so an edited file can never pass for a reviewed one, and

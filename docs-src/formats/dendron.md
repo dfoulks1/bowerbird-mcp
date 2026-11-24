@@ -40,7 +40,7 @@ Markdown notes in the workspace. A note's name is its file name, and the dots ar
 
 ## How a name finds its note
 
-The name matches the file name exactly, case ignored, in any folder of the workspace (so any vault). A name that finds no note and is not the
+The name matches the file name (or a path ending in it), case ignored, in any folder of the workspace (so any vault). A name that finds no note and is not the
 parent of one is a broken link (a `dead_link` warning).
 
 ## Reviews and lint
@@ -53,7 +53,7 @@ Seal a note as in [Sealing](../sealing.md); the review goes in a `.waxseals.yaml
 - Schemas (`*.schema.yml`) are not read, and nothing checks a note against one.
 - The `tags` property is read as tags, but a frontmatter tag does not make a link to `tags.<name>` (a `#tag` in the text does).
 - The documentation does not say whether link names are case-sensitive or how header slugs are made; Bowerbird ignores case and uses the same slugs as in markdown.
-- A `[[//vault/note]]` form, which the documentation does not confirm, is read as a name and reported as broken.
+- A `[[//vault/note]]` form, which the documentation does not confirm, is read as a path suffix: it finds the note if the path matches, and is not scoped to that vault.
 
 ## Tested against
 

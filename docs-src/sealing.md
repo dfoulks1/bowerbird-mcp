@@ -8,8 +8,8 @@ knowledge (a note, a concept, a page) and for decisions (an ADR). One function, 
 ## How a seal works
 
 `seal` shows the person the file in a prompt, asks for their id, and records who reviewed it and when. The record is bound to
-the sha256 of the file's exact bytes (line endings normalized; for OKF, without the `verified` key, which the review itself
-writes). Edit the file afterwards and the hash no longer matches: the seal is broken, and a hit for that file shows
+the sha256 of the file's exact bytes (line endings normalized; for OKF in frontmatter mode, without the `verified` key, which the review itself
+writes; with `okf: {records: files}` the review is in the ledger and the file is left as it is). Edit the file afterwards and the hash no longer matches: the seal is broken, and a hit for that file shows
 `unverified` and `stale`. Only a new review makes a new seal.
 
 Like a wax seal, it proves the document was not changed after it was closed. It does not prove the reviewer read it all.
@@ -29,7 +29,7 @@ function.
 
 | Format | The review lives in |
 |---|---|
-| OKF | the concept's own frontmatter, as `verified: {by, at, sha256}` |
+| OKF | the concept's own frontmatter, as `verified: {by, at, sha256}`; or, with `okf: {records: files}`, a `.waxseals.yaml` like every other format (see [OKF](formats/okf.md)) |
 | Markdown, ADR, SKOS, AsciiDoc, Seal-only | a `.waxseals.yaml` in the file's own folder (commit it). The file itself is never edited |
 
 ```yaml
@@ -70,7 +70,7 @@ seal: {extensions: true, quorum: 2}
   - {file: docs/limits.md, sha256: 3b1f…, quorum: 2, seals: [{by: 'human:ann', at: '2026-11-20T10:02:10Z', bowerbird: 2.3.0, comment: "limits match the runbook"}, {by: 'human:bo', at: '2026-11-20T11:40:03Z', bowerbird: 2.3.0}]}
   ```
   The same person sealing again replaces their own seal. An edit ends every seal of the old version; the next seal starts the list again. The line says how many it wants
-  (`quorum: 2`), so a badge on a built page can say who signed and how many are needed (`Human Reviewed ... by ann, bo (2 of 3 needed)`) without reading the policy.
+  (`quorum: 2`), so a badge on a built page can say who signed and how many are needed (`Human Reviewed ... by ann, bo (2 of 2 needed)`) without reading the policy.
 - **`quorum: N`** (2 or more needs `extensions: true`) is how many *different people* a version needs. Until it has them, `seal check`
   reports `short_of_quorum` (`1 of 2 human reviews of this version`) and the file's tier is `unverified`, not `human-reviewed`. A machine
   check (`by=<tool>`) is never counted as a person.
@@ -106,6 +106,7 @@ In OKF, `promote=true` also moves a concept from `draft` to `stable`, and only a
 |---|---|
 | `unsigned` | a file the policy requires has no review by a human |
 | `stale_signature` | it was reviewed, then edited, or a [fact](formats/okf.md#facts-what-a-claim-rests-on-and-drift) it rests on drifted after the review |
+| `short_of_quorum` | fewer different people have sealed this version than `seal.quorum` asks (needs the [add-on](#several-signers-and-a-quorum-the-seal-extensions-add-on)) |
 | `claims_accepted` | its own status says accepted, but no human reviewed it |
 | `orphan_signature` | a ledger entry for a file that is gone (a warning) |
 | `unreadable` | required, but not UTF-8 text, so it cannot be reviewed here |
@@ -149,7 +150,7 @@ Bowerbird can still read the ledger; the `derived` key is what says it is not a 
 
 A generated *folder*, such as the site's output, gets one line for the whole folder, not one per file (`mark_derived_dir("docs", "mkdocs")`,
 which `docs_tools.py` calls). A folder has no hash, so it is the location that says so: everything under it is derived (binaries too),
-left out of the check, and badged blue, and nothing is compared per file.
+left out of the check, and badged blue in `serve` (the MkDocs badge hook matches a ledger line to a page's own path, so a built page under the folder gets no badge), and nothing is compared per file.
 
 ```yaml
 - {file: docs/, by: 'generator:mkdocs', at: '2026-11-21T09:00:00Z', bowerbird: 2.2.0, derived: mkdocs}

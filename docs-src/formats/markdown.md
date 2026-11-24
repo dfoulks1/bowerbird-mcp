@@ -28,8 +28,8 @@ bowerbird-mcp passages 'how do I roll back' output=text
 
 ## What it reads
 
-Every `.md` file is a note; frontmatter is optional (`title`, `tags` and `status` are read when it is there). `index.md` and `log.md` are ordinary notes here. A numbered or dated file name
-(`0007-use-queue.md`, `2024-05-01.md`) or a path through `adr`, `adrs` or `decisions` makes the note an ADR record, with the status [ADR](adr.md) describes.
+Every `.md` file is a note; frontmatter is optional (`title`, `tags` and `status` are read when it is there). `index.md` and `log.md` are ordinary notes here. A numbered or dated-and-titled file name
+(`0007-use-queue.md`, `2024-05-01-use-queue.md`) or a path through `adr`, `adrs` or `decisions` makes the note an ADR record, with the status [ADR](adr.md) describes. A name that is only a date (`2024-05-01.md`) is a daily note, not a record.
 
 Links are `[text](note.md)` and `[[wikilinks]]`; links inside code are not read (see [what the Markdown formats share](../formats.md#what-the-markdown-formats-share)).
 

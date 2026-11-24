@@ -61,7 +61,8 @@ def resolve(bb, name: str, src: Path, r: Path, pages: list):
         return False
     ids = _ids.get(id(pages))
     if ids is None:
-        ids = _ids.clear() or _ids.setdefault(id(pages), {})
+        _ids.clear()
+        ids = _ids.setdefault(id(pages), {})
         for _, p in pages:
             for m in re.finditer(r"^[ \t]*(?:-[ \t]+)?id::[ \t]*([0-9a-fA-F-]+)", p.read_text(encoding="utf-8", errors="replace"), re.MULTILINE):
                 ids[m.group(1).lower()] = p

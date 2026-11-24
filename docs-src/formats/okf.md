@@ -189,7 +189,7 @@ fix it, and `bowerbird-mcp fix apply=true` repairs the mechanical ones.
 
 `bowerbird-mcp seal` writes a `verified` entry into the concept itself, with a `sha256` of the note. The trust tier
 comes only from who verified: nobody means *unverified*, a script or agent means *machine-confirmed*, and a person
-means *human-reviewed*. Hits show the tier and whether the note has gone stale. See The tiers are explained [above](#trust-tiers).
+means *human-reviewed*. Hits show the tier and whether the note has gone stale. The tiers are explained [above](#trust-tiers).
 
 ### Keeping reviews and facts in the shared files
 
@@ -200,8 +200,8 @@ okf: {records: files}
 ```
 
 Then `seal` writes the ledger (and `promote` still moves a draft to stable), `fact` writes blocks, and every tool reads them there; a `verified` left in the frontmatter is ignored.
-Run `bowerbird-mcp okf export --apply` first, to move the reviews and checks the frontmatter holds into the files (it previews until `--apply`).
-`okf import --apply` writes them back into the frontmatter when a bundle ships on its own for readers that expect `verified`. The default stays `frontmatter` in 2.3; ADR-004 flips it in 3.0.
+Run `bowerbird-mcp okf export --apply` first, to move the reviews and checks the frontmatter holds into the files (it previews until `--apply`; a terminal only, an agent cannot run it).
+`okf import --apply` writes them back into the frontmatter when a bundle ships on its own for readers that expect `verified`. The default stays `frontmatter` in 2.3; ADR-004 plans to flip it to `files` in a later release (3.0 is the recommendation).
 
 ## Why it is good
 

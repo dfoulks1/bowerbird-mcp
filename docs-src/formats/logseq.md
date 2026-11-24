@@ -44,7 +44,7 @@ The files you see are only the pages that have content.
 ## How a name finds its page
 
 By the page's file name with the encoding undone, case ignored (Logseq lowercases page names), or by a name the page gives itself with `title::` or `alias::`, so `[[A Title]]` finds a file `foo.md` that starts with `title:: A Title`.
-The file name format comes from `:file/name-format` in `logseq/config.edn`: `___` is `/` (the default, and what a graph with no `config.edn` is read as), or, when the file has no `:file/name-format`, `.`.
+The file name format comes from `:file/name-format` in `logseq/config.edn`: `___` is `/` (the default, and what a graph with no `config.edn` is read as), or, when a `config.edn` exists but has no `:file/name-format` (a legacy graph), `.`.
 Journal titles are read in Logseq's default format, `MMM do, yyyy`, or the `:journal/page-title-format` of `config.edn`.
 
 ## Reviews and lint
@@ -57,7 +57,7 @@ pages that have no file (`links` still shows them with `exists: false`); heading
 - The outliner structure is not used: a page is searched as the markdown it is, with its bullets.
 - Only the first lines of a file are read for `title::` and `alias::`; a property after the first few lines is missed.
 - A journal page's file name (`journals/2020_09_14.md`) is a page named by the title format; the title format is read from `config.edn`, but other `config.edn` keys (`:hidden`, `:pages-directory`) are not.
-- A journal file's name is numbered, so it is read as an ADR record, as in [Markdown](markdown.md), and sealing it asks for a `decision`.
+- A journal file (`2020_09_14.md`) is named only for a date, so it is not read as an ADR record and sealing it asks for no `decision`.
 - Queries (`{{query ...}}`) and the database version of Logseq are not read.
 
 ## Tested against

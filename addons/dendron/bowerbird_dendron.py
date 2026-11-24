@@ -27,7 +27,7 @@ def resolve(name: str, src: Path, r: Path, pages: list):
     m = VAULT_LINK.fullmatch(name.split("#")[0].strip())
     if not m:
         return False
-    folder = vaults(r).get(m.group(1), m.group(1))
+    folder = str(vaults(r).get(m.group(1), m.group(1)))
     note = m.group(2).lower().removesuffix(".md")
     hit = next((p for n, p in pages if n == note and (p.relative_to(r).as_posix() + "/").startswith(folder + "/")), None)
     return hit if hit else (r / folder / (m.group(2) + ".md") if (r / folder).is_dir() else None)

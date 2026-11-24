@@ -22,7 +22,7 @@ and the build swaps it for a badge, from the ledger, comparing the page's curren
 | reviewed, with the date | a person sealed this exact version |
 | edited since its last review | it was sealed, then changed |
 | not yet reviewed | no person has sealed it |
-| derived from the code | a generator recorded these exact bytes in the ledger (`derived: <generator>`), or the folder holding the file |
+| derived from the code | a generator recorded these exact bytes in the ledger (`derived: <generator>`) |
 
 The badge is a `<p class="seal-badge" data-state="reviewed|edited|unreviewed|derived">`. Colour comes from the CSS in
 `docs-src/css/custom.css` (`.seal-badge[data-state="reviewed"] { --seal: var(--bs-success); }` and so on), and the wording from the
@@ -32,7 +32,7 @@ page the generator has not recorded, or that was edited since, is not badged as 
 **Fact blocks** are drawn by the same hook as a quotation with a `fact-badge` (`data-state="unchecked|checked|drifted"`) that says
 when it was last checked and how. It reads the `.facts.yaml` beside the page, so commit that file. The badge is a link: it goes to the page's **bibliography**, a
 `<section class="fact-bib">` the hook adds at the bottom of the page, with an entry (`id="fact-1"`, `fact-2`, ...) for each block: its kind, source, state, line and claim. A page with no fact blocks gets none.
-A page sealed by several people says so: `Human Reviewed at: <date> by ann, bo`.
+A page sealed by several people says so: `AI Generated, Human Reviewed at: <date> by ann, bo`.
 
 `bowerbird_facts.render(markdown, folder, name)` returns the page with its badges and the entries as data, and `bowerbird_facts.bibliography(entries)` the HTML. They are what the hook and
 [`serve`](serve.md) both call, so a script for another site generator can use them too.

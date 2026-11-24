@@ -1,6 +1,6 @@
 # Releasing
 
-<!-- seal-banner: Written with Claude Sonnet 5.5. Not published on the website (exclude_docs in mkdocs.yml); it is for the people who cut a release. The steps are the ones used for 2.1.0. -->
+<!-- seal-banner: Written with Claude Sonnet 5.5. Not published on the website (exclude_docs in mkdocs.yml); it is for the people who cut a release. The steps are the ones used for 2.1.0, with the add-on packages added for 2.3.0. -->
 
 The short form is in [CONTRIBUTING.md](../CONTRIBUTING.md#releasing). This page is the order that worked, and what to check at each step.
 
@@ -11,12 +11,17 @@ The short form is in [CONTRIBUTING.md](../CONTRIBUTING.md#releasing). This page 
   reverted when the upload returned 403. `/pypi/<name>/json` is not proof a name is free: it is 404 for a project with
   no files. Check `/simple/<name>/` (200 means it exists) before building a release around a new name.
 - The `bowerbird-mcp [extra]` form is the install line: `pip install 'bowerbird-mcp[serve]'`. The extras are `serve`, `syntax`,
-  `semantic` (`fastembed`, kept out of the base install on purpose), `skos`, `sqlite-vec` and `hnsw`; the README's Run section lists them.
+  `semantic` (`fastembed`, kept out of the base install on purpose), `skos`, `sqlite-vec` and `hnsw`, plus one extra per add-on
+  (`seal-extensions`, `fact-pack`, `obsidian`, `foam`, `dendron`, `logseq`); the README's Run section lists them.
+- **The six add-ons are separate packages** in `addons/` (`bowerbird-seal-extensions`, `bowerbird-fact-pack`, `bowerbird-obsidian`,
+  `bowerbird-foam`, `bowerbird-dendron`, `bowerbird-logseq`), at the same version as Bowerbird. Their extras are added to
+  `pyproject.toml` only at release (an extra naming a package PyPI does not hold yet breaks `uv lock` and installs), so the add-ons go to
+  PyPI first.
 
 ## Steps
 
-1. **Version.** `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree), then
-   `uv lock`. Add the `CHANGELOG.md` section. `grep -rn 'OLD.VERSION'` finds anything left behind.
+1. **Version.** `version` in `pyproject.toml` and `VERSION` in `bowerbird_mcp.py` (a test checks they agree) and in each
+   `addons/*/pyproject.toml` (lockstep), then `uv lock`. Add the `CHANGELOG.md` section. `grep -rn 'OLD.VERSION'` finds anything left behind.
 2. **Docs.** Change `docs-src/`, run `uv run docs_tools.py` and `uvx --with pymdown-extensions mkdocs build`. Seal the
    pages a person reviewed first, since a build made before a seal is stale. Unsealed pages may ship; say so in the PR.
 3. **Checks.** `tools/QA.sh` (every Python, every backend, docs fresh, lock matches). It changes nothing.
@@ -25,7 +30,9 @@ The short form is in [CONTRIBUTING.md](../CONTRIBUTING.md#releasing). This page 
 5. **Tag** the merge commit on `main`: `git tag -a vX.Y.Z -m "..." <sha> && git push origin vX.Y.Z`.
 6. **Build from the tag.** Delete the old `dist/` first, or a stale 2.0.x file rides along.
    `git checkout vX.Y.Z && uv build && uvx twine check dist/bowerbird_mcp-X.Y.Z*`.
-7. **Upload only the new files.** `uvx twine upload dist/bowerbird_mcp-X.Y.Z*`, never `dist/*`. PyPI never takes the same
+7. **Upload only the new files.** First each add-on (`uv build addons/NAME --out-dir dist`, then
+   `uvx twine upload dist/bowerbird_NAME-X.Y.Z*`, six times), then `uvx twine upload dist/bowerbird_mcp-X.Y.Z*`; never `dist/*`.
+   Add the six extras to `pyproject.toml` (and `uv lock`) before building `bowerbird-mcp`. PyPI never takes the same
    version twice, and a name's first upload registers it to the account that holds the token. Try
    `--repository testpypi` first when in doubt.
 8. **GitHub release.** `gh release create vX.Y.Z dist/bowerbird_mcp-X.Y.Z* --notes-file` (the CHANGELOG section).

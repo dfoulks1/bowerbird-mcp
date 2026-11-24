@@ -26,7 +26,15 @@ The base install is small: search, lint, seal, the MCP server and this command l
 | `skos` | `rdflib` | `format: skos` |
 | `sqlite-vec` | `sqlite-vec` | `vector_index: sqlite-vec` |
 | `hnsw` | `hnswlib` | `vector_index: hnsw` |
-| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum |
+| `seal-extensions` | the add-on `bowerbird-seal-extensions` | `seal: {extensions: true, quorum: 2}`: several people seal one version, with a quorum; `seal: {extensions: true, count: true}`: how many people hold a file |
+| `fact-pack` | the add-on `bowerbird-fact-pack` | more kinds of [fact](facts.md): `key`, `git`, `until`, `manual`, `script` ([the pack](fact-pack.md)) |
+| `obsidian` | the add-on `bowerbird-obsidian` | `format: obsidian`, an [Obsidian vault](formats/obsidian.md) (wikilinks, aliases, inline tags) |
+| `foam` | the add-on `bowerbird-foam` | `format: foam`, a [Foam workspace](formats/foam.md) |
+| `dendron` | the add-on `bowerbird-dendron` | `format: dendron`, a [Dendron workspace](formats/dendron.md) (dotted names, hierarchies) |
+| `logseq` | the add-on `bowerbird-logseq` | `format: logseq`, a [Logseq graph](formats/logseq.md) (journals, namespaces) |
+
+An add-on row is a separate package (`bowerbird-obsidian` and the rest, in `addons/` of the repository): the extra installs it next to Bowerbird, and its own setting turns it on (`format: obsidian`, `seal: {extensions: true}`).
+The add-ons are at the same version as Bowerbird.
 
 Name one, or several, the same way each time:
 
@@ -85,11 +93,11 @@ required arguments in order (`move a.md b.md`); on `set`, any other `key=value` 
 
   | Command | Short flags |
   |---|---|
-  | `create` | `-p` path, `-A` apply, `-m` mcp, `-e` env, `-B` bundle, `-a` about, `-t` holds, `-u` user |
-  | `seal` | `-f` file, `-b` by, `-p` promote, `-d` decision, `-c` check, `-s` since, `-B` bundle |
-  | `lint` | `-s` scope, `-l` limit, `-b` baseline, `-S` since, `-a` all, `-f` file, `-i` ignore, `-B` bundle |
+  | `create` | `-p` path, `-A` apply, `-m` mcp, `-e` env, `-f` facts, `-B` bundle, `-a` about, `-t` holds, `-u` user |
+  | `seal` | `-f` file, `-b` by, `-p` promote, `-d` decision, `-c` check, `-s` since, `-C` comment, `-B` bundle |
+  | `lint` | `-s` scope, `-l` limit, `-o` offset, `-b` baseline, `-S` since, `-a` all, `-f` file, `-i` ignore, `-B` bundle |
   | `search`, `passages` | `-q` query, `-t` type, `-g` tag, `-d` dir, `-l` limit, `-B` bundle |
-  | `list` | `-t` type, `-g` tag, `-s` status, `-T` tier, `-S` stale, `-l` limit, `-B` bundle |
+  | `list` | `-t` type, `-g` tag, `-s` status, `-T` tier, `-S` stale, `-l` limit, `-o` offset, `-B` bundle |
   | `status` | `-d` due-days, `-B` bundle |
   | `get`, `links` | `-f` file, `-B` bundle (`get` also `-l` limit) |
 

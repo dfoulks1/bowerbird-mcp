@@ -34,12 +34,14 @@ A `format:` line in `bower.yaml` says what a folder holds. Each exists for a rea
 - **ADR**: decision records (ADR or MADR), with each record's status.
 - **OKF**: knowledge that says where it came from, who checked it and when it expires, with the full toolset.
 - **SKOS**: glossaries, vocabularies and thesauri.
+- **AsciiDoc**: manuals and guides written in AsciiDoc.
+- **Obsidian, Foam, Dendron, Logseq**: notes that live in one of those tools, read by its own rules for links and names. Each is an add-on (`bowerbird-mcp[obsidian]` and so on).
 - **Seal-only**: code and other files, with nothing searched: just a guaranteed human review of each one.
 
 [Formats](formats.md) shows what each one looks like, side by side.
 
 Use whatever type is right for you: plain Markdown needs no header and no conversion, ADR reads decision records, OKF adds
-sources and trust, SKOS holds vocabularies, and seal-only does no searching at all, just a guaranteed human review of each
+sources and trust, SKOS holds vocabularies, AsciiDoc reads manuals, the add-ons read your note-taking tool's own files, and seal-only does no searching at all, just a guaranteed human review of each
 file you name.
 
 ## Quickstart
@@ -70,7 +72,7 @@ Or work from the terminal, no AI needed. In any folder, with the format that fit
 
 ```sh
 # make it a collection: settings files only, your files are not touched
-# holds= is markdown, adr, okf, skos or seal-only
+# holds= is markdown, adr, okf, skos, asciidoc or seal-only
 uvx bowerbird-mcp create holds=markdown about="Team notes." apply=true
 
 # ask a question: the best sections, each with the file and line to cite

@@ -117,7 +117,7 @@ host check as every page; a hidden file or one outside the collection is a 400 w
  "facts": [{"n": 1, "id": "1", "kind": "file", "source": "deploy.sh#L10-14", "claim": "...", "line": 12, "status": "checked", "at": "...", "method": "same words", "meta": {"id": 1}, "due": false, "label": "checked ..."}]}
 ```
 
-`state` is `sealed`, `broken-seal` (edited since), `unsealed` or `derived`. `quorum` and `count` are set only where the [seal extensions](sealing.md#several-signers-and-a-quorum-the-seal-extensions-add-on) are on. The same
+`state` is `sealed`, `broken-seal` (edited since), `unsealed` or `derived`. `quorum` is set only where the [seal extensions](sealing.md#several-signers-and-a-quorum-the-seal-extensions-add-on) are on, and `count` only with `count: true` as well. The same
 data is `page_state(file)` in `bowerbird_mcp.py`, and `bowerbird_facts.render` gives the facts' side without the server.
 
 ## Seal from the browser

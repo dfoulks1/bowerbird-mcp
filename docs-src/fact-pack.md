@@ -50,9 +50,9 @@ facts:
     latest: {cmd: [git, describe, --tags, "{key}"], timeout: 10}   # 30 seconds unless `timeout` says otherwise
 ```
 
-A page names the script and may give one key (`[fact.script](latest main) ...`), which replaces `{key}` in the arguments. The key is one word of letters, digits and `. / : @ = + -`, and it
+A page names the script and may give one key (`[fact.script](latest main) ...`), which replaces `{key}` in the arguments. The key is one word of letters, digits and `_ . / : @ = + -`, and it
 cannot start with `-`, so it cannot become a second argument or a shell command; anything else is not a fact. A page can never name a command, and a script in a nested `bower.yaml` is
-ignored. The command runs with the collection root as its working directory. A person at a terminal is shown the command by `--fetch` and asked first (`factcheck id=` runs it without showing it); an agent runs it without being asked, and the command comes back with the result. A command that exits non-zero is skipped, not a drift. Its output is kept in `.facts.yaml`, so a command that prints a secret writes it to a committed file.
+ignored. The command runs with the collection root as its working directory. A person at a terminal is shown the command by `--fetch` and asked first (`factcheck id=` shows it and asks too); an agent runs it without being asked, and the command comes back with the result. A command that exits non-zero is skipped, not a drift. Its output is kept in `.facts.yaml`, so a command that prints a secret writes it to a committed file.
 
 **Read the plan before you answer `y`.** A script runs with your privileges, and a collection you did not write can declare one in its root `bower.yaml`.
 

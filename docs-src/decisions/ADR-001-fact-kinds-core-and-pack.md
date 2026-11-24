@@ -1,6 +1,6 @@
 ---
 status: accepted
-status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"
+status-note: accepted by dfoulks on 2026-11-23, in the seal dialog
 ratified-by: dfoulks
 ratified-on: "2026-11-23"
 owner: dfoulks
@@ -116,6 +116,7 @@ Drivers:
 - 2026-11-23: drafted from the owner's answers (question record `docs-src/prompts/2026-11-23-adr-fact-kinds.md`). Asks
   1 to 3 were defaulted as listed in the record's Defaulted table; the owner may veto.
 - 2026-11-23: ratified by dfoulks, as `decision: accepted` in the seal dialog (ledger entry at 2026-11-23T13:26Z). Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's answers; awaiting ratification"`. The header was updated here because the dialog records the decision in `.waxseals.yaml` only, not in the ADR header.
+- 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: accepted`, `status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"`.
 
 ## Amendment — 2026-11-23, dfoulks
 
@@ -125,3 +126,8 @@ declared in the root `bower.yaml` runs (a page never names one), and `manual`, w
 
 - 2026-11-23: amended (see the section above); the ruled text is unchanged.
 
+## Amendment — 2026-11-23, dfoulks (at the owner's request)
+
+Touches the Context only. The line numbers in the ruled text (`bowerbird_facts.py:56-57` and `:45-53`, `TODO.md:23`, `pyproject.toml:10`) refer to the 2.2.0 code; in 2.3.0 `register()` and `attach()` are at `bowerbird_facts.py:48-57` and the `url` and `mcp` kinds at lines 60-61. The ruled text above is left as it was.
+
+- 2026-11-23: amended (see the section above); the ruled text is unchanged.

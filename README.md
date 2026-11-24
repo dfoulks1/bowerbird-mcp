@@ -71,7 +71,7 @@ uvx bowerbird-mcp new notes/deploy              # a new document from a template
 uvx bowerbird-mcp seal check=true               # which files lack a human review
 uvx bowerbird-mcp --config ~/notes status    # a collection elsewhere: --config (before the command) takes a bower.yaml or its folder
 uv tool upgrade bowerbird-mcp                   # update an installed tool (uv tool uninstall bowerbird-mcp removes it)
-uvx bowerbird-mcp@2.2.0 --version               # pin a version
+uvx bowerbird-mcp@2.3.0 --version               # pin a version
 ```
 
 If `uv tool install` says its `bin` folder is not on your `PATH`, run `uv tool update-shell` once.
@@ -154,7 +154,10 @@ index: .bower/index.db   # one SQLite file: passages, BM25, links, vectors; "" =
 build: auto           # auto: passages keeps the index current; manual: only `reindex`
 roles: [read, write, structure, lifecycle, seal]   # roles the server may offer (see Register)
 seal: {exempt: [], exempt_status: [proposed, draft]}   # files seal check leaves out (see Sealing)
+okf: {records: frontmatter}   # frontmatter | files (ADR-004)
 ```
+
+`okf.records` is where an OKF concept's reviews and facts live: its own frontmatter, or the ledger and blocks every other format uses (the OKF format page has the details).
 
 ### Overrides: .env and the environment
 
@@ -567,7 +570,7 @@ kinds: `lint only=stub,island`.
 
 ## CI
 
-Vendor `bowerbird_mcp.py` into the bundle's repo, then:
+Run it from PyPI with `uvx`, no vendoring:
 
 ```yaml
 # .github/workflows/okf.yml
@@ -581,7 +584,7 @@ jobs:
         with:
           fetch-depth: 0          # provenance needs full history
       - uses: astral-sh/setup-uv@v6
-      - run: uv run bowerbird_mcp.py lint scope=okf output=github
+      - run: uvx bowerbird-mcp lint scope=okf output=github
 ```
 
 Findings show as annotations on the PR. `output=sarif` suits code scanning.
@@ -616,7 +619,7 @@ repos:
     hooks:
       - id: okf-lint
         name: OKF lint
-        entry: uv run bowerbird_mcp.py lint output=text
+        entry: uvx bowerbird-mcp lint output=text
         language: system
         pass_filenames: false
         verbose: true

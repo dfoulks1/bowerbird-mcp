@@ -6,10 +6,10 @@ A **fact** is a claim together with where it came from, written so that it can b
 [format](formats.md), and nothing else is needed: a person and an agent write the same thing.
 
 ```text
-[fact.file]{id: 3, by: ann}(deploy.sh#L10-14) rollback runs the previous tag [fact.end]
+[fact.file]{id: 3, by: ann}(../deploy.sh#L10-14) rollback runs the previous tag [fact.end]
 ```
 
-That says: this claim rests on lines 10 to 14 of `deploy.sh`, and it is fact number 3 of this page. Later, `factcheck` reads those lines and says whether they still hold the words.
+That says (on a page one folder below `deploy.sh`): this claim rests on lines 10 to 14 of `deploy.sh`, and it is fact number 3 of this page. Later, `factcheck` reads those lines and says whether they still hold the words.
 When they do not, the fact has **drifted**, and every [review](sealing.md) of the page made before it stops holding.
 
 ## The block
@@ -93,7 +93,7 @@ choose what runs, and the names of the nine kinds are taken.
 By hand, as above. Or with `fact`, which writes the block and numbers it:
 
 ```sh
-bowerbird-mcp fact notes/deploy.md kind=file source='deploy.sh#L10-14' claim='rollback runs the previous tag' after='Rollback'
+bowerbird-mcp fact notes/deploy.md kind=file source='../deploy.sh#L10-14' claim='rollback runs the previous tag' after='Rollback'
 bowerbird-mcp fact notes/db.md kind=mcp source='jira INFRA-1' claim='is open' meta='{"by": "ann", "confidence": "high"}' result=@issue.json
 ```
 
@@ -114,11 +114,11 @@ writes it anyway). What `fact` checked is recorded, and its day is written as `l
 
 ```sh
 bowerbird-mcp factcheck notes/deploy.md              # the facts on the page and their state
-bowerbird-mcp factcheck notes/deploy.md id=3         # check fact 3 now, whatever its kind, with no plan shown
+bowerbird-mcp factcheck notes/deploy.md id=3         # check fact 3 now, whatever its kind (a person at a terminal is shown a fetch, call or command first and asked)
 bowerbird-mcp factcheck --fetch                      # a person: show every fetch, call and command, ask, then check them all
 ```
 
-`id=` checks one fact, and `--fetch` checks every block, each against a fresh result. `--fetch` for a person at a terminal it first lists what it will fetch, call or run (an address, a call, a command), asks `Run these? [y/N]`, then checks each block; an agent, or a script, is not asked, and the list comes back with the result as `ran`. A page is fetched, an `mcp` call is made
+`id=` checks one fact, and `--fetch` checks every block, each against a fresh result. For a person at a terminal, `--fetch` first lists what it will fetch, call or run (an address, a call, a command), asks `Run these? [y/N]`, then checks each block; an agent, or a script, is not asked, and the list comes back with the result as `ran`. A page is fetched, an `mcp` call is made
 (only one declared under `facts` in `bower.yaml`), a `manual` fact asks a person `Still true?` (skipped when no one is there), and a `script` runs (only one declared in the root `bower.yaml`). A check ends as checked, drifted, **skipped** (not declared, the command failed, or a `manual` fact had no person to ask:
 nothing is recorded) or **error** (the source could not be read: nothing is recorded). The command exits 1 if anything drifted.
 

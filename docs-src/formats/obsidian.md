@@ -61,7 +61,7 @@ Seal a note as in [Sealing](../sealing.md); the review goes in a `.waxseals.yaml
 - `.canvas` and `.base` files are found as the target of a link (`[[board.canvas]]`), but the links inside them are not followed.
 - `[[## text]]` and `[[^text]]` are searches in Obsidian, not links; they are reported as broken.
 - A comma-separated `tags: a, b` string is read as a list, though Obsidian's documentation does not say it is one.
-- A file with a numbered or dated name (`2024-05-01.md`) is read as an ADR record, as in [Markdown](markdown.md), so sealing it asks for a `decision`.
+- A file named only for a date (`2024-05-01.md`) is a daily note, not an ADR record, so sealing it asks for no `decision`. A dated name with a title (`2024-05-01-use-x.md`) is a record, as in [Markdown](markdown.md).
 
 ## Tested against
 
