@@ -90,6 +90,26 @@
                        href="asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -190,6 +268,16 @@
             <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#what-the-markdown-formats-share">What the Markdown formats share</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#format-add-ons">Format add-ons</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#changing-your-mind">Changing your mind</a>
       
     </li>
@@ -240,12 +328,12 @@
           </nav>
         
         <article><h1 id="formats">Formats<a class="headerlink" href="#formats" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:30:13Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:25:45Z</p>
 
 <p>Bowerbird is not tied to one way of keeping knowledge. A <code>bower.yaml</code> at the root of a folder says what the folder
 holds, with one line:</p>
-<pre class="highlight"><code class="language-yaml">format: markdown      # markdown | adr | okf | skos | asciidoc | seal-only</code></pre>
-<p>All six share the same ideas: the folder is a git repository, <code>bower.yaml</code> is committed with it, and a human's
+<pre class="highlight"><code class="language-yaml">format: markdown      # markdown | adr | okf | skos | asciidoc | seal-only, or one an add-on supplies: obsidian | foam | dendron | logseq</code></pre>
+<p>All of them share the same ideas: the folder is a git repository, <code>bower.yaml</code> is committed with it, and a human's
 review is recorded against the exact bytes they reviewed (see <a href="../sealing/">Sealing</a>).
 <code>seal</code> is what guarantees a person was in the loop, for stored knowledge and for decisions alike. Renaming a file with
 <code>move</code> keeps its seal when its text is unchanged.</p>
@@ -257,15 +345,129 @@ review is recorded against the exact bytes they reviewed (see <a href="../sealin
 <li><strong>Choose <a href="okf/">OKF</a> if</strong> your knowledge needs sources, trust and freshness, kept by people and agents, and you want every tool.</li>
 <li><strong>Choose <a href="skos/">SKOS</a> if</strong> you keep a controlled vocabulary: a glossary, taxonomy or thesaurus.</li>
 <li><strong>Choose <a href="asciidoc/">AsciiDoc</a> if</strong> your manuals and guides are written in AsciiDoc.</li>
+<li><strong>Choose <a href="obsidian/">Obsidian</a>, <a href="foam/">Foam</a>, <a href="dendron/">Dendron</a> or <a href="logseq/">Logseq</a> if</strong> your notes live in that tool and you want search, link checking and reviews over them as they are. Each is an add-on (see below).</li>
 <li><strong>Choose <a href="../sealing/#seal-only">Seal-only</a> if</strong> you need a guaranteed human review of code, configuration or any text files, and no search.</li>
 </ul>
+<p>Each format's page has the same parts where they apply: when to use it, how to switch it on, what it reads, reviews (and lint), and its limits. The four add-on pages also
+say what they were tested against and how to report a problem.</p>
+<h2 id="what-the-markdown-formats-share">What the Markdown formats share<a class="headerlink" href="#what-the-markdown-formats-share" title="Link to this section">#</a></h2>
+<p>Markdown, ADR and the four add-on formats are all Markdown files, so they share these:</p>
+<ul>
+<li><strong>Wikilinks.</strong> <code>[[Note]]</code>, <code>[[Note#Heading]]</code>, <code>[[Note|alias]]</code> and <code>![[embed]]</code> are links, as well as <code>[text](note.md)</code>. <code>links</code>, backlinks, <code>orphan</code> and <code>island</code> see them. A name matches the
+  file's path (the <code>.md</code> is optional, the case is ignored), the shortest path first, then the nearest to the page. OKF reads them the same way. AsciiDoc and SKOS files do not (in AsciiDoc, <code>[[x]]</code> is an anchor).</li>
+<li><strong><code>lint</code></strong>, offered to Markdown and ADR servers. It checks <a href="../facts/">fact</a> blocks and links that lead nowhere (<code>dead_link</code>, <code>dead_anchor</code>), as warnings. It does not judge the files as OKF concepts.</li>
+<li><strong><code>fact</code> and <code>factcheck</code></strong>, offered to Markdown and ADR servers: a claim and its source, written in the page and checked later (see <a href="../facts/">Facts</a>).</li>
+<li><strong><code>new</code></strong>, which starts a page from a template (<code>markdown</code>, <code>adr</code> or <code>okf</code>).</li>
+<li><strong>Reviews</strong> in a <code>.waxseals.yaml</code> in each file's folder. The file is never edited.</li>
+</ul>
+<h2 id="format-add-ons">Format add-ons<a class="headerlink" href="#format-add-ons" title="Link to this section">#</a></h2>
+<p>Obsidian, Foam, Dendron and Logseq write notes the same way (Markdown with <code>[[wikilinks]]</code>) and differ in the details: which side the alias is on, how a
+name finds a file, which folders are the tool's own. Bowerbird reads the shared part itself. What is particular to one tool lives in an add-on that ships in the one <code>bowerbird-mcp</code> package
+(a module beside the others), and <code>format: &lt;name&gt;</code> in <code>bower.yaml</code> selects it. The extra of the same name installs nothing more; it keeps the install line valid:</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Install</th>
+<th>Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>obsidian</code></td>
+<td><code>pip install 'bowerbird-mcp[obsidian]'</code></td>
+<td><a href="obsidian/">Obsidian</a></td>
+</tr>
+<tr>
+<td><code>foam</code></td>
+<td><code>pip install 'bowerbird-mcp[foam]'</code></td>
+<td><a href="foam/">Foam</a></td>
+</tr>
+<tr>
+<td><code>dendron</code></td>
+<td><code>pip install 'bowerbird-mcp[dendron]'</code></td>
+<td><a href="dendron/">Dendron</a></td>
+</tr>
+<tr>
+<td><code>logseq</code></td>
+<td><code>pip install 'bowerbird-mcp[logseq]'</code></td>
+<td><a href="logseq/">Logseq</a></td>
+</tr>
+</tbody>
+</table>
+<p>Two other add-ons are not formats: the <a href="../fact-pack/">fact pack</a> (five more kinds of fact)
+and <code>seal-extensions</code> (several people seal one version; see <a href="../sealing/#several-signers-and-a-quorum-the-seal-extensions-add-on">Sealing</a>).</p>
+<p>An add-on's files are Markdown, so each format behaves as <a href="markdown/">Markdown</a> (same tools, same sealing) with its own reading of links, tags and names.</p>
+<p><strong>Writing one.</strong> A third-party add-on is a Python package with an entry point in the group <code>bowerbird.formats</code> (the four above are bundled and need none), naming a function that takes the <code>bowerbird_mcp</code>
+module and calls <code>register_format(name, ...)</code>. Every argument after the name is optional:</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>about</code></td>
+<td>One line for the server's instructions: "an Obsidian vault".</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>Folder names the tool leaves out: its own state (<code>.obsidian</code>).</td>
+</tr>
+<tr>
+<td><code>alias_first</code></td>
+<td>The alias is written first, <code>[[alias\|note]]</code>.</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td>Turns a file's path (lowercase, without <code>.md</code>) into the page name a link uses for it.</td>
+</tr>
+<tr>
+<td><code>clean</code></td>
+<td>Removes what is not a link from the body before links are read (Obsidian's <code>%%comments%%</code>).</td>
+</tr>
+<tr>
+<td><code>links</code></td>
+<td>Links the tool writes besides wikilinks, each as <code>[[Note#heading]]</code>.</td>
+</tr>
+<tr>
+<td><code>virtual</code></td>
+<td>Says a page exists without a file (a Dendron stub, a Logseq journal).</td>
+</tr>
+<tr>
+<td><code>quiet</code></td>
+<td>Lint kinds the tool's files are not held to.</td>
+</tr>
+<tr>
+<td><code>lint</code></td>
+<td>A function <code>(root, docs)</code> returning the findings (<code>finding(...)</code>) for what the tool's files get wrong.</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>Turns the body into the inline <code>#tags</code> it holds (the frontmatter <code>tags</code> are always read).</td>
+</tr>
+<tr>
+<td><code>names</code></td>
+<td>Turns a file's text and frontmatter into the other names its page answers to (aliases, a <code>title::</code>).</td>
+</tr>
+<tr>
+<td><code>resolve</code></td>
+<td>Turns a link as written into a file: a path, <code>None</code> (no file, and not broken) or <code>False</code> (not this tool's: use the default).</td>
+</tr>
+</tbody>
+</table>
+<p>A format that fails to load is said once on stderr and left out, so a broken add-on does not stop Bowerbird. The four above are modules at the root of this repository
+(<code>bowerbird_obsidian.py</code> and the rest); read one for a working example.</p>
 <h2 id="changing-your-mind">Changing your mind<a class="headerlink" href="#changing-your-mind" title="Link to this section">#</a></h2>
 <p>Change the <code>format</code> line and run <code>bowerbird-mcp reindex</code>; nothing else moves. Reviews are not converted between formats: an OKF
 concept keeps its <code>verified</code> entries in its own frontmatter, while the other formats keep theirs in
-<code>.waxseals.yaml</code>, so after a switch the notes may need sealing again.</p>
+<code>.waxseals.yaml</code>, so after a switch the notes may need sealing again. (<code>okf export</code> and <code>okf import</code> carry an OKF concept's reviews and sources
+to and from the ledgers: see <a href="../cli/#moving-an-okf-concepts-history-okf-export-and-okf-import">the command line</a>.)</p>
 <h2 id="tools-by-format">Tools by format<a class="headerlink" href="#tools-by-format" title="Link to this section">#</a></h2>
 <p>Which tools a server offers, by role. The role is what <code>roles:</code> in <code>bower.yaml</code> turns on (all five are on by default;
-<code>--role</code> or <code>BOWERBIRD_ROLE</code> picks one for a single server). Naming a role that is off refuses to start.</p>
+<code>--role</code> or <code>BOWERBIRD_ROLE</code> picks one for a single server). Naming a role that is off refuses to start. The four add-on formats offer what Markdown does.</p>
 <p><strong>✓</strong> a server offers it. <strong>CLI</strong> command line only (written for OKF files, so not offered outside OKF). <strong>—</strong> nothing to act on (seal-only indexes nothing).</p>
 <h3 id="seal"><code>seal</code><a class="headerlink" href="#seal" title="Link to this section">#</a></h3>
 <table>
@@ -414,17 +616,8 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <tbody>
 <tr>
 <td><strong><a href="../tools/#fact"><code>fact</code></a></strong></td>
-<td>CLI</td>
-<td>CLI</td>
 <td>✓</td>
-<td>CLI</td>
-<td>CLI</td>
-<td>CLI</td>
-</tr>
-<tr>
-<td><strong><a href="../tools/#factcheck"><code>factcheck</code></a></strong></td>
-<td>CLI</td>
-<td>CLI</td>
+<td>✓</td>
 <td>✓</td>
 <td>CLI</td>
 <td>CLI</td>
@@ -441,8 +634,8 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 </tr>
 <tr>
 <td><strong><a href="../tools/#lint"><code>lint</code></a></strong></td>
-<td>CLI</td>
-<td>CLI</td>
+<td>✓</td>
+<td>✓</td>
 <td>✓</td>
 <td>CLI</td>
 <td>CLI</td>
@@ -616,18 +809,27 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <td>CLI</td>
 </tr>
 <tr>
-<td><strong><a href="../tools/#index"><code>index</code></a></strong></td>
-<td>CLI</td>
-<td>CLI</td>
+<td><strong><a href="../tools/#create"><code>create</code></a></strong></td>
+<td>✓</td>
+<td>✓</td>
 <td>✓</td>
 <td>CLI</td>
 <td>CLI</td>
 <td>CLI</td>
 </tr>
 <tr>
-<td><strong><a href="../tools/#create"><code>create</code></a></strong></td>
+<td><strong><a href="../tools/#factcheck"><code>factcheck</code></a></strong></td>
 <td>✓</td>
 <td>✓</td>
+<td>✓</td>
+<td>CLI</td>
+<td>CLI</td>
+<td>CLI</td>
+</tr>
+<tr>
+<td><strong><a href="../tools/#index"><code>index</code></a></strong></td>
+<td>CLI</td>
+<td>CLI</td>
 <td>✓</td>
 <td>CLI</td>
 <td>CLI</td>
@@ -677,8 +879,8 @@ concept keeps its <code>verified</code> entries in its own frontmatter, while th
 <tbody>
 <tr>
 <td><strong>Tools offered</strong></td>
-<td>13</td>
-<td>14</td>
+<td>16</td>
+<td>17</td>
 <td>34</td>
 <td>3</td>
 <td>4</td>

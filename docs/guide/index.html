@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -344,7 +422,7 @@ uvx bowerbird-mcp new notes/deploy              # a new document from a template
 uvx bowerbird-mcp seal check=true               # which files lack a human review
 uvx bowerbird-mcp --config ~/notes status    # a collection elsewhere: --config (before the command) takes a bower.yaml or its folder
 uv tool upgrade bowerbird-mcp                   # update an installed tool (uv tool uninstall bowerbird-mcp removes it)
-uvx bowerbird-mcp@2.2.0 --version               # pin a version</code></pre>
+uvx bowerbird-mcp@2.3.0 --version               # pin a version</code></pre>
 <p>If <code>uv tool install</code> says its <code>bin</code> folder is not on your <code>PATH</code>, run <code>uv tool update-shell</code> once.</p>
 <h3 id="extras">Extras<a class="headerlink" href="#extras" title="Link to this section">#</a></h3>
 <p>The base install is small: search, lint, seal, the MCP server and the CLI. Anything heavier is an extra you ask for:</p>
@@ -378,6 +456,16 @@ uvx bowerbird-mcp@2.2.0 --version               # pin a version</code></pre>
 <td><code>format: skos</code></td>
 </tr>
 <tr>
+<td><code>obsidian</code>, <code>foam</code>, <code>dendron</code>, <code>logseq</code></td>
+<td>nothing, it is in the wheel</td>
+<td><code>format: obsidian</code> (or the others): a <a href="https://bowerbird.voltpop.com/formats/#format-add-ons">format add-on</a></td>
+</tr>
+<tr>
+<td><code>fact-pack</code></td>
+<td><code>tomli</code> on Python below 3.11 (the code is in the wheel)</td>
+<td>five more kinds of fact: <code>key</code>, <code>git</code>, <code>until</code>, <code>manual</code>, <code>script</code></td>
+</tr>
+<tr>
 <td><code>sqlite-vec</code></td>
 <td><code>sqlite-vec</code></td>
 <td><code>vector_index: sqlite-vec</code></td>
@@ -389,8 +477,8 @@ uvx bowerbird-mcp@2.2.0 --version               # pin a version</code></pre>
 </tr>
 <tr>
 <td><code>seal-extensions</code></td>
-<td>nothing</td>
-<td><code>seal: {extensions: true, quorum: 2}</code>: several people seal one version, with a quorum</td>
+<td>nothing, it is in the wheel</td>
+<td><code>seal: {extensions: true, quorum: 2}</code> (several people seal one version, with a quorum) and <code>seal: {extensions: true, count: true}</code> (how many people hold a file)</td>
 </tr>
 </tbody>
 </table>
@@ -442,9 +530,9 @@ from a checkout of this repository (or beside a saved copy of that one file).
 To run the latest unreleased code instead of the PyPI release, give uv the repository:
 <code>uvx --from git+https://github.com/dfoulks1/bowerbird-mcp bowerbird-mcp help</code>.</p>
 <h3 id="settings-boweryaml">Settings: bower.yaml<a class="headerlink" href="#settings-boweryaml" title="Link to this section">#</a></h3>
-<p><em>Renamed in 2.2.0.</em> The file was <code>kbmcp.yaml</code>, the variables began <code>KB_</code>, the lint skip file was <code>kbmcp.nolint</code>, and the index cache was
-<code>.kbmcp/</code>. The old names still work for now, with a one-line warning on stderr that names the new one (<code>git mv kbmcp.yaml bower.yaml</code>);
-where both exist, the new one wins. The cache is rebuilt on first use, so the old <code>.kbmcp/</code> folder can be deleted.</p>
+<p><em>Renamed in 2.2.0; the old names were dropped in 2.3.0.</em> The file was <code>kbmcp.yaml</code>, the variables began <code>KB_</code>, the lint skip file was <code>kbmcp.nolint</code>, and the index cache was
+<code>.kbmcp/</code>. A <code>kbmcp.yaml</code> with no <code>bower.yaml</code> beside it now stops the run (<code>git mv kbmcp.yaml bower.yaml</code>); the <code>KB_*</code> variables, <code>kbmcp.nolint</code> and
+<code>kb-index</code> markers are no longer read. Delete the old <code>.kbmcp/</code> folder.</p>
 <p>A <code>bower.yaml</code> is the collection's configuration. Commit it. The collection's root is the outermost one at or above
 the current directory, inside the same git work tree (a repository inside another is its own collection), or you
 name one with <code>--config</code>, so a server needs no env block. <code>--config</code> takes the file or the folder holding it, from
@@ -456,7 +544,7 @@ neither overwrites a file. The old <code>BOWERBIRD_ROOT</code> variable is gone 
 user: your-id         # your id in confirmation prompts: personal, prefer BOWERBIRD_USER in .env
 ai_producers: [zed]   # extra AI names for the provenance check (BOWERBIRD_AI_PRODUCERS)
 passages: true        # false removes the passages and reindex tools
-format: okf           # okf | adr | markdown | skos | asciidoc | seal-only: what the folder holds (see Formats)
+format: okf           # okf | adr | markdown | skos | asciidoc | seal-only, or an add-on's: obsidian | foam | dendron | logseq (see Formats)
 hubs: true            # concepts many others link to rank a little higher
 semantic: false       # also match by meaning (see Reading the collection)
 semantic_model: BAAI/bge-small-en-v1.5
@@ -465,7 +553,9 @@ vector_index: scan    # scan | sqlite-vec | hnsw: how semantic search finds neig
 index: .bower/index.db   # one SQLite file: passages, BM25, links, vectors; "" = memory
 build: auto           # auto: passages keeps the index current; manual: only `reindex`
 roles: [read, write, structure, lifecycle, seal]   # roles the server may offer (see Register)
-seal: {exempt: [], exempt_status: [proposed, draft]}   # files seal check leaves out (see Sealing)</code></pre>
+seal: {exempt: [], exempt_status: [proposed, draft]}   # files seal check leaves out (see Sealing)
+okf: {records: frontmatter}   # frontmatter | files (ADR-004)</code></pre>
+<p><code>okf.records</code> is where an OKF concept's reviews and facts live: its own frontmatter, or the ledger and blocks every other format uses (the OKF format page has the details).</p>
 <h3 id="overrides-env-and-the-environment">Overrides: .env and the environment<a class="headerlink" href="#overrides-env-and-the-environment" title="Link to this section">#</a></h3>
 <p><code>bower.yaml</code> is shared, so what is yours alone does not go in it. <a href="https://github.com/dfoulks1/bowerbird-mcp/blob/main/env.example"><code>env.example</code></a>
 lists every override as a <code>BOWERBIRD_&lt;KEY&gt;</code> variable (<code>BOWERBIRD_USER</code>, <code>BOWERBIRD_ABOUT</code>, <code>BOWERBIRD_SEMANTIC</code>, <code>BOWERBIRD_VECTOR_INDEX</code>, <code>BOWERBIRD_BUILD</code>,
@@ -489,7 +579,7 @@ changed files are read) and set <code>build: manual</code>, so <code>passages</c
 repos:
   - repo: local
     hooks:
-      - id: kbmcp-reindex
+      - id: bowerbird-reindex
         name: Bowerbird reindex
         entry: uvx bowerbird-mcp reindex
         language: system
@@ -645,8 +735,7 @@ bowers: [docs-src, adr/*]   # folders (globs are fine) that carry their own bowe
 <li>With no root <code>bower.yaml</code> and no git repository, nothing below the folder is scanned.</li>
 </ul>
 <p>What each tool does with the ADR folder inside an OKF bundle: <code>passages</code>, <code>search</code>, <code>list</code>, <code>status</code>, <code>links</code>, <code>web</code>
-and <code>seal</code> include it, each file read in its own format (an ADR's status, its review in <code>.waxseals.yaml</code>). <code>lint</code>,
-<code>fix</code>, <code>index</code>, <code>provenance</code> and <code>upgrade</code> leave it out, since they judge and rewrite OKF concepts. <code>move</code> and <code>migrate</code> still
+and <code>seal</code> include it, each file read in its own format (an ADR's status, its review in <code>.waxseals.yaml</code>). <code>lint</code> checks its facts and links but does not judge it as OKF; <code>fix</code>, <code>index</code>, <code>provenance</code> and <code>upgrade</code> leave it out, since they rewrite OKF concepts. <code>move</code> and <code>migrate</code> still
 rewrite links in it, and a moved ADR keeps its review. Links between the two work in both
 directions. A server offers the tools of every format in use.</p>
 <h2 id="register-with-an-mcp-client">Register with an MCP client<a class="headerlink" href="#register-with-an-mcp-client" title="Link to this section">#</a></h2>
@@ -737,8 +826,8 @@ at a terminal <code>--attest</code> records you; in <code>serve</code> (the brow
 <code>verify</code> (the OKF word), and <code>ratify</code> or <code>accepted</code> (the ADR words), are its command-line names too.</p>
 <ul>
 <li><strong><code>okf</code>:</strong> a <code>verified: {by, at, sha256}</code> entry in the concept's own frontmatter.</li>
-<li><strong><code>markdown</code>, <code>adr</code>, <code>skos</code>, <code>asciidoc</code> and <code>seal-only</code>:</strong> one dense line per file in <code>.waxseals.yaml</code> at the collection root (commit it), holding only the latest
-  review: file, sha256, who, when, <code>bowerbird</code> (the version that wrote it), and <code>decision=accepted|rejected</code> for an ADR. The file itself is never edited, so Nygard ADRs, MADR and
+<li><strong><code>markdown</code>, <code>adr</code>, <code>skos</code>, <code>asciidoc</code>, <code>seal-only</code> and the add-on formats:</strong> one dense line per file in a <code>.waxseals.yaml</code> in the file's own folder (commit it; one at the collection root, from before 2.3, is still read), holding only the latest
+  review: file, sha256, who, when, <code>bowerbird</code> (the version that wrote it), and <code>decision=accepted|rejected</code> for an ADR (required when a person seals one). The file itself is never edited, so Nygard ADRs, MADR and
   thesauri all work.</li>
 </ul>
 <p>Like a wax seal, a review breaks when the file changes, and only a new review makes a new one (it replaces the old line; git has the history). The sha256 covers the file's exact bytes (line endings normalized; for <code>okf</code>, without the <code>verified</code> key). Edit the
@@ -779,7 +868,7 @@ anchors, orphans, islands, stubs, duplicate titles, reference links,
 filenames, tags, generated indexes). <code>only=</code> and <code>ignore=</code> keep or drop finding
 kinds: <code>lint only=stub,island</code>.</p>
 <h2 id="ci">CI<a class="headerlink" href="#ci" title="Link to this section">#</a></h2>
-<p>Vendor <code>bowerbird_mcp.py</code> into the bundle's repo, then:</p>
+<p>Run it from PyPI with <code>uvx</code>, no vendoring:</p>
 <pre class="highlight"><code class="language-yaml"># .github/workflows/okf.yml
 name: okf
 on: [push, pull_request]
@@ -791,7 +880,7 @@ jobs:
         with:
           fetch-depth: 0          # provenance needs full history
       - uses: astral-sh/setup-uv@v6
-      - run: uv run bowerbird_mcp.py lint scope=okf output=github</code></pre>
+      - run: uvx bowerbird-mcp lint scope=okf output=github</code></pre>
 <p>Findings show as annotations on the PR. <code>output=sarif</code> suits code scanning.
 On PRs, <code>since=origin/${{ github.base_ref }}</code> limits findings to the files the PR
 changed.
@@ -817,7 +906,7 @@ see it ran. pre-commit prints a passing hook's output only with <code>verbose: t
     hooks:
       - id: okf-lint
         name: OKF lint
-        entry: uv run bowerbird_mcp.py lint output=text
+        entry: uvx bowerbird-mcp lint output=text
         language: system
         pass_filenames: false
         verbose: true</code></pre>

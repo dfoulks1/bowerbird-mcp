@@ -1,0 +1,720 @@
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Facts · Bowerbird</title>
+  <link rel="icon" href="../img/favicon.ico" sizes="32x32">
+  <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Facts · Bowerbird">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/pygments.css"><link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+  
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="..">
+      <img src="../img/logo-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-light"><img src="../img/logo-dark-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-dark">Bowerbird
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#site-nav" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="site-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="..">Home</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link active"
+                 aria-current="page"
+                 href="./">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../serve/">Serve</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Docs
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../guide/">Guide</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../cli/">Command line</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../tools/">Tools</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../contributing/">Contributing</a>
+            </li>
+          
+        
+      </ul>
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/dfoulks1/bowerbird-mcp"
+               target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-github"></i> GitHub
+            </a>
+          </li>
+        
+        <li class="nav-item d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary ms-lg-2" id="theme-toggle"
+                  type="button" title="Toggle light/dark" aria-label="Toggle theme">
+            <i class="bi bi-circle-half"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="docs-grid with-toc">
+      
+        <aside class="d-none d-lg-block docs-toc">
+          <div class="position-sticky py-5" style="top: 3.5rem; max-height: calc(100vh - 3.5rem); overflow-y: auto;">
+            <h6 class="text-uppercase small text-body-secondary fw-semibold mb-3">On this page</h6>
+            <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-block">The block</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#its-number">Its number</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-rest-of-the-metadata">The rest of the metadata</a>
+      
+    </li>
+  
+</ul>
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-kinds">The kinds</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-four-in-core">The four in core</a>
+      
+    </li>
+  
+</ul>
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#writing-a-fact">Writing a fact</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#checking">Checking</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#drift-and-seals">Drift and seals</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#showing-facts">Showing facts</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#settings">Settings</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#what-lint-says">What lint says</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-older-forms">The older forms</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#report-a-problem">Report a problem</a>
+      
+    </li>
+  
+</ul>
+          </div>
+        </aside>
+      
+      <main class="py-5 docs-content">
+        
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+              <li class="breadcrumb-item"><a href="..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Facts</li>
+            </ol>
+          </nav>
+        
+        <article><h1 id="facts">Facts<a class="headerlink" href="#facts" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:27:27Z</p>
+
+<p>A <strong>fact</strong> is a claim together with where it came from, written so that it can be checked again. It is one span of text, in any Markdown document of any
+<a href="../formats/">format</a>, and nothing else is needed: a person and an agent write the same thing.</p>
+<pre class="highlight"><code class="language-text">[fact.file]{id: 3, by: ann}(../deploy.sh#L10-14) rollback runs the previous tag [fact.end]</code></pre>
+<p>That says (on a page one folder below <code>deploy.sh</code>): this claim rests on lines 10 to 14 of <code>deploy.sh</code>, and it is fact number 3 of this page. Later, <code>factcheck</code> reads those lines and says whether they still hold the words.
+When they do not, the fact has <strong>drifted</strong>, and every <a href="../sealing/">review</a> of the page made before it stops holding.</p>
+<h2 id="the-block">The block<a class="headerlink" href="#the-block" title="Link to this section">#</a></h2>
+<pre class="highlight"><code class="language-text">[fact.KIND]{metadata}(source) the claim [fact.end]</code></pre>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[fact.KIND]</code></td>
+<td>Opens the block. The kind says what the source is: <code>url</code>, <code>file</code>, <code>mcp</code> and so on (the table below).</td>
+</tr>
+<tr>
+<td><code>{metadata}</code></td>
+<td>Optional. A JSON or YAML mapping directly after the tag: a number, who wrote it, how sure.</td>
+</tr>
+<tr>
+<td><code>(source)</code></td>
+<td>The source, in the kind's own words: an address, a path with lines, a server and a key. It ends at the first <code>)</code>, so write a <code>)</code> inside it as <code>%29</code>.</td>
+</tr>
+<tr>
+<td>the claim</td>
+<td>The words the source says, up to <code>[fact.end]</code>. Paste them; a check compares them with the source. One line or many.</td>
+</tr>
+<tr>
+<td><code>[fact.end]</code></td>
+<td>Closes the block.</td>
+</tr>
+</tbody>
+</table>
+<p>A block with no metadata is the form of 2.2.0 and is still valid. A page may hold any number of blocks. A block inside a code fence or a code span is an example, not a fact. In a Markdown
+renderer that knows nothing of facts, a <code>url</code> block shows as a link to its source.</p>
+<p><strong>For an agent</strong>, both the metadata and the source may be JSON, so a block can be written exactly: <code>{"id": 3, "by": "claude", "tags": ["db"]}</code> and <code>(["jira", "INFRA-1"])</code>, which reads as the words <code>jira INFRA-1</code>.
+A <code>}</code> inside a quoted string of the metadata is safe. A <code>)</code> in the source is always written <code>%29</code>.</p>
+<h3 id="its-number">Its number<a class="headerlink" href="#its-number" title="Link to this section">#</a></h3>
+<p><code>id</code> is the fact's number: a whole number, first in the mapping, unique in the page. <code>factcheck file=deploy.md id=3</code> checks it. The claim can be edited without losing the number, and
+a fact whose words or source changed since its last check shows as <strong>unchecked</strong> until it is checked again. A fact with no <code>id</code> is known by a fingerprint of its kind, source and words (what
+2.2.0 did); <code>fix</code> numbers those, moving what was checked under the fingerprint to the number, and <code>fact</code> takes the next free number when it writes one.</p>
+<h3 id="the-rest-of-the-metadata">The rest of the metadata<a class="headerlink" href="#the-rest-of-the-metadata" title="Link to this section">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>The fact's number (above).</td>
+</tr>
+<tr>
+<td><code>by</code></td>
+<td>Who wrote it: a person's name, or the exact <code>&lt;tool&gt;/&lt;model&gt;</code> of an agent. Never invented.</td>
+</tr>
+<tr>
+<td><code>at</code></td>
+<td>The day it was written.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>The day the claim was true as of.</td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td><code>0</code> to <code>1</code>, or <code>low</code>, <code>medium</code>, <code>high</code>.</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td>One line for the reader.</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>A list of words.</td>
+</tr>
+<tr>
+<td><code>stale_after</code></td>
+<td>Days since the last check after which the fact is <strong>due</strong> (an unchecked fact is due), or a date. <code>factcheck</code> lists what is due.</td>
+</tr>
+<tr>
+<td><code>last_checked</code></td>
+<td>The day of the last check. Written by a check, not by hand.</td>
+</tr>
+</tbody>
+</table>
+<p>Any other key is kept and shown. <code>lint</code> warns of a wrong value in a key that has a meaning.</p>
+<h2 id="the-kinds">The kinds<a class="headerlink" href="#the-kinds" title="Link to this section">#</a></h2>
+<p>Nine kinds. The first four are in <code>bowerbird-mcp</code>; the other five are the <a href="../fact-pack/">fact pack</a>, an add-on that ships in the same package (<code>pip install 'bowerbird-mcp[fact-pack]'</code> stays valid; it adds <code>tomli</code> on Python below 3.11).</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Source</th>
+<th>Holds while</th>
+<th>An agent may check it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>url</code></td>
+<td><code>https://example.com/page</code></td>
+<td>the page still holds the words (with <code>semantic: true</code>, or still means them)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>mcp</code></td>
+<td><code>jira INFRA-1</code> (a server, a key)</td>
+<td>the call, declared in <code>bower.yaml</code>, still returns the value it did</td>
+<td>yes (only a call declared in <code>bower.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td><code>src/app.py#L10-20</code></td>
+<td>the lines still hold the words (the whole file without <code>#L</code>)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>internal</code></td>
+<td><code>docs/tools.md#Links</code></td>
+<td>the page, or that heading's section, still holds the words</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>key</code></td>
+<td><code>pyproject.toml project.version</code></td>
+<td>the value at that path in a JSON, YAML or TOML file is what it was</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>git</code></td>
+<td><code>tag v2.3.0</code> or <code>file main docs/x.md</code></td>
+<td>the tag, or the file at that revision, is what it was</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>until</code></td>
+<td><code>2026-12-31</code></td>
+<td>today is on or before the date</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>manual</code></td>
+<td><code>ops standup</code></td>
+<td>a person says it still holds</td>
+<td>no: it asks a person, so an agent's run skips it</td>
+</tr>
+<tr>
+<td><code>script</code></td>
+<td><code>uvver</code> or <code>latest v2</code></td>
+<td>the command's output is what it was</td>
+<td>yes (only a command declared in the root <code>bower.yaml</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The first check of a <code>mcp</code>, <code>key</code>, <code>git</code> or <code>script</code> fact records the value; later ones compare. A source is read as words: <code>jira INFRA-1</code> is a server and a key, and <code>deploy.sh#L10-14</code> a path and lines.</p>
+<h3 id="the-four-in-core">The four in core<a class="headerlink" href="#the-four-in-core" title="Link to this section">#</a></h3>
+<ul>
+<li><strong><code>url</code></strong>: a page, fetched when a check runs (<code>http</code> and <code>https</code> only, 2 MB at most). Whitespace, case, backticks and emphasis are ignored: the content is compared, not the shape. A claim of
+  several paragraphs holds when each one is on the page. With <code>semantic: true</code> and the <code>semantic</code> extra, a page that no longer says it word for word but still means it counts too,
+  scored against <code>min_similarity</code> (as in semantic search), and the check says <code>similar meaning</code> instead of <code>same words</code>. A page built by script in the browser has no text here, and a page that redirects to another host or has almost no words (a login, a captcha, a block) is reported as an <strong>error</strong>, not a drift: a drift would end the reviews of the page. Semantic mode matches by meaning, which a paraphrase passes and a contradiction can too (it misses negation and swapped nouns): do not rely on it alone, and quote the words that matter.</li>
+<li><strong><code>file</code></strong>: a file, read here with no network. The path is absolute, <code>~/</code>, or relative to the page's folder, and may lie outside the collection. <code>#L10-20</code> (or <code>#L10</code>) names the lines
+  the claim rests on; leave it off for the whole file. A file that shifted by a line drifts, and you re-point the fact by editing the range. A missing file, or a range past the end, is a drift.</li>
+<li><strong><code>internal</code></strong>: another page of this collection: a path from the collection root, then optionally <code>#Heading</code> (matched by its anchor, so <code>#Part Two</code> and <code>#part-two</code> are the same). The claim must
+  still be on the page, or under that heading down to the next heading of the same or a higher level. A missing page or heading is a drift. The page's seal is not consulted: this checks the words,
+  not who reviewed them.</li>
+<li><strong><code>mcp</code></strong>: a call to a tool of an MCP server the collection already has (<code>.mcp.json</code>). Which tool, with what argument, and which part of the result to watch is declared once in the root
+  <code>bower.yaml</code> (see Settings); the page gives only the server and the key. The first check records the watched value, and a later one must return it. A server not declared there is <strong>skipped</strong>.</li>
+</ul>
+<p>A kind can also be declared for one tool, under <code>facts: types:</code>: <code>[fact.ticket](INFRA-1)</code> then has just the key as its source. Only the root <code>bower.yaml</code> declares one, a page cannot add a kind or
+choose what runs, and the names of the nine kinds are taken.</p>
+<h2 id="writing-a-fact">Writing a fact<a class="headerlink" href="#writing-a-fact" title="Link to this section">#</a></h2>
+<p>By hand, as above. Or with <code>fact</code>, which writes the block and numbers it:</p>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp fact notes/deploy.md kind=file source='../deploy.sh#L10-14' claim='rollback runs the previous tag' after='Rollback'
+bowerbird-mcp fact notes/db.md kind=mcp source='jira INFRA-1' claim='is open' meta='{"by": "ann", "confidence": "high"}' result=@issue.json</code></pre>
+<p><code>after</code> is a heading's text (the block goes at the end of its section) or a line number; the default is the end of the file. <code>meta</code> is the metadata (<code>at</code> is added; <code>id</code> is the next free number, and one already used is refused). A kind that only reads files
+here (<code>file</code>, <code>internal</code>, <code>key</code>, <code>git</code>, <code>until</code>) is <strong>checked first</strong>, and <code>fact</code> refuses a claim the source does not hold, so a quotation that is not there never reaches the page (<code>check=false</code>
+writes it anyway). What <code>fact</code> checked is recorded, and its day is written as <code>last_checked</code>. For <code>mcp</code>, <code>result</code> is what the call returned, and its watched value becomes the baseline. At a terminal, <code>result=-</code> reads standard input and <code>result=@file</code> a file, and
+<code>harvest=true</code> with <code>kind=url</code> fetches the page, shows its paragraphs and asks which to quote. An agent cannot harvest or read <code>-</code> and <code>@file</code>.</p>
+<h2 id="checking">Checking<a class="headerlink" href="#checking" title="Link to this section">#</a></h2>
+<p><code>factcheck</code> with no arguments lists every block and its state, and the facts that are due. It runs nothing.</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unchecked</td>
+<td>never checked, or the words or the source were edited since</td>
+</tr>
+<tr>
+<td>checked</td>
+<td>the source still holds the words (or the value is the one recorded)</td>
+</tr>
+<tr>
+<td>drifted</td>
+<td>it does not</td>
+</tr>
+</tbody>
+</table>
+<pre class="highlight"><code class="language-sh">bowerbird-mcp factcheck notes/deploy.md              # the facts on the page and their state
+bowerbird-mcp factcheck notes/deploy.md id=3         # check fact 3 now, whatever its kind (a person at a terminal is shown a fetch, call or command first and asked)
+bowerbird-mcp factcheck --fetch                      # a person: show every fetch, call and command, ask, then check them all</code></pre>
+<p><code>id=</code> checks one fact, and <code>--fetch</code> checks every block, each against a fresh result. For a person at a terminal, <code>--fetch</code> first lists what it will fetch, call or run (an address, a call, a command), asks <code>Run these? [y/N]</code>, then checks each block; an agent, or a script, is not asked, and the list comes back with the result as <code>ran</code>. A page is fetched, an <code>mcp</code> call is made
+(only one declared under <code>facts</code> in <code>bower.yaml</code>), a <code>manual</code> fact asks a person <code>Still true?</code> (skipped when no one is there), and a <code>script</code> runs (only one declared in the root <code>bower.yaml</code>). A check ends as checked, drifted, <strong>skipped</strong> (not declared, the command failed, or a <code>manual</code> fact had no person to ask:
+nothing is recorded) or <strong>error</strong> (the source could not be read: nothing is recorded). The command exits 1 if anything drifted.</p>
+<p><strong>Where the result goes.</strong> Each check is recorded in a <code>.facts.yaml</code> beside the page (commit it, as you do <code>.waxseals.yaml</code>), and the day is written into the block as <code>last_checked</code> (for a checked or
+drifted result, not a skipped one). The file also holds the value a <code>mcp</code>, <code>key</code>, <code>git</code> or <code>script</code> fact is compared with, so a command that prints a secret puts it in a committed file.</p>
+<h2 id="drift-and-seals">Drift and seals<a class="headerlink" href="#drift-and-seals" title="Link to this section">#</a></h2>
+<p>A fact that drifted ends every review of its page made before it: <code>seal check</code> reports <code>a cited fact drifted after it was reviewed</code>. Correct the claim, and have a person review the page again; a review
+made after the drift holds, and a later check that passes does not undo the drift.</p>
+<p>A check writes <code>last_checked</code>, and <code>fix</code> and <code>fact</code> write <code>id</code>. Neither breaks a seal: a review is of the page <strong>without</strong> its facts' <code>id</code> and <code>last_checked</code> and without an empty <code>{}</code>, so numbering a
+fact or checking it leaves the review in place. Everything else in a block is part of what the person reviewed.</p>
+<h2 id="showing-facts">Showing facts<a class="headerlink" href="#showing-facts" title="Link to this section">#</a></h2>
+<p>The docs build (<a href="../badges/">status badges</a>) and <a href="../serve/"><code>serve</code></a> show each block as its claim and a <strong>badge</strong> of its last check (not yet checked, checked on a date, or drifted). The badge links to an
+entry in the page's <strong>bibliography</strong>: at the bottom of a built page, and on the Facts tab of the right-hand pane in <code>serve</code>. Each entry has the kind, source, state, line, claim and metadata, and says
+when the fact is due for a check.</p>
+<h2 id="settings">Settings<a class="headerlink" href="#settings" title="Link to this section">#</a></h2>
+<p>In the root <code>bower.yaml</code>:</p>
+<pre class="highlight"><code class="language-yaml">facts:
+  mcp:                 # the only MCP calls a check may make
+    jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
+  types:               # a kind of fact for one tool: the source is just the key
+    ticket: {server: jira, tool: get_issue, arg: issue_key, watch: fields.status.name}
+  scripts:             # the fact pack's `script` kind: an argument list, run with no shell
+    uvver: {cmd: [uv, --version]}
+  manual_days: 90      # the pack's `manual` kind: skip the question for this many days after a yes</code></pre>
+<p>A page never names a command or a tool, only a key; only the root <code>bower.yaml</code> declares them. <code>bowerbird-mcp create --facts</code> writes a commented block to start from.</p>
+<h2 id="what-lint-says">What <code>lint</code> says<a class="headerlink" href="#what-lint-says" title="Link to this section">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>unclosed_fact</code>, <code>stray_fact_end</code></td>
+<td>an opening tag with no <code>[fact.end]</code>, or an end with no start</td>
+</tr>
+<tr>
+<td><code>unknown_fact_kind</code></td>
+<td>a kind nobody registered (for a pack kind, it says to install the pack)</td>
+</tr>
+<tr>
+<td><code>bad_fact</code></td>
+<td>a source the kind cannot read, no words to check, or metadata that never closes</td>
+</tr>
+<tr>
+<td><code>bad_fact_meta</code></td>
+<td>a wrong value in a key that has a meaning (a warning)</td>
+</tr>
+<tr>
+<td><code>duplicate_fact_id</code></td>
+<td>two facts on one page with the same number</td>
+</tr>
+<tr>
+<td><code>undeclared_fact_source</code></td>
+<td>an <code>mcp</code> fact whose server is not declared under <code>facts.mcp</code> (a warning)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-older-forms">The older forms<a class="headerlink" href="#the-older-forms" title="Link to this section">#</a></h2>
+<ul>
+<li>A block with no metadata, as in 2.2.0, still reads and checks.</li>
+<li>In an <a href="../formats/okf/#facts-what-a-claim-rests-on-and-drift">OKF</a> concept, <code>fact</code> with a <code>resource</code> and no <code>claim</code> records a frontmatter <code>sources</code> entry and prints a footnote marker. <code>okf export</code> and
+  <code>okf import</code> move those checks to and from <code>.facts.yaml</code> (and the reviews to and from <code>.waxseals.yaml</code>).</li>
+</ul>
+<h2 id="report-a-problem">Report a problem<a class="headerlink" href="#report-a-problem" title="Link to this section">#</a></h2>
+<p>A fact that checked wrong, a drift that should not be, or a block that would not read: <a href="https://github.com/dfoulks1/bowerbird-mcp/issues/new">open an issue</a> or write to
+<a href="mailto:dfoulks@voltpop.com">dfoulks@voltpop.com</a>. Give the kind, the version (<code>bowerbird-mcp --version</code>) and the smallest page that shows it, never a private one. More on
+<a href="../troubleshooting/#reporting-a-problem">reporting a problem</a>.</p></article>
+        
+          <hr class="my-5">
+          <div class="d-flex justify-content-between gap-3">
+            
+              <a class="btn btn-outline-secondary" href="../formats/logseq/">&larr; Logseq</a>
+            
+            
+              <a class="btn btn-outline-secondary" href="../fact-pack/">Fact pack &rarr;</a>
+            
+          </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top mt-4 py-3">
+    <div class="container-fluid small text-muted d-flex flex-wrap justify-content-between gap-2">
+      <span>Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review</span>
+      <span>Built with MkDocs + Bootstrap 5.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      // Restore saved theme before paint-sensitive work.
+      var root = document.documentElement;
+      var saved = localStorage.getItem('docs-theme');
+      if (saved) root.setAttribute('data-bs-theme', saved);
+
+      // Make Markdown tables look like Bootstrap tables.
+      document.querySelectorAll('.docs-content table').forEach(function (t) {
+        t.classList.add('table', 'table-sm', 'table-striped', 'table-bordered', 'align-middle');
+        if (!t.parentElement.classList.contains('table-responsive')) {
+          var wrap = document.createElement('div');
+          wrap.className = 'table-responsive';
+          t.parentNode.insertBefore(wrap, t);
+          wrap.appendChild(t);
+        }
+      });
+
+      // A Copy button on every listing.
+      document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.classList.contains('mermaid')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code') || pre;
+          navigator.clipboard.writeText(code.innerText.replace(/\n$/, '')).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+          });
+        });
+        pre.classList.add('has-copy');
+        pre.appendChild(btn);
+      });
+
+      // Theme toggle (reload keeps mermaid in sync with the new theme).
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-bs-theme', next);
+        localStorage.setItem('docs-theme', next);
+        location.reload();
+      });
+
+      // Render mermaid: superfences emits <pre class="mermaid"><code>…</code></pre>.
+      if (window.mermaid) {
+        var dark = root.getAttribute('data-bs-theme') === 'dark';
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+        document.querySelectorAll('pre.mermaid').forEach(function (pre) {
+          var code = pre.querySelector('code');
+          if (code) pre.textContent = code.textContent;
+        });
+        try { mermaid.run({ querySelector: 'pre.mermaid' }); } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>

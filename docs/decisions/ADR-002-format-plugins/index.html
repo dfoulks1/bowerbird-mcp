@@ -1,0 +1,517 @@
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADR-002: format plugins · Bowerbird</title>
+  <link rel="icon" href="../../img/favicon.ico" sizes="32x32">
+  <link rel="icon" href="../../img/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ADR-002: format plugins · Bowerbird">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/pygments.css"><link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+  
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="../..">
+      <img src="../../img/logo-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-light"><img src="../../img/logo-dark-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-dark">Bowerbird
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#site-nav" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="site-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../..">Home</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../formats/logseq/">Logseq</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active"
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item active"
+                       href="./">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../serve/">Serve</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Docs
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../guide/">Guide</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../cli/">Command line</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../tools/">Tools</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../troubleshooting/">Troubleshooting</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../contributing/">Contributing</a>
+            </li>
+          
+        
+      </ul>
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/dfoulks1/bowerbird-mcp"
+               target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-github"></i> GitHub
+            </a>
+          </li>
+        
+        <li class="nav-item d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary ms-lg-2" id="theme-toggle"
+                  type="button" title="Toggle light/dark" aria-label="Toggle theme">
+            <i class="bi bi-circle-half"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="docs-grid with-toc">
+      
+        <aside class="d-none d-lg-block docs-toc">
+          <div class="position-sticky py-5" style="top: 3.5rem; max-height: calc(100vh - 3.5rem); overflow-y: auto;">
+            <h6 class="text-uppercase small text-body-secondary fw-semibold mb-3">On this page</h6>
+            <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#decision">Decision</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#context">Context</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#alternatives">Alternatives</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#shared-resolver-in-base-each-tools-quirks-in-its-own-extra-registry-for-loaders-and-lint-chosen-the-owners-rule-that-the-common-part-is-infrastructure-and-the-specific-part-lives-in-the-add-on">Shared resolver in base, each tool's quirks in its own extra, registry for loaders and lint (chosen: the owner's rule that the common part is infrastructure and the specific part lives in the add-on)</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-four-profiles-as-data-in-base">The four profiles as data in base</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#wikilinks-off-until-a-format-sets-them">Wikilinks off until a format sets them</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#empty-extras-as-switches-like-seal-extensions">Empty extras as switches, like seal-extensions = []</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#broken-wikilink-as-a-lint-error">Broken wikilink as a lint error</a>
+      
+    </li>
+  
+</ul>
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#consequences">Consequences</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#asks-left-open">Asks left open</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#history">History</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#amendment-2026-11-23-dfoulks-at-the-owners-request">Amendment — 2026-11-23, dfoulks (at the owner's request)</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#amendment-2026-11-23-dfoulks-at-the-owners-request-one-package">Amendment — 2026-11-23, dfoulks (at the owner's request): one package</a>
+      
+    </li>
+  
+</ul>
+          </div>
+        </aside>
+      
+      <main class="py-5 docs-content">
+        
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+              <li class="breadcrumb-item"><a href="../..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">ADR-002: format plugins</li>
+            </ol>
+          </nav>
+        
+        <article><h1 id="adr-002-format-plugins-a-shared-wikilink-base-a-registry-and-each-tools-part-in-its-own-extra">ADR-002 — Format plugins: a shared wikilink base, a registry, and each tool's part in its own extra<a class="headerlink" href="#adr-002-format-plugins-a-shared-wikilink-base-a-registry-and-each-tools-part-in-its-own-extra" title="Link to this section">#</a></h1>
+<h2 id="decision">Decision<a class="headerlink" href="#decision" title="Link to this section">#</a></h2>
+<p>Release 2.3.0 puts one wikilink resolver in core and a registry through which an add-on supplies a format. Every feature
+add-on ships as an extra, <code>bowerbird-mcp[&lt;name&gt;]</code>.</p>
+<ul>
+<li><strong>Base.</strong> One shared resolver handles <code>[[Note]]</code>, <code>[[Note#Heading]]</code>, <code>![[embed]]</code> and <code>#tags</code>, with alias order and skipped
+  folders as settings. It is on for every format; the default format stays <code>okf</code>. A broken <code>[[link]]</code> is a lint <strong>warning</strong>.</li>
+<li><strong>Registry.</strong> An add-on registers a format loader and that format's own lint rules together. Each format plugin is
+  responsible for keeping its linter right. Discovery is by entry point, extending ADR-001's mechanism from fact kinds to formats.</li>
+<li><strong>Extras.</strong> What is specific to one tool lives in that tool's extra, not in base: <code>bowerbird-mcp[obsidian]</code>, <code>[foam]</code>,
+  <code>[dendron]</code> and <code>[logseq]</code>, then <code>[org-roam]</code> and <code>[sphinx]</code>, which are different markups with their own loaders. Each is
+  its own distribution in this repository, pulled in by the extra, and versioned in lockstep with core.</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Link to this section">#</a></h2>
+<p>The default format is <code>okf</code> (<code>bowerbird_mcp.py:84</code>). Core has no wikilink code today. Obsidian, Foam, Dendron and Logseq are
+one family: they share the link shape and differ in details (alias order, skipped folders, naming, block references). The
+loader registry already stands on <code>TODO.md</code> ("a seventh format is the time"); org-roam and Sphinx are the seventh and eighth.
+ADR-001 rules entry points for fact kinds only and leaves formats unruled; this ADR rules them. The per-tool syntax listed
+here is from memory and is to be verified against each tool's current documentation before coding.</p>
+<p>Drivers:
+- What every wikilink tool shares is infrastructure, so core carries it.
+- What one tool alone does belongs to that tool's add-on.
+- Lint stays correct without the core knowing each tool: a plugin updates its own rules.
+- One repository, one release (owner), 2.3.0.</p>
+<h2 id="alternatives">Alternatives<a class="headerlink" href="#alternatives" title="Link to this section">#</a></h2>
+<h3 id="shared-resolver-in-base-each-tools-quirks-in-its-own-extra-registry-for-loaders-and-lint-chosen-the-owners-rule-that-the-common-part-is-infrastructure-and-the-specific-part-lives-in-the-add-on">Shared resolver in base, each tool's quirks in its own extra, registry for loaders and lint (chosen: the owner's rule that the common part is infrastructure and the specific part lives in the add-on)<a class="headerlink" href="#shared-resolver-in-base-each-tools-quirks-in-its-own-extra-registry-for-loaders-and-lint-chosen-the-owners-rule-that-the-common-part-is-infrastructure-and-the-specific-part-lives-in-the-add-on" title="Link to this section">#</a></h3>
+<ul>
+<li>Good: core stays small; each tool is added without touching core.</li>
+<li>Bad: needs a registry seam and a distribution per tool.</li>
+</ul>
+<h3 id="the-four-profiles-as-data-in-base">The four profiles as data in base<a class="headerlink" href="#the-four-profiles-as-data-in-base" title="Link to this section">#</a></h3>
+<ul>
+<li>Good: about ten lines each, no new distributions.</li>
+<li>Bad: core learns every tool's quirks. Overruled: the specific parts live in the add-ons.</li>
+</ul>
+<h3 id="wikilinks-off-until-a-format-sets-them">Wikilinks off until a format sets them<a class="headerlink" href="#wikilinks-off-until-a-format-sets-them" title="Link to this section">#</a></h3>
+<ul>
+<li>Good: no behaviour change for collections that never use wikilinks.</li>
+<li>Bad: the shared check would not exist for anyone. Overruled: wikilinks are baked into base for every format.</li>
+</ul>
+<h3 id="empty-extras-as-switches-like-seal-extensions">Empty extras as switches, like <code>seal-extensions = []</code><a class="headerlink" href="#empty-extras-as-switches-like-seal-extensions" title="Link to this section">#</a></h3>
+<ul>
+<li>Good: nothing to build or upload.</li>
+<li>Bad: an extra with no distribution behind it cannot carry a tool's code. Rejected.</li>
+</ul>
+<h3 id="broken-wikilink-as-a-lint-error">Broken wikilink as a lint error<a class="headerlink" href="#broken-wikilink-as-a-lint-error" title="Link to this section">#</a></h3>
+<ul>
+<li>Good: the same rule as a broken markdown link.</li>
+<li>Bad: existing collections would gain failing findings on upgrade. Rejected for a warning.</li>
+</ul>
+<h2 id="consequences">Consequences<a class="headerlink" href="#consequences" title="Link to this section">#</a></h2>
+<ul>
+<li>Existing collections gain lint warnings for <code>[[Missing]]</code> in 2.3.0; nothing fails.</li>
+<li>Each plugin owns its lint rules, so core's linter shrinks over time to the shared checks.</li>
+<li>Each tool is a distribution to build, test and upload, in lockstep.</li>
+<li>The registry seam is a plugin surface; it needs a stable shape before a second party writes against it.</li>
+</ul>
+<h2 id="asks-left-open">Asks left open<a class="headerlink" href="#asks-left-open" title="Link to this section">#</a></h2>
+<ol>
+<li>The registry's shape: how a plugin declares a format, its loader and its lint rules, and what <code>sync</code> dispatches on.</li>
+<li>The entry-point group for formats (<code>bowerbird.formats</code>?), and distribution names (<code>bowerbird-obsidian</code>?).</li>
+<li>Verify each tool's syntax and quirks against its current docs (Obsidian, Foam, Dendron, Logseq, org-roam, Sphinx).</li>
+<li>The order: loader registry, then the shared resolver and <code>[obsidian]</code>, then the rest.</li>
+</ol>
+<h2 id="history">History<a class="headerlink" href="#history" title="Link to this section">#</a></h2>
+<ul>
+<li>2026-11-23: drafted from the owner's answers in the same session as ADR-001 (record
+  <code>docs-src/prompts/2026-11-23-adr-fact-kinds.md</code>, rounds 3 to 5 and the format discussion). Not yet asked as rounds: the open
+  asks above.</li>
+<li>
+<p>2026-11-23: ratified by dfoulks, as <code>decision: accepted</code> in the seal dialog (ledger entry at 2026-11-23T13:26Z). Earlier values, word for word: <code>status: proposed</code>, <code>status-note: "drafted 2026-11-23 from the owner's answers; awaiting ratification"</code>. The header was updated here because the dialog records the decision in <code>.waxseals.yaml</code> only, not in the ADR header.</p>
+</li>
+<li>
+<p>2026-11-23: amended, at the owner's request (see the section below); the ruled text is unchanged. Earlier header values, word for word: <code>built: not started</code>, <code>proof: "queued in TODO.md (2.3 and Later, the wikilink family)"</code>.</p>
+</li>
+<li>2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.</li>
+<li>2026-11-24: accepted by dfoulks, in the seal dialog. Earlier values, word for word: <code>status: accepted</code>, <code>status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"</code>.</li>
+</ul>
+<h2 id="amendment-2026-11-23-dfoulks-at-the-owners-request">Amendment — 2026-11-23, dfoulks (at the owner's request)<a class="headerlink" href="#amendment-2026-11-23-dfoulks-at-the-owners-request" title="Link to this section">#</a></h2>
+<p>Touches the header and Asks left open, not the Decision. Built now: the shared wikilink resolver, <code>register_format</code>, and the four extras <code>obsidian</code>, <code>foam</code>, <code>dendron</code> and <code>logseq</code>. Owed: <code>[org-roam]</code> and <code>[sphinx]</code>.
+Ask 2 is answered by the code: the entry-point group is <code>bowerbird.formats</code>, and the distributions are <code>bowerbird-obsidian</code>, <code>bowerbird-foam</code>, <code>bowerbird-dendron</code> and <code>bowerbird-logseq</code> (in <code>addons/</code>). Asks 1, 3 and 4 stay open. The ruled text above is left as it was. The line number <code>bowerbird_mcp.py:84</code> in the Context is from 2.2.0 code; the default format is now at line 66.</p>
+<h2 id="amendment-2026-11-23-dfoulks-at-the-owners-request-one-package">Amendment — 2026-11-23, dfoulks (at the owner's request): one package<a class="headerlink" href="#amendment-2026-11-23-dfoulks-at-the-owners-request-one-package" title="Link to this section">#</a></h2>
+<p>Touches the Decision, Context and Consequences wherever each format's part is its own distribution (<code>bowerbird-obsidian</code>, <code>bowerbird-foam</code>, <code>bowerbird-dendron</code>, <code>bowerbird-logseq</code>). The ruled text above is left as it was; read it with this change.</p>
+<p>Packaging changed to one wheel. The owner's words: "I want one pypi package instead of several, I hate dependency management." The four format modules ship in <code>bowerbird-mcp</code> (<code>bowerbird_obsidian.py</code> and the rest), registered as Bowerbird starts. The extras <code>obsidian</code>, <code>foam</code>, <code>dendron</code> and <code>logseq</code> stay as switches that add nothing, so every <code>pip install 'bowerbird-mcp[obsidian]'</code> line stays valid. The entry-point group <code>bowerbird.formats</code> remains open to third-party formats, and the registry and shared wikilink base are unchanged.</p></article>
+        
+          <hr class="my-5">
+          <div class="d-flex justify-content-between gap-3">
+            
+              <a class="btn btn-outline-secondary" href="../ADR-001-fact-kinds-core-and-pack/">&larr; ADR-001: fact kinds</a>
+            
+            
+              <a class="btn btn-outline-secondary" href="../ADR-003-fact-block-grammar/">ADR-003: fact grammar &rarr;</a>
+            
+          </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top mt-4 py-3">
+    <div class="container-fluid small text-muted d-flex flex-wrap justify-content-between gap-2">
+      <span>Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review</span>
+      <span>Built with MkDocs + Bootstrap 5.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      // Restore saved theme before paint-sensitive work.
+      var root = document.documentElement;
+      var saved = localStorage.getItem('docs-theme');
+      if (saved) root.setAttribute('data-bs-theme', saved);
+
+      // Make Markdown tables look like Bootstrap tables.
+      document.querySelectorAll('.docs-content table').forEach(function (t) {
+        t.classList.add('table', 'table-sm', 'table-striped', 'table-bordered', 'align-middle');
+        if (!t.parentElement.classList.contains('table-responsive')) {
+          var wrap = document.createElement('div');
+          wrap.className = 'table-responsive';
+          t.parentNode.insertBefore(wrap, t);
+          wrap.appendChild(t);
+        }
+      });
+
+      // A Copy button on every listing.
+      document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.classList.contains('mermaid')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code') || pre;
+          navigator.clipboard.writeText(code.innerText.replace(/\n$/, '')).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+          });
+        });
+        pre.classList.add('has-copy');
+        pre.appendChild(btn);
+      });
+
+      // Theme toggle (reload keeps mermaid in sync with the new theme).
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-bs-theme', next);
+        localStorage.setItem('docs-theme', next);
+        location.reload();
+      });
+
+      // Render mermaid: superfences emits <pre class="mermaid"><code>…</code></pre>.
+      if (window.mermaid) {
+        var dark = root.getAttribute('data-bs-theme') === 'dark';
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+        document.querySelectorAll('pre.mermaid').forEach(function (pre) {
+          var code = pre.querySelector('code');
+          if (code) pre.textContent = code.textContent;
+        });
+        try { mermaid.run({ querySelector: 'pre.mermaid' }); } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>

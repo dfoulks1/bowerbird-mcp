@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -341,7 +419,7 @@
           </nav>
         
         <article><h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:24:17Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:25:53Z</p>
 
 <p>This page turns an empty folder into a collection, then covers the command line, the browser, an AI assistant, search
 and sealing. You do not need any AI tooling to start, and nothing here sends your files anywhere.</p>
@@ -354,8 +432,8 @@ notes, decisions, vocabularies, even code. Bowerbird looks after it for three ki
   saying which file and line it used and whether a person has reviewed it.</li>
 <li><strong>CI</strong>, your automated checks, can fail a change that has no human review.</li>
 </ul>
-<p>It is not tied to one format. A <code>format:</code> line in <code>bower.yaml</code> says what a folder holds: Markdown, ADR, OKF, SKOS or
-seal-only. <a href="../formats/">Formats</a> shows each one. This page uses plain Markdown: it asks nothing of your files, and it does
+<p>It is not tied to one format. A <code>format:</code> line in <code>bower.yaml</code> says what a folder holds: Markdown, ADR, OKF, SKOS, AsciiDoc or
+seal-only, or, with an add-on, Obsidian, Foam, Dendron or Logseq. <a href="../formats/">Formats</a> shows each one. This page uses plain Markdown: it asks nothing of your files, and it does
 more than seal them, because it searches them too.</p>
 <p>This page is a self-guided tour. Part 1 sets up a collection. Then you take five stops, in any order: the command
 line, the Web UI, the agent configuration, searching and sealing. Every command is here to copy, with the output you
@@ -364,7 +442,7 @@ should see, so you can check yourself as you go.</p>
 <p>Every command on this page starts with <code>uvx bowerbird-mcp</code>, which runs the tool without installing it (it needs
 <a href="https://docs.astral.sh/uv/">uv</a>). To have it on your path instead, run <code>uv tool install bowerbird-mcp</code> once and drop the
 <code>uvx</code>. (<code>bowerbird</code> is a shorter name for the same command. <a href="../guide/#run">The guide</a> has every way to run it, and the extras:
-<code>serve</code> for the browser, <code>semantic</code> for meaning search.)</p>
+<code>serve</code> for the browser, <code>semantic</code> for meaning search, <code>skos</code> for SKOS files, and one add-on per note-taking tool: <code>obsidian</code>, <code>foam</code>, <code>dendron</code>, <code>logseq</code>.)</p>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp help          # the everyday commands for your format; `help all` lists every one
 uvx bowerbird-mcp help seal     # one command: what it does, its arguments, an example</code></pre>
 <p>Run it with no arguments at a terminal and it prints this help too. In a folder with no <code>bower.yaml</code> it also offers to make a
@@ -406,13 +484,17 @@ If mail is queueing, restart the relay with `service relay restart`, then watch 
 <td>glossaries, vocabularies and thesauri</td>
 </tr>
 <tr>
+<td><code>asciidoc</code></td>
+<td>manuals and guides written in AsciiDoc</td>
+</tr>
+<tr>
 <td><code>seal-only</code></td>
 <td>any text files (code, configuration) with nothing searched: just a guaranteed human review of each</td>
 </tr>
 </tbody>
 </table>
 <p>Leave <code>holds=</code> out and <code>create</code> guesses from the folder, then asks you for what it cannot know. The choice is written to
-<code>bower.yaml</code> as <code>format:</code>, and you can change it later by editing that line. Here it is <code>markdown</code>:</p>
+<code>bower.yaml</code> as <code>format:</code>, and you can change it later by editing that line. (An Obsidian, Foam, Dendron or Logseq folder is Markdown read with that tool's rules for links: the add-on ships in the one package (<code>pip install 'bowerbird-mcp[obsidian]'</code> and so on stays valid), so write <code>format: obsidian</code> by hand. See <a href="../formats/#format-add-ons">Formats</a>.) Here it is <code>markdown</code>:</p>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp create -t markdown -a "Infra runbooks." --apply -O text</code></pre>
 <pre class="highlight"><code class="language-text">agent: {"file": "BOWERBIRD.md", "state": "written"}
 mcp: written
@@ -437,19 +519,20 @@ name). It refuses a file that exists.</p>
 <h2 id="2-the-command-line">2. The command line<a class="headerlink" href="#2-the-command-line" title="Link to this section">#</a></h2>
 <p>What is in it, and is it healthy.</p>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp status -O text</code></pre>
-<pre class="highlight"><code class="language-text">concepts: 3
-by_type: {"(none)": 3}
-by_status: {"stable": 3}
-by_tier: {"unverified": 3}
+<pre class="highlight"><code class="language-text">concepts: 4
+by_type: {"(none)": 3, "guide": 1}
+by_status: {"stable": 4}
+by_state: {"stable": 4}
+by_tier: {"unverified": 4}
 stale: 0
 hubs:
   - file: runbooks/deploy.md, links: 1
   - file: runbooks/rollback.md, links: 1
 wanted: []</code></pre>
-<p><code>by_tier</code> is the line to watch: it says how many files a person has reviewed. Three files, none yet.</p>
+<p><code>by_tier</code> is the line to watch: it says how many files a person has reviewed. Four files (your three, and <code>BOWERBIRD.md</code>, which <code>create</code> wrote), none yet.</p>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp lint -O text</code></pre>
 <pre class="highlight"><code class="language-text">bowerbird-mcp lint: ok: 0 concept(s) in 1 bundle(s) checked, 0 finding(s), conformant: True</code></pre>
-<p><code>lint</code> checks the form of files. For plain Markdown there is little to check (the <code>okf</code> format has the most rules). Like
+<p><code>lint</code> checks the form of files. For Markdown it checks fact blocks and links that lead nowhere (a <code>[[wikilink]]</code> too), as warnings; the <code>okf</code> format has the most rules. Like
 every check it exits 0 when clean, 1 when there are findings and 2 for a usage error, so anything that can run a command
 can use it: your terminal, a script, CI, a git hook. Part 7 covers that.</p>
 <h2 id="3-the-web-ui">3. The Web UI<a class="headerlink" href="#3-the-web-ui" title="Link to this section">#</a></h2>
@@ -600,24 +683,26 @@ hits:
 <ul>
 <li><strong>Matching is by substring, ignoring case.</strong> A word matches anywhere inside the text, so <code>roll</code> finds <code>rollback</code>, and
   <code>search 'roll back'</code> also lists <code>deploy.md</code>, which links to <code>rollback.md</code>.</li>
-<li><strong>The score says where the words landed.</strong> Each field a word matches adds its weight: title 5, file path 4, tags 3,
+<li><strong>The score says where the words landed.</strong> Each field a word matches adds its weight: title 5, id (the file's path) 4, tags 3,
   type 2, description 2, body 1. <code>matched</code> lists the fields, so a hit explains itself.</li>
 <li><strong>The same query on the same files always gives the same answer.</strong> There is no index and no model, and ties come out in a
   fixed order. That makes it the one to script and to test against.</li>
 <li><strong>Narrow it with filters:</strong> <code>type=</code>, <code>tag=</code>, <code>dir=</code>, <code>fields=</code> (look only in some fields), and <code>limit=</code> and <code>offset=</code>
   to page through a long list.</li>
 </ul>
-<p>On an MCP server, <code>search</code> is offered for <code>okf</code> collections. The other formats offer <code>passages</code>. At the command line <code>search</code>
+<p>On an MCP server, <code>search</code> is offered for <code>okf</code>, <code>markdown</code> and <code>adr</code> collections (and the add-on formats). Every format offers <code>passages</code>. At the command line <code>search</code>
 reads any folder of Markdown, but it cannot see SKOS files.</p>
 <h3 id="ranked-result-passages">Ranked-result: <code>passages</code><a class="headerlink" href="#ranked-result-passages" title="Link to this section">#</a></h3>
 <p>Use it for a question. It cuts every file into sections at its headings and returns the <strong>sections</strong> that best answer it,
 best first:</p>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp passages 'how do I undo a bad release' -O text</code></pre>
-<pre class="highlight"><code class="language-text">total: 1
+<pre class="highlight"><code class="language-text">total: 12
 gap: false
 hits:
-  - bundle: ., file: runbooks/rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 1, text: To roll back a release, redeploy the previous tag, ...</code></pre>
-<p>The first <code>passages</code> also builds a small search index in a <code>.bower/</code> folder beside your files. It is a cache: safe to delete,
+  - bundle: ., file: runbooks/rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 1, text: To roll back a release, redeploy the previous tag, ...
+  - bundle: ., file: BOWERBIRD.md, line: 59, heading: ... &gt; Picking a tool, match: 63, ...
+  ...</code></pre>
+<p>Any one word of the question can match, so sections of <code>BOWERBIRD.md</code> (the rules <code>create</code> wrote) follow the real answer, which is first at 100. The first <code>passages</code> also builds a small search index in a <code>.bower/</code> folder beside your files. It is a cache: safe to delete,
 and it ignores itself in git. For each section you get:</p>
 <ul>
 <li><strong>file and line</strong>, so an answer can say exactly where it came from;</li>
@@ -668,32 +753,34 @@ search menu once <code>semantic: true</code> is set and <code>serve</code> is re
 exact version of a file, and it breaks when the file changes, like a wax seal.</p>
 <h3 id="see-where-review-stands">See where review stands<a class="headerlink" href="#see-where-review-stands" title="Link to this section">#</a></h3>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp seal -c -O text</code></pre>
-<pre class="highlight"><code class="language-text">runbooks/deploy.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/deploy.md --attest
+<pre class="highlight"><code class="language-text">BOWERBIRD.md: error: unsigned: no review by a human | fix: a human reviews it: seal BOWERBIRD.md --attest
+runbooks/deploy.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/deploy.md --attest
 runbooks/mail-relay.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/mail-relay.md --attest
 runbooks/rollback.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/rollback.md --attest
-bowerbird-mcp seal: FAILED: 3 file(s) checked, 3 finding(s)</code></pre>
+bowerbird-mcp seal: FAILED: 4 file(s) checked, 4 finding(s)</code></pre>
 <p><code>-c</code> (<code>--check</code>) changes nothing and exits with a failure code, which is what makes it useful in a hook or in CI (part 7).
 By default every file in the collection needs a review; the <code>seal</code> key in <code>bower.yaml</code> says which.</p>
 <h3 id="seal-one-from-the-terminal">Seal one, from the terminal<a class="headerlink" href="#seal-one-from-the-terminal" title="Link to this section">#</a></h3>
 <p>Only a person records a review, so <strong>you type this</strong>. <code>--attest</code> records you:</p>
 <pre class="highlight"><code class="language-sh">uvx bowerbird-mcp seal runbooks/deploy.md --attest</code></pre>
-<pre class="highlight"><code class="language-text">edited: {".": [".waxseals.yaml"]}
+<pre class="highlight"><code class="language-text">edited: {".": ["runbooks/.waxseals.yaml"]}
 file: runbooks/deploy.md
 sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad
-bowerbird: 2.0.0
+bowerbird: 2.3.0
 tier: human-reviewed</code></pre>
-<p>The review goes into <code>.waxseals.yaml</code> (commit it), and your file is not touched:</p>
-<pre class="highlight"><code class="language-yaml">- {file: runbooks/deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.0.0}</code></pre>
+<p>The review goes into a <code>.waxseals.yaml</code> in the file's folder (commit it), and your file is not touched. Here that is <code>runbooks/.waxseals.yaml</code>, and the line names the file from that folder:</p>
+<pre class="highlight"><code class="language-yaml">- {file: deploy.md, sha256: ad8a91f41bd95de8219914500b961592af12670328c1af7743577ea7ecb108ad, by: 'human:example', at: '2026-11-16T15:29:29Z', bowerbird: 2.3.0}</code></pre>
 <p>One line per file, and only the latest seal is kept: seal it again and the line is replaced (git has the earlier ones). In
 an <code>okf</code> collection the review lives in the file's own <code>verified:</code> frontmatter instead. Search now shows the difference:
 <code>deploy.md</code> is <code>tier: human-reviewed</code>, and the other two are still <code>unverified</code>.</p>
 <h3 id="break-it">Break it<a class="headerlink" href="#break-it" title="Link to this section">#</a></h3>
 <pre class="highlight"><code class="language-sh">echo "Also tell the team in chat." &gt;&gt; runbooks/deploy.md
 uvx bowerbird-mcp seal -c -O text</code></pre>
-<pre class="highlight"><code class="language-text">runbooks/deploy.md: error: stale_signature: edited since it was reviewed | fix: review it again: seal runbooks/deploy.md --attest
+<pre class="highlight"><code class="language-text">BOWERBIRD.md: error: unsigned: no review by a human | fix: a human reviews it: seal BOWERBIRD.md --attest
+runbooks/deploy.md: error: stale_signature: edited since it was reviewed | fix: review it again: seal runbooks/deploy.md --attest
 runbooks/mail-relay.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/mail-relay.md --attest
 runbooks/rollback.md: error: unsigned: no review by a human | fix: a human reviews it: seal runbooks/rollback.md --attest
-bowerbird-mcp seal: FAILED: 3 file(s) checked, 3 finding(s)</code></pre>
+bowerbird-mcp seal: FAILED: 4 file(s) checked, 4 finding(s)</code></pre>
 <p>The <code>sha256</code> ties the review to the file's exact contents, so an edited file can never pass for a reviewed one, and
 <code>passages</code> shows it as <code>unverified</code> and <code>stale</code> until a person reviews it again.</p>
 <h3 id="seal-one-from-the-browser">Seal one, from the browser<a class="headerlink" href="#seal-one-from-the-browser" title="Link to this section">#</a></h3>
@@ -720,8 +807,8 @@ protection. <a href="../sealing/">Sealing</a> has the full story.</p>
 <tbody>
 <tr>
 <td><code>lint</code></td>
-<td>the form of every file: a header, links that resolve, no empty files, no duplicate titles, no secrets that look like keys, index and log files well formed</td>
-<td><code>okf</code></td>
+<td>the form of every file: a header, links that resolve, no empty files, no duplicate titles, no secrets that look like keys, index and log files well formed (<code>okf</code>); fact blocks and links that resolve (<code>markdown</code>, <code>adr</code> and the add-on formats)</td>
+<td><code>okf</code>, <code>markdown</code>, <code>adr</code></td>
 </tr>
 <tr>
 <td><code>seal -c</code></td>
@@ -775,7 +862,7 @@ and it does.</p>
         pass_filenames: false
         always_run: true
         verbose: true</code></pre>
-<p>Keep the hooks you use: <code>lint</code> is for OKF collections, <code>seal -c</code> for any. <code>verbose: true</code> makes pre-commit print the
+<p>Keep the hooks you use: <code>lint</code> is for OKF, Markdown and ADR collections (the other formats have nothing for it to check), <code>seal -c</code> for any. <code>verbose: true</code> makes pre-commit print the
   verdict line even when the check passes.</p>
 <p><a href="../guide/#ci">The guide</a> has full workflows for GitHub Actions, baselines and pull requests.</p>
 <h2 id="if-something-goes-wrong">If something goes wrong<a class="headerlink" href="#if-something-goes-wrong" title="Link to this section">#</a></h2>

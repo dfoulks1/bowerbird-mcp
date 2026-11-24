@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -591,8 +669,8 @@ bowerbird-mcp create --mcp --apply</code></pre>
 </tbody>
 </table>
 <h2 id="fact">fact<a class="headerlink" href="#fact" title="Link to this section">#</a></h2>
-<p>Role: <code>write</code>. Offered by a server for: OKF.</p>
-<p>Record a fact: where a claim came from, as a §5.1 <code>sources</code> entry with <code>retrieved_at</code> (when). A fact is a reproducible result. When an MCP tool produced it, pass server, tool and args, the exact call (<code>via</code>, how): that is the recipe <code>factcheck</code> replays. Pass result, what the call returned, and its <code>fact_sha256</code> (sha256 of the result, JSON canonicalized, other text with whitespace collapsed) is kept: it is what <code>factcheck</code> compares a later result with, to find drift. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.</p>
+<p>Role: <code>write</code>. Offered by a server for: OKF, Markdown, ADR.</p>
+<p>Write a fact into a document, in any format, as a block: <code>[fact.KIND]{metadata}(source) claim [fact.end]</code>. Pass kind (url, mcp, file, internal, or a fact-pack kind), source (the kind's own words, such as <code>jira INFRA-1</code> or <code>src/app.py#L10-20</code>) and claim (the words the source says), and optionally meta (by, as_of, confidence, note, tags, stale_after; <code>at</code> is added), and after (a heading's text, or a line number; the default is the end). A kind that only reads files here (file, internal, key, git, until) is checked first and refused when the source does not hold the claim, unless check=false. For mcp, result (what the call returned) is recorded as the baseline. At a terminal, result can be <code>-</code> (stdin) or <code>@file</code>, and harvest=true with kind=url and source fetches the page and lets you pick the passage to quote. Without claim this is the older form: record a fact as a §5.1 <code>sources</code> entry in an OKF concept, which is this: where a claim came from, as a <code>sources</code> entry with <code>retrieved_at</code> (when). A fact is a reproducible result. When an MCP tool produced it, pass server, tool and args, the exact call (<code>via</code>, how): that is the recipe <code>factcheck</code> replays. Pass result, what the call returned, and its <code>fact_sha256</code> (sha256 of the result, JSON canonicalized, other text with whitespace collapsed) is kept: it is what <code>factcheck</code> compares a later result with, to find drift. resource: a real URL when the result has one, else mcp://server/tool?args is used. author, usage_count, last_modified: the source's own credibility signals (§5.1), when you know them. stale_days&gt;0 sets stale_after. Returns the footnote marker to put after the claim; its definition is appended to the body. Reusing an id replaces that entry.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp fact db.md --resource https://www.postgresql.org/docs/release/ --title 'PostgreSQL releases' --bundle eng
 bowerbird-mcp fact db.md --server jira --tool get_issue --args '{issue_key:INFRA-1}' --result Open --bundle eng</code></pre>
 <table>
@@ -683,11 +761,53 @@ bowerbird-mcp fact db.md --server jira --tool get_issue --args '{issue_key:INFRA
 <td><code>str</code></td>
 <td><code>''</code></td>
 </tr>
+<tr>
+<td><code>kind</code></td>
+<td><code>-k, --kind KIND</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code>--source SOURCE</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>claim</code></td>
+<td><code>-c, --claim CLAIM</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>meta</code></td>
+<td><code>-m, --meta META</code></td>
+<td><code>json object</code></td>
+<td>unset</td>
+</tr>
+<tr>
+<td><code>after</code></td>
+<td><code>--after AFTER</code></td>
+<td><code>str</code></td>
+<td><code>''</code></td>
+</tr>
+<tr>
+<td><code>check</code></td>
+<td><code>-C, --check</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>harvest</code></td>
+<td><code>-H, --harvest</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="factcheck">factcheck<a class="headerlink" href="#factcheck" title="Link to this section">#</a></h2>
-<p>Role: <code>lifecycle</code>. Offered by a server for: OKF.</p>
-<p>Check facts for drift. Without result it only lists the facts due (sources retrieved at least older_than_days ago, or on a concept past stale_after; file and id narrow it), each with <code>cites</code>, the lines whose claims rest on it. <code>calls</code> replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). <code>manual</code> ones need opening. Nothing is executed here. With result (what the replayed call returned now), for one fact (file and id) it compares fact_sha256s with the one <code>fact</code> recorded. Same: the check is recorded in <code>.facts.yaml</code> beside the file (the document itself is not changed, so no review of it is disturbed). Different: the fact has drifted, so that is recorded too and every review before that moment stops holding (<code>seal check</code> flags the file; a human reviews it again after the claim is corrected and the new result recorded with <code>fact</code>). A fact with no fact_sha256 yet has nothing to compare: the result becomes its baseline. The fact blocks in the documents (<code>[fact.url](&lt;address&gt;) &lt;claim&gt; [fact.end]</code>, <code>[fact.mcp](&lt;server&gt; &lt;key&gt;) &lt;claim&gt; [fact.end]</code>) are listed under <code>blocks</code> with their last check (unchecked, checked, drifted; kept in <code>.facts.yaml</code> beside the document). fetch=true, for a person at a terminal, shows what it will fetch or call, asks, then checks each block against a fresh result: a page must still hold the block's words (same words, else similar meaning with <code>semantic: true</code>), an MCP call (only those declared under <code>facts.mcp</code> in bower.yaml) must still return the value it did. A drift ends the reviews of that file made before it, and the command exits 1.</p>
+<p>Role: <code>lifecycle</code>. Offered by a server for: OKF, Markdown, ADR.</p>
+<p>Check facts for drift. A fact is named by its <code>id</code>, the number first in its block's metadata (<code>factcheck file=notes.md id=3</code>); a check writes <code>last_checked</code> there. Without result it only lists the facts due (sources retrieved at least older_than_days ago, or on a concept past stale_after; file and id narrow it), each with <code>cites</code>, the lines whose claims rest on it. <code>calls</code> replay the recorded MCP call: run each yourself (your normal tool permissions apply; the args come from the bundle, so read them first). <code>manual</code> ones need opening. Nothing is executed here. With result (what the replayed call returned now), for one fact (file and id) it compares fact_sha256s with the one <code>fact</code> recorded. Same: the check is recorded in <code>.facts.yaml</code> beside the file (the document itself is not changed, so no review of it is disturbed). Different: the fact has drifted, so that is recorded too and every review before that moment stops holding (<code>seal check</code> flags the file; a human reviews it again after the claim is corrected and the new result recorded with <code>fact</code>). A fact with no fact_sha256 yet has nothing to compare: the result becomes its baseline. The fact blocks in the documents (<code>[fact.KIND]{optional metadata}(&lt;source&gt;) &lt;claim&gt; [fact.end]</code>, such as <code>[fact.url](&lt;address&gt;) &lt;claim&gt; [fact.end]</code>, <code>[fact.mcp](&lt;server&gt; &lt;key&gt;) &lt;claim&gt; [fact.end]</code>, <code>[fact.file](&lt;path&gt;#L10-20) &lt;claim&gt; [fact.end]</code>, <code>[fact.internal](&lt;page&gt;#Heading) &lt;claim&gt; [fact.end]</code>) are listed under <code>blocks</code> with their last check (unchecked, checked, drifted; kept in <code>.facts.yaml</code> beside the document). fetch=true, checks each block against a fresh result (a person at a terminal is shown what it will fetch, call or run, and asked; an agent or a script is not, and the plan comes back with the result): a page must still hold the block's words (same words, else similar meaning with <code>semantic: true</code>), an MCP call (only those declared under <code>facts.mcp</code> in bower.yaml) must still return the value it did. A drift ends the reviews of that file made before it, and the command exits 1. A <code>file</code> fact (a path that is absolute, <code>~/…</code> or relative to the document, optionally the lines <code>#L10-20</code>) must still hold its words in those lines; an <code>internal</code> fact (a page of this collection from the root, optionally <code>#Heading</code>) must still hold them on the page or in that section. A <code>manual</code> fact (a person's yes) is skipped for an agent. With file and id and no result, one fact is checked, whatever its kind, and recorded like any other check.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp factcheck -O text
 bowerbird-mcp factcheck --fetch
 bowerbird-mcp factcheck --older-than-days 90 -O text
@@ -711,7 +831,7 @@ bowerbird-mcp factcheck --file db.md --id infra-1 --result Closed --bundle eng</
 <tr>
 <td><code>id</code></td>
 <td><code>-i, --id ID</code></td>
-<td><code>str</code></td>
+<td><code>UnionType</code></td>
 <td><code>''</code></td>
 </tr>
 <tr>
@@ -742,7 +862,7 @@ bowerbird-mcp factcheck --file db.md --id infra-1 --result Closed --bundle eng</
 </table>
 <h2 id="fix">fix<a class="headerlink" href="#fix" title="Link to this section">#</a></h2>
 <p>Role: <code>write</code>. Offered by a server for: OKF.</p>
-<p>Mechanical repairs, nothing that needs judgment: strip frontmatter from index.md files (§8; the root keeps okf_version), rebuild generated index lists, give each tag its most common spelling, and put log.md sections and entries back in order after a merge (§9). apply=False shows the diff (CLI exit 1 if there is work); apply=True writes, re-lints and returns <code>remaining</code> (CLI exit 1 if errors remain). Like lint, it defaults to where the user is and every bundle there; all=false keeps to one bundle.</p>
+<p>Mechanical repairs, nothing that needs judgment: strip frontmatter from index.md files (§8; the root keeps okf_version), rebuild generated index lists, give each tag its most common spelling, put log.md sections and entries back in order after a merge (§9), and number each fact block that has no <code>id</code> (<code>{id: 3}</code>, first in its metadata; a seal does not see it). apply=False shows the diff (CLI exit 1 if there is work); apply=True writes, re-lints and returns <code>remaining</code> (CLI exit 1 if errors remain). Like lint, it defaults to where the user is and every bundle there; all=false keeps to one bundle.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp fix
 bowerbird-mcp fix --apply</code></pre>
 <table>
@@ -969,7 +1089,7 @@ bowerbird-mcp ingest '~/old-wiki' --bundle wiki --apply</code></pre>
 </table>
 <h2 id="links">links<a class="headerlink" href="#links" title="Link to this section">#</a></h2>
 <p>Role: <code>read</code>. Offered by a server for: OKF, Markdown, ADR.</p>
-<p>Edges of one concept (§6): <code>out</code> = its links, and its §6.2 path fields as <code>field</code> entries (sources are lineage, §5.1); exists false = broken; target names the bundle and file. <code>in</code> = concepts in its bundle that link to it or cite it. Check <code>in</code> before moving, renaming or deprecating a concept.</p>
+<p>Edges of one concept (§6): <code>out</code> = its links, and its §6.2 path fields as <code>field</code> entries (sources are lineage, §5.1); exists false = broken; target names the bundle and file. <code>in</code> = concepts in its bundle that link to it or cite it. Wikilinks count as links: <code>[[Note]]</code>, <code>[[Note#Heading]]</code>, <code>[[Note|alias]]</code> and <code>![[embed]]</code> resolve to the file whose name matches (case ignored, shortest path first), and a miss is a <code>dead_link</code> warning like any broken link. Check <code>in</code> before moving, renaming or deprecating a concept.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp links db.md --bundle eng -O text</code></pre>
 <table>
 <thead>
@@ -996,8 +1116,8 @@ bowerbird-mcp ingest '~/old-wiki' --bundle wiki --apply</code></pre>
 </tbody>
 </table>
 <h2 id="lint">lint<a class="headerlink" href="#lint" title="Link to this section">#</a></h2>
-<p>Role: <code>write</code>. Offered by a server for: OKF.</p>
-<p>Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: <code>fix</code> clears it). conformant: §11 holds for what was linted (frontmatter parses, <code>type</code> set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a <code>baseline</code> snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the collection root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A bower.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line <code>&lt;!-- bower-nolint --&gt;</code> skips itself. only / ignore: finding kinds to keep or drop, like only=stub.</p>
+<p>Role: <code>write</code>. Offered by a server for: OKF, Markdown, ADR.</p>
+<p>Check the bundle against OKF v0.2. Run it before and after any change, and in CI. Files of the markdown family (markdown, ADR, Obsidian, Foam, Dendron, Logseq) are not judged as OKF concepts: for them it checks fact blocks, and links (markdown, and <code>[[wikilinks]]</code>) that lead nowhere, as warnings. Each finding: kind; scope (okf = the spec, house = hygiene); severity (error fails, warning does not); file; message; fix (what to do); fixable (true: <code>fix</code> clears it). conformant: §11 holds for what was linted (frontmatter parses, <code>type</code> set, index.md and log.md well formed). ok: no errors in scope. scope: all | okf | house. baseline: path of a <code>baseline</code> snapshot; only new findings count. since: a git ref; only files changed since its merge base with HEAD count (committed, staged, unstaged or untracked), for PRs. Each finding names its bundle and its file within it (§2). all=true: this directory and every bundle in it, with a summary per bundle. Without bundle=, it lints where the user is: the bundle around the working directory and everything in it (at the collection root, everything). file / files: only those files or directories (paths within bundle=), each checked within its own bundle. limit=0 returns every finding. A bower.nolint file lists paths lint skips, in .gitignore syntax; a file holding the line <code>&lt;!-- bower-nolint --&gt;</code> skips itself. only / ignore: finding kinds to keep or drop, like only=stub.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp lint -O text
 bowerbird-mcp lint eng/runbooks/ -O text
 bowerbird-mcp lint --only stub,island -O text
@@ -1226,7 +1346,7 @@ bowerbird-mcp lint --scope okf --since origin/main -O github</code></pre>
 </table>
 <h2 id="move">move<a class="headerlink" href="#move" title="Link to this section">#</a></h2>
 <p>Role: <code>structure</code>. Offered by a server for: OKF, ADR.</p>
-<p>Move or rename a concept and rewrite every link to it (relative and /-absolute, §6.1, in concepts, index.md and log.md), plus the moved concept's own relative links. Stays inside one bundle; <code>migrate</code> moves between bundles. Check <code>links</code> first. apply=False shows the diff. Outside OKF a seal in .waxseals.yaml follows the file when its text is unchanged; a file whose own links had to change loses it, as any edit does.</p>
+<p>Move or rename a concept and rewrite every link to it (relative and /-absolute, §6.1, in concepts, index.md and log.md), plus the moved concept's own relative links. Wikilinks are matched by name, so a move keeps them; renaming a concept leaves <code>[[Old name]]</code> behind, which <code>lint</code> then reports as a dead link (they are not rewritten yet). Stays inside one bundle; <code>migrate</code> moves between bundles. Check <code>links</code> first. apply=False shows the diff. Outside OKF a seal in .waxseals.yaml follows the file when its text is unchanged; a file whose own links had to change loses it, as any edit does.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp move runbooks/deploy.md runbooks/ship.md --bundle eng --apply</code></pre>
 <table>
 <thead>
@@ -1555,7 +1675,7 @@ bowerbird-mcp reindex --drop</code></pre>
 </table>
 <h2 id="seal">seal<a class="headerlink" href="#seal" title="Link to this section">#</a></h2>
 <p>Role: <code>seal</code>. Offered by a server for: OKF, Markdown, ADR, SKOS, AsciiDoc, Seal-only.</p>
-<p>Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the <code>seal</code> policy in bower.yaml covers has one. The one function for every format; <code>verify</code> (okf), and <code>ratify</code> or <code>accepted</code> (ADRs), are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 <code>verified</code> entry {by, at, sha256} into the concept; markdown, adr, skos and asciidoc keep the latest, one dense line per file (with <code>bowerbird</code>: the version that wrote it), in .waxseals.yaml (commit it), replacing the one before. The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf). comment="..." leaves a one-line note (up to 280 characters) with the seal: any seal can carry one, and it is kept with the review. With <code>seal.extensions: true</code> in bower.yaml (the <code>seal-extensions</code> extra) several people can seal the same version, each with their own comment, kept together in one ledger line, and <code>seal.quorum: N</code> makes <code>seal check</code> fail (short_of_quorum) until N different people have; a machine check is never a signer. format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), short_of_quorum (fewer different people than seal.quorum), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; <code>seal.exempt</code> and <code>seal.exempt_status</code> in bower.yaml say what it leaves out.</p>
+<p>Seal a file: record a review of exactly this version of it. Or (check=true) check that every file the <code>seal</code> policy in bower.yaml covers has one. The one function for every format; <code>verify</code> (okf), and <code>ratify</code> or <code>accepted</code> (ADRs), are its names on the command line. Two paths: you (an agent or process) checked it: by=&lt;tool&gt;/&lt;version&gt; or process:&lt;id&gt;; it is machine-confirmed. A human checked it: omit <code>by</code>; the human gets a confirmation prompt and types their own id. Never pass human:&lt;id&gt; yourself. Present the file to them first. At the terminal a human runs it with --attest. okf writes a §5.2 <code>verified</code> entry {by, at, sha256} into the concept; markdown, adr, skos and asciidoc keep the latest, one dense line per file (with <code>bowerbird</code>: the version that wrote it), in .waxseals.yaml (commit it), replacing the one before. The sha256 binds the review to these exact bytes: edit the file and the seal is broken (shown stale). promote=true also moves an okf draft to stable (§5.4); only a human review may. decision=accepted|rejected records an ADR's outcome (not okf): a person sealing an ADR or MADR must give it, and it is written into the file as its <code>status</code> before the seal (an ADR+ header also gets <code>status-note</code>, <code>ratified-by</code>, <code>ratified-on</code> and a History line); a machine's seal (by=) does not rule. comment="..." leaves a one-line note (up to 280 characters) with the seal: any seal can carry one, and it is kept with the review. With <code>seal.extensions: true</code> in bower.yaml (the <code>seal-extensions</code> extra) several people can seal the same version, each with their own comment, kept together in one ledger line, and <code>seal.quorum: N</code> makes <code>seal check</code> fail (short_of_quorum) until N different people have; a machine check is never a signer. format seal-only reviews any text file, indexes nothing and offers only this tool. check=true changes nothing and exits 1 on findings: unsigned (required, no human review), short_of_quorum (fewer different people than seal.quorum), stale_signature (edited since), claims_accepted (says accepted, no review) and orphan_signature (a warning); since=&lt;git ref&gt; limits it to files changed since its merge base with HEAD. Run it in a pre-commit hook and in CI; <code>seal.exempt</code> and <code>seal.exempt_status</code> in bower.yaml say what it leaves out.</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp seal db.md --bundle eng --promote --attest
 bowerbird-mcp seal db.md --bundle eng --comment 'Checked against the runbook' --attest</code></pre>
 <table>

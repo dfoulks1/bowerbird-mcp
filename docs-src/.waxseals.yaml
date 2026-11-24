@@ -1,3 +1,15 @@
 # .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
 # an edit breaks them, git has the earlier ones. Commit it.
+- {file: agents.md, sha256: 3c45385722069eb8984902b48d336c5b24e5bd7ae290e5b920e712fc87e265bb, by: 'human:dfoulks', at: '2026-11-23T23:48:45Z', bowerbird: 2.3.0}
+- {file: badges.md, sha256: bc4ce39d7f1cdc578406585cfe9b658607fd6bbb34cf652dfb0f00862f671a2a, by: 'human:dfoulks', at: '2026-11-24T00:25:31Z', bowerbird: 2.3.0}
+- {file: cli.md, sha256: 4f18db5e66845f7ce1b61639db13b755418d5e5743f285f29ed3104fc433331f, by: 'human:dfoulks', at: '2026-11-24T00:25:39Z', bowerbird: 2.3.0}
+- {file: fact-pack.md, sha256: 84b3e519a51729dc069848d66c61cc6439bd998ca16ceac87964cbc813ae1aaa, by: 'human:dfoulks', at: '2026-11-24T00:27:17Z', bowerbird: 2.3.0}
+- {file: facts.md, sha256: 636f93cbb5057ede9ab44dc6f5b79d634eb5faa81fd87a49becb3fed2081a792, by: 'human:dfoulks', at: '2026-11-24T00:27:27Z', bowerbird: 2.3.0}
+- {file: formats.md, sha256: e6dcf25f501a445b0e87c417bb394bee08b15e3a70334e435b17c459c7e99d62, by: 'human:dfoulks', at: '2026-11-24T00:25:45Z', bowerbird: 2.3.0}
+- {file: getting-started.md, sha256: 4695b9d58b24f3400ba98ce0d9cb6b35a85fccb4d180ae06297a749d9dad871d, by: 'human:dfoulks', at: '2026-11-24T00:25:53Z', bowerbird: 2.3.0}
+- {file: index.md, sha256: a88dc951e2dda480da23bcacc3c4e3f93ec7986d060c32fcceec8a57e54a8d39, by: 'human:dfoulks', at: '2026-11-24T00:26:41Z', bowerbird: 2.3.0}
+- {file: releasing.md, sha256: 0f0318b5b596e2cbf247206e3be083e5c5eb2ab78dd0e2269f46c5e64e9d6017, by: 'human:dfoulks', at: '2026-11-24T00:39:28Z', bowerbird: 2.3.0}
+- {file: sealing.md, sha256: fe54d7421fd9dc164a5236d7a019adc6657040af201b4fac46e4bada8e199be5, by: 'human:dfoulks', at: '2026-11-24T00:26:55Z', bowerbird: 2.3.0}
+- {file: serve.md, sha256: a939bc76ec5be9e8aafe508472ca56cf157622de97be78af47729ecb9fa3880f, by: 'human:dfoulks', at: '2026-11-24T00:27:02Z', bowerbird: 2.3.0}
 - {file: tools.md, sha256: 21f8dd1f32d86cd2d728addef120b27ae17cbc7ed475d90723b6cf33d94c571f, by: 'generator:docs_tools.py', at: '2026-11-23T16:42:23Z', bowerbird: 2.2.0, derived: docs_tools.py}
+- {file: troubleshooting.md, sha256: f1ba999fc7464b3caefa561a11043ebbfa70256c7a7cf067922ddf3158eb529d, by: 'human:dfoulks', at: '2026-11-24T00:27:08Z', bowerbird: 2.3.0}

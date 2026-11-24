@@ -90,6 +90,26 @@
                        href="../asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -190,6 +268,26 @@
             <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#switch-it-on">Switch it on</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#what-it-reads">What it reads</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#reviews-and-lint">Reviews and lint</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#limits">Limits</a>
+      
+    </li>
+  
+    <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#use-case-content-for-a-generated-website">Use case: content for a generated website</a>
       <ul class="nav flex-column docs-toc-list">
   
@@ -235,10 +333,11 @@
           </nav>
         
         <article><h1 id="markdown">Markdown<a class="headerlink" href="#markdown" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:21Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:30:33Z</p>
 
 <p><strong>Use it when</strong> you have a folder of notes and want to ask questions of it and know which of them a person has
 checked. There is nothing to learn and nothing to convert.</p>
+<h2 id="switch-it-on">Switch it on<a class="headerlink" href="#switch-it-on" title="Link to this section">#</a></h2>
 <pre class="highlight"><code class="language-text">notes/
   bower.yaml             format: markdown
   deploy.md              plain Markdown, no header needed
@@ -249,19 +348,36 @@ format: markdown
 about: Team notes.</code></pre>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp create holds=markdown about="Team notes." apply=true
 bowerbird-mcp passages 'how do I roll back' output=text</code></pre>
+<h2 id="what-it-reads">What it reads<a class="headerlink" href="#what-it-reads" title="Link to this section">#</a></h2>
+<p>Every <code>.md</code> file is a note; frontmatter is optional (<code>title</code>, <code>tags</code> and <code>status</code> are read when it is there). <code>index.md</code> and <code>log.md</code> are ordinary notes here. A numbered or dated-and-titled file name
+(<code>0007-use-queue.md</code>, <code>2024-05-01-use-queue.md</code>) or a path through <code>adr</code>, <code>adrs</code> or <code>decisions</code> makes the note an ADR record, with the status <a href="../adr/">ADR</a> describes. A name that is only a date (<code>2024-05-01.md</code>) is a daily note, not a record.</p>
+<p>Links are <code>[text](note.md)</code> and <code>[[wikilinks]]</code>; links inside code are not read (see <a href="../#what-the-markdown-formats-share">what the Markdown formats share</a>).</p>
 <p>A hit is a section of a note, with its file and line:</p>
-<pre class="highlight"><code class="language-text">file: rollback.md, line: 2, heading: Rollback, match: 100, type: null, status: stable, tier: unverified, links: 1
+<pre class="highlight"><code class="language-text">file: rollback.md, line: 2, heading: Rollback, match: 100, title: Rollback, type: null, status: stable, tier: unverified, stale: false, links: 1
 text: To roll back, redeploy the previous tag and confirm the dashboard is green.</code></pre>
 <p>Every hit says <code>tier: unverified</code> until a human has sealed that file. <code>links</code> counts the notes that link to it
-(<code>deploy.md</code> links to <code>rollback.md</code>, so it is 1). Files named <code>index.md</code> and <code>log.md</code> are ordinary notes here.</p>
-<p><strong>Reviewing.</strong> At a terminal, <code>bowerbird-mcp seal deploy.md --attest</code> records you; over MCP a prompt asks you instead. The review
-goes into <code>.waxseals.yaml</code>, never into the note:</p>
-<pre class="highlight"><code class="language-yaml">- {file: deploy.md, sha256: 6205ee8f20e4fa49559acc629e6639e87cc7ac5233fe496f18158236bdf659f6, by: 'human:you', at: '2026-11-16T14:40:51Z'}</code></pre>
-<p>One line per file; sealing it again replaces the line, and git keeps the earlier ones.</p>
-<p>Edit the note afterwards and the <code>sha256</code> no longer matches: the review is broken, and the hit shows <code>unverified</code> and
-<code>stale</code>. <code>bowerbird-mcp seal check=true</code> lists what has no review (for a pre-commit hook or CI).</p>
+(<code>deploy.md</code> links to <code>rollback.md</code>, so it is 1). A link that leads nowhere shows up in <code>status</code> as a wanted page and in <code>lint</code> as a warning:</p>
+<pre class="highlight"><code class="language-text">$ bowerbird-mcp lint -O text
+deploy.md: warning: dead_link: link to [[Nowhere]] does not resolve | fix: correct it, or leave it if the page is not written yet
+bowerbird-mcp lint: ok: 0 concept(s) in 1 bundle(s) checked, 1 finding(s), conformant: True</code></pre>
 <p><strong>Starting a page.</strong> <code>bowerbird-mcp new notes/deploy -T "Deploy"</code> writes <code>notes/deploy.md</code> from the markdown template (a title and
 <code>tags</code>, then a heading) and refuses a file that exists. <code>-t okf</code> or <code>-t adr</code> picks another template.</p>
+<p><strong>Facts.</strong> A claim and its source can be written in a note and checked later: <code>bowerbird-mcp fact notes/deploy.md kind=file source=deploy.sh claim='rollback runs the previous tag'</code>
+writes the block, and <code>factcheck</code> says whether the source still holds the words. See <a href="../../facts/">Facts</a>.</p>
+<h2 id="reviews-and-lint">Reviews and lint<a class="headerlink" href="#reviews-and-lint" title="Link to this section">#</a></h2>
+<p>At a terminal, <code>bowerbird-mcp seal deploy.md --attest</code> records you; over MCP a prompt asks you instead. The review
+goes into a <code>.waxseals.yaml</code> in the note's folder, never into the note:</p>
+<pre class="highlight"><code class="language-yaml">- {file: deploy.md, sha256: 6205ee8f20e4fa49559acc629e6639e87cc7ac5233fe496f18158236bdf659f6, by: 'human:you', at: '2026-11-16T14:40:51Z'}</code></pre>
+<p>One line per file; sealing it again replaces the line, and git keeps the earlier ones. See <a href="../../sealing/">Sealing</a>.</p>
+<p>Edit the note afterwards and the <code>sha256</code> no longer matches: the review is broken, and the hit shows <code>unverified</code> and
+<code>stale</code>. <code>bowerbird-mcp seal check=true</code> lists what has no review (for a pre-commit hook or CI).</p>
+<p><code>lint</code> is offered to Markdown servers. It checks fact blocks and links (<code>dead_link</code>, <code>dead_anchor</code>) and reports them as warnings; it does not hold plain notes to OKF's rules.</p>
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Link to this section">#</a></h2>
+<ul>
+<li>A review covers the note's own text. Text it includes from another file is not covered.</li>
+<li>A link to a note that does not exist yet is a warning, not an error.</li>
+<li>Renaming a note with <code>move</code> is offered by ADR servers, not Markdown ones; the command line has it for both.</li>
+</ul>
 <h2 id="use-case-content-for-a-generated-website">Use case: content for a generated website<a class="headerlink" href="#use-case-content-for-a-generated-website" title="Link to this section">#</a></h2>
 <p>Use Bowerbird to manage the content behind a website that a generator builds. The content is a folder of
 Markdown or <a href="../asciidoc/">AsciiDoc</a>, the two formats site generators read. Bowerbird does
@@ -271,41 +387,36 @@ ships.</p>
 <p>A <code>bower.yaml</code> at the root of the content folder. This is the one this site uses:</p>
 <pre class="highlight"><code class="language-yaml">format: markdown      # or asciidoc
 about: Bowerbird's documentation pages (the site source). Each page needs a human review.
-seal: {exempt: ["/tools.md", "/prompts/**"], exempt_status: []}</code></pre>
+seal: {exempt: ["/prompts/**", "/releasing.md", "/tools.md"], exempt_status: []}</code></pre>
 <p>Every page needs a review except the ones <code>seal.exempt</code> lists. A leading <code>/</code> anchors a pattern at the content folder's root.</p>
 <h3 id="the-loop">The loop<a class="headerlink" href="#the-loop" title="Link to this section">#</a></h3>
 <ol>
 <li>People and agents write and edit pages. An agent can search them with <code>passages</code>, which returns the section, file and
    line to cite, and whether a person has reviewed it.</li>
-<li><code>bowerbird-mcp seal check=true</code> lists the pages without a review of their current text. It changes nothing and exits 1 on findings:</li>
-</ol>
-<pre class="highlight"><code class="language-text">$ bowerbird-mcp seal check=true
-files_checked: 16, total: 12
-unsigned  contributing.md
-unsigned  formats/adr.md
-unsigned  formats.md
-...</code></pre>
-<ol>
-<li>A person reads a page and seals it, in the confirmation prompt or at a terminal with <code>--attest</code>. An agent never
-   seals for them.</li>
+<li>
+<p><code>bowerbird-mcp seal check=true</code> lists the pages without a review of their current text (<code>unsigned</code>, or <code>stale_signature</code> when edited since). It changes nothing and exits 1 on findings.</p>
+</li>
+<li>
+<p>A person reads a page and seals it, in the confirmation prompt or at a terminal with <code>--attest</code>. An agent never
+   seals for them.</p>
+</li>
 <li>In CI, <code>bowerbird-mcp seal check=true since=origin/main</code> fails a pull request that changes a page without a review of the new
    version. Any edit after a seal makes it stale (<code>stale_signature</code>), so a reviewed page cannot change silently.</li>
 <li>The generator builds the site.</li>
 </ol>
-<p>Renaming a page with <code>move</code> keeps its seal when its text does not change (Markdown and ADR folders; AsciiDoc does not
-offer <code>move</code>).</p>
+<p>Renaming a page with <code>move</code> keeps its seal when its text does not change (Markdown and ADR folders; AsciiDoc has no <code>move</code>).</p>
 <h3 id="showing-the-review-on-the-page">Showing the review on the page<a class="headerlink" href="#showing-the-review-on-the-page" title="Link to this section">#</a></h3>
 <p>A badge that says who reviewed a page cannot live in the page: the seal covers its exact bytes, so writing the reviewer's name
 into the file would break it. Keep one constant line in the source instead, and let the build fill it in from
 <code>.waxseals.yaml</code>:</p>
 <pre class="highlight"><code class="language-text">&lt;!-- seal-banner: Written with Claude Opus 5.5 and Claude Sonnet 5.5. --&gt;</code></pre>
 <p>This site does it with a MkDocs hook, <code>hooks/seal_banner.py</code>. At build time it hashes the page and looks the hash up in the
-ledger, then renders one of four badges:</p>
+ledger, then renders one of four badges (see also <a href="../../badges/">Status badges</a>):</p>
 <ul>
-<li><strong>Reviewed:</strong> "AI Generated, Human Reviewed at: <em>date-time</em>", when a person's seal matches this exact text.</li>
+<li><strong>Reviewed:</strong> "AI Generated, Human Reviewed at: <em>date-time</em>", when a person's seal matches this exact text (with several signers, it names them).</li>
 <li><strong>Edited since its last human review:</strong> the page has a seal, but the text has changed since.</li>
 <li><strong>Not yet human reviewed:</strong> no person has sealed it.</li>
-<li><strong>Derived from the code:</strong> the page is built from the code (the tool list, from its docstrings), so <code>seal.exempt</code> leaves it out and it needs no review.</li>
+<li><strong>Derived from the code:</strong> a generator recorded these exact bytes in the ledger (<code>derived: &lt;generator&gt;</code>, as <code>docs_tools.py</code> does for the tool list), so it needs no review. <code>seal.exempt</code> only leaves a page out of <code>seal check</code>; it does not make the badge.</li>
 </ul>
 <p>The badge is built from the ledger, so it cannot go stale and the source never changes. A page that includes text from
 elsewhere (as the Guide includes the README) is marked as not covered for that text.</p>

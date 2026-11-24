@@ -1,6 +1,6 @@
 ---
 status: accepted
-status-note: accepted by dfoulks on 2026-11-23, in the seal dialog
+status-note: accepted by dfoulks on 2026-11-24, in the seal dialog
 owner: dfoulks
 kind: architecture
 built: partial
@@ -10,7 +10,7 @@ supersedes: nothing
 amends: nothing
 consulted: "Claude Sonnet 5.5 (drafting)"
 ratified-by: dfoulks
-ratified-on: "2026-11-23"
+ratified-on: "2026-11-24"
 ---
 # ADR-005 — The optional parts of sealing are the seal-extensions add-on
 
@@ -62,6 +62,7 @@ Drivers:
 - 2026-11-23: drafted from the owner's words: "the seal-extensions are an addon so they go in addons/seal-extensions". Several signers and the quorum moved; the rest is to build.
 - 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's words; awaiting ratification"`.
 - 2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.
+- 2026-11-24: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: accepted`, `status-note: "accepted by dfoulks on 2026-11-23, in the seal dialog"`.
 
 ## Amendment — 2026-11-23, dfoulks (at the owner's request): one package
 

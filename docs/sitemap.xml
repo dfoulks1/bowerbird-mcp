@@ -2,70 +2,118 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://bowerbird.voltpop.com/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/agents/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/badges/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/cli/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/contributing/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/fact-pack/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/facts/</loc>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/formats/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/getting-started/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/guide/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/sealing/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/serve/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/tools/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/troubleshooting/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/decisions/ADR-001-fact-kinds-core-and-pack/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/decisions/ADR-002-format-plugins/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/decisions/ADR-003-fact-block-grammar/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/decisions/ADR-004-okf-records-in-shared-files/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/decisions/ADR-005-seal-extensions-addon/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/decisions/INDEX/</loc>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/formats/adr/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/formats/asciidoc/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/dendron/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/foam/</loc>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/logseq/</loc>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/formats/markdown/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
+    </url>
+    <url>
+         <loc>https://bowerbird.voltpop.com/formats/obsidian/</loc>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/formats/okf/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
     <url>
          <loc>https://bowerbird.voltpop.com/formats/skos/</loc>
-         <lastmod>2026-11-20</lastmod>
+         <lastmod>2026-11-24</lastmod>
     </url>
 </urlset>

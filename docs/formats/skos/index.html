@@ -90,6 +90,26 @@
                        href="../asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -190,7 +268,22 @@
             <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#skos">SKOS</a>
+      <a class="nav-link py-1 px-0" href="#switch-it-on">Switch it on</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#what-it-reads">What it reads</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#reviews-and-lint">Reviews and lint</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#limits">Limits</a>
       
     </li>
   
@@ -208,13 +301,22 @@
           </nav>
         
         <article><h1 id="skos">SKOS<a class="headerlink" href="#skos" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:34Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:30:50Z</p>
 
 <p><strong>Use it when</strong> you keep a controlled vocabulary: a glossary, a taxonomy, a thesaurus. SKOS is the W3C standard for
 that, written as RDF (Turtle, RDF/XML, JSON-LD, N-Triples or N3).</p>
+<h2 id="switch-it-on">Switch it on<a class="headerlink" href="#switch-it-on" title="Link to this section">#</a></h2>
+<p>SKOS needs the <code>rdflib</code> library, which is the <code>skos</code> extra: <code>pip install 'bowerbird-mcp[skos]'</code>. With <code>uvx</code>, ask for the extra in the client config: <code>"--from", "bowerbird-mcp[skos]&gt;=2,&lt;3"</code>
+(the <code>.mcp.json</code> that <code>create</code> writes does not include it yet).</p>
 <pre class="highlight"><code class="language-text">glossary/
   bower.yaml             format: skos
-  glossary.ttl</code></pre>
+  glossary.ttl
+  .waxseals.yaml         appears when someone seals the file (commit it)</code></pre>
+<pre class="highlight"><code class="language-yaml"># bower.yaml
+format: skos
+about: Infrastructure glossary.</code></pre>
+<h2 id="what-it-reads">What it reads<a class="headerlink" href="#what-it-reads" title="Link to this section">#</a></h2>
+<p>The files <code>*.ttl</code>, <code>*.rdf</code>, <code>*.jsonld</code>, <code>*.nt</code> and <code>*.n3</code>.</p>
 <pre class="highlight"><code class="language-turtle">@prefix : &lt;http://example.org/glossary/&gt; .
 @prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
 @prefix dct: &lt;http://purl.org/dc/terms/&gt; .
@@ -232,9 +334,15 @@ that, written as RDF (Turtle, RDF/XML, JSON-LD, N-Triples or N3).</p>
 neighbouring concepts, so a search for the alternate label finds it:</p>
 <pre class="highlight"><code class="language-text">file: glossary.ttl, line: 11, heading: Infrastructure glossary &gt; Service &gt; Queue, type: skos, tier: unverified
 text: Also: message queue / Definition: A buffer that decouples a producer from a consumer. / Broader: Service</code></pre>
-<p>SKOS needs the <code>rdflib</code> library. With <code>uvx</code>, ask for the extra in the client config: <code>"--from", "bowerbird-mcp[skos]&gt;=2,&lt;3"</code>
-(the <code>.mcp.json</code> that <code>create</code> writes does not include it yet). A SKOS file is sealed as a whole, not per concept, and
-links between concepts do not count towards ranking.</p></article>
+<h2 id="reviews-and-lint">Reviews and lint<a class="headerlink" href="#reviews-and-lint" title="Link to this section">#</a></h2>
+<p>A SKOS file is sealed as a whole, not per concept, in a <code>.waxseals.yaml</code> in the file's folder (see <a href="../../sealing/">Sealing</a>). A server offers <code>passages</code>, <code>reindex</code> and <code>seal</code>: there is no
+<code>lint</code> or <code>fact</code> for SKOS, and <code>[[wikilinks]]</code> are not read.</p>
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Link to this section">#</a></h2>
+<ul>
+<li>Links between concepts do not count towards ranking, so <code>links</code> is always 0 and <code>hubs</code> has nothing to rank.</li>
+<li>A review covers the whole file, so one edited concept makes every concept in it stale.</li>
+<li>Only <code>passages</code> reads SKOS files. <code>get</code>, <code>list</code>, <code>status</code> and <code>search</code> are Markdown tools: at the command line they see no SKOS concept, and a server does not offer them here.</li>
+</ul></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">

@@ -1,5 +1,7 @@
 # .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
 # an edit breaks them, git has the earlier ones. Commit it.
+- {file: ADR-001-fact-kinds-core-and-pack.md, sha256: 18b629aca709f520967b74dee5506f7add0260048377d96c45759e6ad961315f, by: 'human:dfoulks', at: '2026-11-24T00:27:42Z', bowerbird: 2.3.0, decision: accepted}
+- {file: ADR-002-format-plugins.md, sha256: 3b582b342a6cb2d52596b72db0b8d54bfe571abcfa4f1b4a5b461a6c92a2ae7a, by: 'human:dfoulks', at: '2026-11-24T00:27:53Z', bowerbird: 2.3.0, decision: accepted}
 - {file: ADR-003-fact-block-grammar.md, sha256: 91bc46b47c8586a7d8fc1117899974022aa395bbb63a0cc09bb3c48fc178c8a6, by: 'human:dfoulks', at: '2026-11-23T17:09:54Z', bowerbird: 2.2.0, decision: accepted}
-- {file: ADR-004-okf-records-in-shared-files.md, sha256: ade5be7f7d881e3fc1c1b893e0b0b9ff04b3629531cb6b053817c54ee90089cc, by: 'human:dfoulks', at: '2026-11-23T17:52:30Z', bowerbird: 2.2.0, decision: accepted}
-- {file: ADR-005-seal-extensions-addon.md, sha256: 16a839cf275cf9a98aba23ba2c9c0186708b0cca5e2a335bf9773f8c8acb7d65, by: 'human:dfoulks', at: '2026-11-23T17:33:07Z', bowerbird: 2.2.0, decision: accepted, comment: who may break what is irrelevant. the signal is for humans. there are 5 signals here.}
+- {file: ADR-004-okf-records-in-shared-files.md, sha256: fe51261c408b9c0bae6f55d052b528d61c2ceeeeb465373196b7904338e309e3, by: 'human:dfoulks', at: '2026-11-23T23:31:06Z', bowerbird: 2.2.0, decision: accepted}
+- {file: ADR-005-seal-extensions-addon.md, sha256: a7a6a572be444b16319bf09973024e89108e40fb3ecc7e60bf58c68a13ac1fc0, by: 'human:dfoulks', at: '2026-11-24T00:28:17Z', bowerbird: 2.3.0, decision: accepted}

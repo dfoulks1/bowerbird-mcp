@@ -90,6 +90,26 @@
                        href="formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -221,11 +299,13 @@
 <li><strong>ADR</strong>: decision records (ADR or MADR), with each record's status.</li>
 <li><strong>OKF</strong>: knowledge that says where it came from, who checked it and when it expires, with the full toolset.</li>
 <li><strong>SKOS</strong>: glossaries, vocabularies and thesauri.</li>
+<li><strong>AsciiDoc</strong>: manuals and guides written in AsciiDoc.</li>
+<li><strong>Obsidian, Foam, Dendron, Logseq</strong>: notes that live in one of those tools, read by its own rules for links and names. Each is an add-on (<code>bowerbird-mcp[obsidian]</code> and so on).</li>
 <li><strong>Seal-only</strong>: code and other files, with nothing searched: just a guaranteed human review of each one.</li>
 </ul>
 <p><a href="formats/">Formats</a> shows what each one looks like, side by side.</p>
 <p>Use whatever type is right for you: plain Markdown needs no header and no conversion, ADR reads decision records, OKF adds
-sources and trust, SKOS holds vocabularies, and seal-only does no searching at all, just a guaranteed human review of each
+sources and trust, SKOS holds vocabularies, AsciiDoc reads manuals, the add-ons read your note-taking tool's own files, and seal-only does no searching at all, just a guaranteed human review of each
 file you name.</p>
 <h2 id="quickstart">Quickstart<a class="headerlink" href="#quickstart" title="Link to this section">#</a></h2>
 <p>Nothing to clone. <a href="https://docs.astral.sh/uv/">uv</a> installs it from PyPI, with its dependencies, on the fly:</p>
@@ -243,7 +323,7 @@ file you name.</p>
 }</code></pre>
 <p>Or work from the terminal, no AI needed. In any folder, with the format that fits what you keep (Markdown here, as an example):</p>
 <pre class="highlight"><code class="language-sh"># make it a collection: settings files only, your files are not touched
-# holds= is markdown, adr, okf, skos or seal-only
+# holds= is markdown, adr, okf, skos, asciidoc or seal-only
 uvx bowerbird-mcp create holds=markdown about="Team notes." apply=true
 
 # ask a question: the best sections, each with the file and line to cite

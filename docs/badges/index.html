@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -223,7 +301,7 @@
           </nav>
         
         <article><h1 id="status-badges">Status badges<a class="headerlink" href="#status-badges" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:23:26Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:25:31Z</p>
 
 <p>A status badge says, at a glance, whether a person has reviewed something and whether it still holds. Bowerbird already keeps the
 facts a badge needs: <code>.waxseals.yaml</code> (who reviewed which version of a file) and <code>.facts.yaml</code> (the last check of each
@@ -255,7 +333,7 @@ files, at the time you build or run a command.</p>
 </tr>
 <tr>
 <td>derived from the code</td>
-<td>a generator recorded these exact bytes in the ledger (<code>derived: &lt;generator&gt;</code>), or the folder holding the file</td>
+<td>a generator recorded these exact bytes in the ledger (<code>derived: &lt;generator&gt;</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -264,7 +342,11 @@ files, at the time you build or run a command.</p>
 hook, so both are yours to change. The hook is listed under <code>hooks:</code> in <code>mkdocs.yml</code>. It reads only <code>.waxseals.yaml</code>, so commit that file; a
 page the generator has not recorded, or that was edited since, is not badged as derived.</p>
 <p><strong>Fact blocks</strong> are drawn by the same hook as a quotation with a <code>fact-badge</code> (<code>data-state="unchecked|checked|drifted"</code>) that says
-when it was last checked and how. It reads the <code>.facts.yaml</code> beside the page, so commit that file.</p>
+when it was last checked and how. It reads the <code>.facts.yaml</code> beside the page, so commit that file. The badge is a link: it goes to the page's <strong>bibliography</strong>, a
+<code>&lt;section class="fact-bib"&gt;</code> the hook adds at the bottom of the page, with an entry (<code>id="fact-1"</code>, <code>fact-2</code>, ...) for each block: its kind, source, state, line and claim. A page with no fact blocks gets none.
+A page sealed by several people says so: <code>AI Generated, Human Reviewed at: &lt;date&gt; by ann, bo</code>.</p>
+<p><code>bowerbird_facts.render(markdown, folder, name)</code> returns the page with its badges and the entries as data, and <code>bowerbird_facts.bibliography(entries)</code> the HTML. They are what the hook and
+<a href="../serve/"><code>serve</code></a> both call, so a script for another site generator can use them too.</p>
 <h2 id="in-another-site-generator">In another site generator<a class="headerlink" href="#in-another-site-generator" title="Link to this section">#</a></h2>
 <p>Ask Bowerbird for each file's state and draw whatever you like. For Markdown, ADR and OKF files, <code>list</code> gives one record per file:</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp list -O json limit=0
@@ -297,7 +379,7 @@ json.dump({"schemaVersion": 1, "label": "human reviewed", "message": f"{total - 
 <p>For facts, count the <code>status</code> values in <code>factcheck -O json</code> the same way, for a badge such as <code>facts: 4 checked, 1 drifted</code>.</p>
 <h2 id="what-a-badge-does-not-say">What a badge does not say<a class="headerlink" href="#what-a-badge-does-not-say" title="Link to this section">#</a></h2>
 <ul>
-<li>A badge shows the state <strong>when it was made</strong>. A fact's state changes only when someone runs <code>factcheck --fetch</code>, so a badge is as
+<li>A badge shows the state <strong>when it was made</strong>. A fact's state changes only when someone runs a check (<code>factcheck --fetch</code>, or <code>factcheck id=</code>), so a badge is as
   fresh as the last run.</li>
 <li><em>Reviewed</em> means a person reviewed that exact version, not that it is correct. <em>Checked</em> means the source still says what the block
   says, not that the source is right.</li>

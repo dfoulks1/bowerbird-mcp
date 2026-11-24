@@ -1,8 +1,8 @@
 ---
 status: accepted
-status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"
+status-note: accepted by dfoulks on 2026-11-24, in the seal dialog
 ratified-by: dfoulks
-ratified-on: "2026-11-23"
+ratified-on: "2026-11-24"
 owner: dfoulks
 kind: architecture
 built: partial
@@ -86,6 +86,7 @@ Drivers:
 
 - 2026-11-23: amended, at the owner's request (see the section below); the ruled text is unchanged. Earlier header values, word for word: `built: not started`, `proof: "queued in TODO.md (2.3 and Later, the wikilink family)"`.
 - 2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.
+- 2026-11-24: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: accepted`, `status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"`.
 
 ## Amendment — 2026-11-23, dfoulks (at the owner's request)
 

@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -245,11 +323,11 @@
 <a href="https://www.apache.org/legal/generative-tooling.html">ASF generative-tooling guidelines</a>. AI assists; a human reviews before
 anything public-facing ships.</p>
 <h2 id="feedback">Feedback<a class="headerlink" href="#feedback" title="Link to this section">#</a></h2>
-<p>Bugs, ideas and OKF edge cases: <a href="https://github.com/dfoulks1/bowerbird-mcp/issues">GitHub Issues</a>. Doc fixes are welcome too.
+<p>Bugs, ideas and OKF edge cases: <a href="https://github.com/dfoulks1/bowerbird-mcp/issues">GitHub Issues</a>, or write to dfoulks@voltpop.com. Doc fixes are welcome too.
 Security problems: see <a href="https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md">SECURITY.md</a>, and please do not open a public issue for them.</p>
 <h2 id="what-it-serves">What it serves<a class="headerlink" href="#what-it-serves" title="Link to this section">#</a></h2>
 <p>A folder of files in one of six formats: bundles in the <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/bad9bdbafa82c672b00d437d4f2cc8f17e9e5f58/okf/SPEC.md">Open Knowledge Format</a> (OKF), Markdown, ADR records, SKOS
-thesauri, AsciiDoc, or any text files you name (seal-only). Search and the human-review <code>seal</code> work across all of them;
+thesauri, AsciiDoc, or any text files you name (seal-only); Obsidian, Foam, Dendron and Logseq folders too, through add-ons. Search and the human-review <code>seal</code> work across all of them;
 the full toolset is OKF's. Everything a tool does is also doable by hand (edit the file, run <code>lint</code>). The tools make it
 cheaper and more consistent, not possible.</p>
 <h2 id="how-we-build">How we build<a class="headerlink" href="#how-we-build" title="Link to this section">#</a></h2>
@@ -276,21 +354,20 @@ tools' docstrings produce, that <code>docs/</code> is a fresh build of <code>doc
 changes nothing in the working tree and stops at the first failure.</p>
 <h2 id="releasing">Releasing<a class="headerlink" href="#releasing" title="Link to this section">#</a></h2>
 <ol>
-<li>Set <code>version</code> in <code>pyproject.toml</code> and <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), run <code>uv lock</code> (the
+<li>Set <code>version</code> in <code>pyproject.toml</code>, <code>VERSION</code> in <code>bowerbird_mcp.py</code> (a test checks they agree), run <code>uv lock</code> (the
    lockfile records the version), and add a section to <code>CHANGELOG.md</code>. For a new major version, also change the pin <code>create</code>
    writes into <code>.mcp.json</code> (<code>MCP_JSON</code> in <code>bowerbird_mcp.py</code>) and the <code>bowerbird-mcp[skos]&gt;=N,&lt;N+1</code> example in
    <code>docs-src/formats/skos.md</code>. Then run <code>tools/QA.sh</code>.</li>
 <li>Seal the pages a person has reviewed, rebuild the docs site (below) and commit. Merge to <code>main</code>.</li>
-<li>Tag and publish a GitHub release, <code>git tag -a vX.Y.Z</code> then <code>gh release create vX.Y.Z</code>, with the
-   <code>CHANGELOG.md</code> section as the notes. This only creates the release: nothing publishes automatically.</li>
-<li>Publish to PyPI by hand, from the tag, after the checks above pass:</li>
+<li>Tag the merge commit on <code>main</code>, <code>git tag -a vX.Y.Z</code>, and push the tag. No GitHub release is cut unless the owner asks: the tag and the <code>CHANGELOG.md</code> section are the record.</li>
+<li>Publish to PyPI by hand, from the tag, after the checks above pass. One package, <code>bowerbird-mcp</code>: the six add-ons are modules in its wheel.</li>
 </ol>
-<pre class="highlight"><code class="language-sh">git checkout vX.Y.Z &amp;&amp; uv build &amp;&amp; uvx twine check dist/* &amp;&amp; uv publish
+<pre class="highlight"><code class="language-sh">git checkout vX.Y.Z &amp;&amp; uv build &amp;&amp; uvx twine check dist/bowerbird_mcp-X.Y.Z* &amp;&amp; uvx twine upload dist/bowerbird_mcp-X.Y.Z*
 git checkout main</code></pre>
-<p><code>uv publish</code> asks for credentials: the username <code>__token__</code> and a project-scoped PyPI API token as the
-   password (or set <code>UV_PUBLISH_TOKEN</code>). Keep the token out of the repository and the shell history. PyPI never
+<p>Never upload <code>dist/*</code>. <code>twine</code> asks for credentials: the username <code>__token__</code> and a project-scoped PyPI API token as the
+   password (or set <code>TWINE_PASSWORD</code>). Keep the token out of the repository and the shell history. PyPI never
    accepts the same version twice, so a mistake means a new version. To try it first,
-   <code>uv publish --publish-url https://test.pypi.org/legacy/</code> uploads to TestPyPI.</p>
+   add <code>--repository testpypi</code> to the upload.</p>
 <h2 id="docs-site">Docs site<a class="headerlink" href="#docs-site" title="Link to this section">#</a></h2>
 <p><code>docs-src/</code> is the source and <code>docs/</code> the built site, committed so GitHub Pages
 serves it from <code>main</code> <code>/docs</code>. No CI builds it. After changing the README, a

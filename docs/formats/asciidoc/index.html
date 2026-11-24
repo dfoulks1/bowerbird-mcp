@@ -90,6 +90,26 @@
                        href="./">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -190,7 +268,22 @@
             <ul class="nav flex-column docs-toc-list">
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#asciidoc">AsciiDoc</a>
+      <a class="nav-link py-1 px-0" href="#switch-it-on">Switch it on</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#what-it-reads">What it reads</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#reviews-and-lint">Reviews and lint</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#limits">Limits</a>
       
     </li>
   
@@ -208,14 +301,21 @@
           </nav>
         
         <article><h1 id="asciidoc">AsciiDoc<a class="headerlink" href="#asciidoc" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:12Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:30:10Z</p>
 
 <p><strong>Use it when</strong> your docs are written in AsciiDoc (manuals, guides, books) and you want to ask questions of them and
 know which a person has checked.</p>
+<h2 id="switch-it-on">Switch it on<a class="headerlink" href="#switch-it-on" title="Link to this section">#</a></h2>
 <pre class="highlight"><code class="language-text">manual/
   bower.yaml             format: asciidoc
   rollback.adoc
-  deploy.adoc</code></pre>
+  deploy.adoc
+  .waxseals.yaml         appears when someone seals a file (commit it)</code></pre>
+<pre class="highlight"><code class="language-yaml"># bower.yaml
+format: asciidoc
+about: The operations manual.</code></pre>
+<h2 id="what-it-reads">What it reads<a class="headerlink" href="#what-it-reads" title="Link to this section">#</a></h2>
+<p>The files <code>*.adoc</code> and <code>*.asciidoc</code>.</p>
 <pre class="highlight"><code class="language-asciidoc">= Rollback runbook
 :tags: ops, deploy
 :status: stable
@@ -232,8 +332,17 @@ the file's metadata (<code>tags</code>, <code>status</code>, <code>description</
 the same thing.</p>
 <pre class="highlight"><code class="language-text">file: rollback.adoc, line: 8, heading: Rollback runbook &gt; Steps, type: asciidoc, status: stable, tier: unverified
 text: Run the rollback script, then check the dashboards. / See xref:deploy.adoc[the deploy guide].</code></pre>
-<p>Links written as <code>xref:</code>, <code>link:</code> or <code>&lt;&lt;file.adoc#id&gt;&gt;</code> count towards ranking. <code>include::</code> lines are not followed, so a
-passage holds the file's own text. A file is sealed as a whole, in <code>.waxseals.yaml</code>.</p></article>
+<p>Links written as <code>xref:</code>, <code>link:</code> or <code>&lt;&lt;file.adoc#id&gt;&gt;</code> count towards ranking (<code>links</code> on <code>deploy.adoc</code> is 1 here).</p>
+<h2 id="reviews-and-lint">Reviews and lint<a class="headerlink" href="#reviews-and-lint" title="Link to this section">#</a></h2>
+<p>A file is sealed as a whole, in a <code>.waxseals.yaml</code> in the file's folder (see <a href="../../sealing/">Sealing</a>). A server offers <code>passages</code>, <code>reindex</code>, <code>seal</code> and <code>heatmap</code> (who edits what, from git history).
+There is no <code>lint</code> or <code>fact</code> for AsciiDoc, and <code>[[wikilinks]]</code> are not read (in AsciiDoc, <code>[[x]]</code> is an anchor).</p>
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Link to this section">#</a></h2>
+<ul>
+<li><code>include::</code> lines are not followed, so a passage holds the file's own text.</li>
+<li>A link to a file that is not <code>.adoc</code> or <code>.asciidoc</code> is not a link here.</li>
+<li>A server does not offer <code>get</code>, <code>list</code>, <code>status</code>, <code>links</code>, <code>search</code> or <code>move</code>; those are Markdown tools.</li>
+<li>A review covers the file's own text, not what it includes.</li>
+</ul></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
@@ -241,7 +350,7 @@ passage holds the file's own text. A file is sealed as a whole, in <code>.waxsea
               <a class="btn btn-outline-secondary" href="../skos/">&larr; SKOS</a>
             
             
-              <a class="btn btn-outline-secondary" href="../../sealing/">Sealing &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../obsidian/">Obsidian &rarr;</a>
             
           </div>
         

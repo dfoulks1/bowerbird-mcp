@@ -90,7 +90,43 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
             </li>
           
         
@@ -99,6 +135,48 @@
               <a class="nav-link active"
                  aria-current="page"
                  href="./">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -205,7 +283,7 @@
     </li>
   
     <li class="nav-item">
-      <a class="nav-link py-1 px-0" href="#several-signers-and-a-quorum-the-seal-extensions-extra">Several signers and a quorum (the seal-extensions extra)</a>
+      <a class="nav-link py-1 px-0" href="#several-signers-and-a-quorum-the-seal-extensions-add-on">Several signers and a quorum (the seal-extensions add-on)</a>
       
     </li>
   
@@ -263,14 +341,14 @@
           </nav>
         
         <article><h1 id="sealing">Sealing<a class="headerlink" href="#sealing" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:24:36Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:26:55Z</p>
 
 <p>A seal is a person's review of one exact version of a file. It is how Bowerbird guarantees a human was in the loop: for stored
 knowledge (a note, a concept, a page) and for decisions (an ADR). One function, <code>seal</code>, does it in every <a href="../formats/">format</a>.</p>
 <h2 id="how-a-seal-works">How a seal works<a class="headerlink" href="#how-a-seal-works" title="Link to this section">#</a></h2>
 <p><code>seal</code> shows the person the file in a prompt, asks for their id, and records who reviewed it and when. The record is bound to
-the sha256 of the file's exact bytes (line endings normalized; for OKF, without the <code>verified</code> key, which the review itself
-writes). Edit the file afterwards and the hash no longer matches: the seal is broken, and a hit for that file shows
+the sha256 of the file's exact bytes (line endings normalized; for OKF in frontmatter mode, without the <code>verified</code> key, which the review itself
+writes; with <code>okf: {records: files}</code> the review is in the ledger and the file is left as it is). Edit the file afterwards and the hash no longer matches: the seal is broken, and a hit for that file shows
 <code>unverified</code> and <code>stale</code>. Only a new review makes a new seal.</p>
 <p>Like a wax seal, it proves the document was not changed after it was closed. It does not prove the reviewer read it all.</p>
 <h2 id="who-can-seal">Who can seal<a class="headerlink" href="#who-can-seal" title="Link to this section">#</a></h2>
@@ -294,19 +372,22 @@ function.</p>
 <tbody>
 <tr>
 <td>OKF</td>
-<td>the concept's own frontmatter, as <code>verified: {by, at, sha256}</code></td>
+<td>the concept's own frontmatter, as <code>verified: {by, at, sha256}</code>; or, with <code>okf: {records: files}</code>, a <code>.waxseals.yaml</code> like every other format (see <a href="../formats/okf/">OKF</a>)</td>
 </tr>
 <tr>
 <td>Markdown, ADR, SKOS, AsciiDoc, Seal-only</td>
-<td><code>.waxseals.yaml</code> at the collection root (commit it). The file itself is never edited</td>
+<td>a <code>.waxseals.yaml</code> in the file's own folder (commit it). The file itself is never edited</td>
 </tr>
 </tbody>
 </table>
 <pre class="highlight"><code class="language-yaml"># .waxseals.yaml: the latest review of each file (`seal`); an edit breaks it, git has the earlier ones. Commit it.
 - {file: config/limits.yaml, sha256: 3b1f…, by: 'human:you', at: '2026-11-16T15:02:10Z', bowerbird: 2.0.0}
 - {file: src/app.py, sha256: ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772, by: 'human:you', at: '2026-11-16T15:01:31Z', bowerbird: 2.0.0}</code></pre>
-<p>There is one <code>.waxseals.yaml</code>, at the collection root beside <code>bower.yaml</code>, with one dense line per file (its path from that
-root). <strong>Only the latest seal is kept</strong>: sealing a file again replaces its line. That is deliberate. When an edit breaks a
+<p>A ledger sits beside the files it covers, with one dense line per file (its name from that folder, so a folder keeps its seals when it moves). Sealing
+<code>docs/adr/0001.md</code> writes <code>docs/adr/.waxseals.yaml</code>, making it if the folder has none. A ledger at the collection root, from before 2.3, is still read:
+it covers any file with no line in a nearer ledger, and each file's line leaves it when that file is sealed again. <code>seal check</code> and <code>serve</code> merge every
+ledger; where two name the same file, the nearest wins. <code>move</code> carries a seal into the ledger of the file's new folder.
+<strong>Only the latest seal is kept</strong>: sealing a file again replaces its line. That is deliberate. When an edit breaks a
 seal, the line still names the version a person reviewed, and git shows what has changed since; the earlier reviews are in
 the file's history. <code>bowerbird</code> is the version of Bowerbird that wrote the line, so a review can be traced to the tool that recorded it.</p>
 <p><strong>A seal can carry a comment.</strong> <code>seal</code> takes <code>comment</code>, a one-line note kept with the review: <code>seal src/app.py --attest --comment "checked
@@ -316,25 +397,31 @@ setting and no extra.</p>
 <p>Because the file is untouched, Nygard ADRs, MADR, thesauri and AsciiDoc all work as they are. Reviews are not converted when
 you <a href="../formats/#changing-your-mind">change format</a> on their own; after a switch the files may need sealing again, or <code>okf export</code> and
 <code>okf import</code> carry an OKF concept's reviews and sources between its frontmatter and the ledgers (see <a href="../cli/#moving-an-okf-concepts-history-okf-export-and-okf-import">the command line</a>).</p>
-<h2 id="several-signers-and-a-quorum-the-seal-extensions-extra">Several signers and a quorum (the <code>seal-extensions</code> extra)<a class="headerlink" href="#several-signers-and-a-quorum-the-seal-extensions-extra" title="Link to this section">#</a></h2>
+<h2 id="several-signers-and-a-quorum-the-seal-extensions-add-on">Several signers and a quorum (the <code>seal-extensions</code> add-on)<a class="headerlink" href="#several-signers-and-a-quorum-the-seal-extensions-add-on" title="Link to this section">#</a></h2>
 <p>By default a version of a file has one review: the latest. Where a change should be reviewed by more than one person, switch the seal
 extensions on in the root <code>bower.yaml</code>:</p>
 <pre class="highlight"><code class="language-yaml">seal: {extensions: true, quorum: 2}</code></pre>
 <ul>
 <li><strong><code>extensions: true</code></strong> lets different people seal the same version of a file. Their seals are kept together on the file's one ledger
   line, each with its own date, version of Bowerbird and comment:
-  <pre class="highlight"><code class="language-yaml">- {file: docs/limits.md, sha256: 3b1f…, seals: [{by: 'human:ann', at: '2026-11-20T10:02:10Z', bowerbird: 2.2.0, comment: "limits match the runbook"}, {by: 'human:bo', at: '2026-11-20T11:40:03Z', bowerbird: 2.2.0}]}</code></pre>
-  The same person sealing again replaces their own seal. An edit ends every seal of the old version; the next seal starts the list again.</li>
+  <pre class="highlight"><code class="language-yaml">- {file: docs/limits.md, sha256: 3b1f…, quorum: 2, seals: [{by: 'human:ann', at: '2026-11-20T10:02:10Z', bowerbird: 2.3.0, comment: "limits match the runbook"}, {by: 'human:bo', at: '2026-11-20T11:40:03Z', bowerbird: 2.3.0}]}</code></pre>
+  The same person sealing again replaces their own seal. An edit ends every seal of the old version; the next seal starts the list again. The line says how many it wants
+  (<code>quorum: 2</code>), so a badge on a built page can say who signed and how many are needed (<code>Human Reviewed ... by ann, bo (2 of 2 needed)</code>) without reading the policy.</li>
 <li><strong><code>quorum: N</code></strong> (2 or more needs <code>extensions: true</code>) is how many <em>different people</em> a version needs. Until it has them, <code>seal check</code>
   reports <code>short_of_quorum</code> (<code>1 of 2 human reviews of this version</code>) and the file's tier is <code>unverified</code>, not <code>human-reviewed</code>. A machine
   check (<code>by=&lt;tool&gt;</code>) is never counted as a person.</li>
+<li><strong><code>count: true</code></strong> (needs <code>extensions: true</code>) counts the different people who hold a file's current version as its <strong>importance</strong>: each seal is a person who judged the file worth their review, so
+  the count is earned, not guessed. <strong>It is a human signal</strong>: a machine check (<code>by=&lt;tool&gt;</code>) or a generator's <code>derived</code> line is never counted, however many there are. <code>list</code> and <code>passages</code> show it (<code>seals: 2</code>), a search ranks a file a little higher for each (the way it does for each link to it), and <code>seal check</code> lists the
+  <code>most_sealed</code>. Only live seals count: an edit ends them, so a changed file drops to 0. Off, none of this appears.</li>
 <li>A folder can set its own, since <code>seal</code> is one of the keys a <a href="../formats/">bower</a> may override.</li>
-<li><strong>The extra</strong> is called <code>seal-extensions</code>. It has no dependency: <code>uv tool install 'bowerbird-mcp[seal-extensions]'</code> installs nothing
-  more, and the setting is what turns the behaviour on. Without it, seals work as before, one latest review per file, comments included.</li>
+<li><strong>The add-on</strong> is called <code>seal-extensions</code>. It ships in the one <code>bowerbird-mcp</code> package (<code>bowerbird_seal_extensions.py</code>), and <code>uv tool install 'bowerbird-mcp[seal-extensions]'</code> adds nothing more. The
+  setting is what turns the behaviour on. With the setting off, seals work as before, one latest review per file, comments included. If the add-on cannot load (a damaged install), a collection that sets <code>extensions: true</code> is told so
+  rather than quietly losing seals (a write that would keep only the last seal is refused).</li>
 <li>Turn it off again and the ledger still reads: the latest seal of each line counts.</li>
+<li>The optional parts of sealing live here, so they stay out of core: several signers and a quorum today, and the rest of the optional features (seal count, tally, break on purpose) as they are built.</li>
 </ul>
 <h2 id="decisions">Decisions<a class="headerlink" href="#decisions" title="Link to this section">#</a></h2>
-<p>For an ADR, <code>decision=accepted</code> or <code>decision=rejected</code> goes into the ledger with the review and becomes the hit's <code>status</code>:</p>
+<p>A person sealing an ADR or MADR must say what they decided: <code>decision=accepted</code> or <code>decision=rejected</code> (the <code>serve</code> dialog requires the choice). It goes into the ledger with the review and is written into the file as its <code>status</code> before the seal, so the file, the ledger and any index agree. A record with the ADR+ header (<code>kind</code> or <code>built</code>) also gets <code>status-note</code>, <code>ratified-by</code>, <code>ratified-on</code> and a History line holding the old values. A machine's seal (<code>by=</code>) does not rule:</p>
 <pre class="highlight"><code class="language-sh">bowerbird-mcp ratify docs/adr/0001-use-a-managed-queue.md decision=accepted --attest</code></pre>
 <p>A record that writes "Accepted" has only said so about itself. In <code>bowerbird-mcp status</code> and <code>bowerbird-mcp list</code> a decision record is
 <strong>accepted</strong> only once a person has sealed it, and <strong>proposed</strong> until then. Superseded, rejected and deprecated are final. See
@@ -357,6 +444,10 @@ extensions on in the root <code>bower.yaml</code>:</p>
 <tr>
 <td><code>stale_signature</code></td>
 <td>it was reviewed, then edited, or a <a href="../formats/okf/#facts-what-a-claim-rests-on-and-drift">fact</a> it rests on drifted after the review</td>
+</tr>
+<tr>
+<td><code>short_of_quorum</code></td>
+<td>fewer different people have sealed this version than <code>seal.quorum</code> asks (needs the <a href="#several-signers-and-a-quorum-the-seal-extensions-add-on">add-on</a>)</td>
 </tr>
 <tr>
 <td><code>claims_accepted</code></td>
@@ -395,7 +486,7 @@ longer matches: it stops being derived, and the next run of the generator record
 Bowerbird can still read the ledger; the <code>derived</code> key is what says it is not a person's review.</p>
 <p>A generated <em>folder</em>, such as the site's output, gets one line for the whole folder, not one per file (<code>mark_derived_dir("docs", "mkdocs")</code>,
 which <code>docs_tools.py</code> calls). A folder has no hash, so it is the location that says so: everything under it is derived (binaries too),
-left out of the check, and badged blue, and nothing is compared per file.</p>
+left out of the check, and badged blue in <code>serve</code> (the MkDocs badge hook matches a ledger line to a page's own path, so a built page under the folder gets no badge), and nothing is compared per file.</p>
 <pre class="highlight"><code class="language-yaml">- {file: docs/, by: 'generator:mkdocs', at: '2026-11-21T09:00:00Z', bowerbird: 2.2.0, derived: mkdocs}
 - {file: docs-src/tools.md, sha256: 5d1c…, by: 'generator:docs_tools.py', at: '2026-11-20T15:02:10Z', bowerbird: 2.2.0, derived: docs_tools.py}</code></pre>
 <h2 id="enforcing-it">Enforcing it<a class="headerlink" href="#enforcing-it" title="Link to this section">#</a></h2>
@@ -437,7 +528,7 @@ line only.</p>
 <h2 id="showing-a-review-on-a-website">Showing a review on a website<a class="headerlink" href="#showing-a-review-on-a-website" title="Link to this section">#</a></h2>
 <p>A badge naming the reviewer cannot be written into the sealed file. The build can fill it in from the ledger instead; see
 <a href="../formats/markdown/#use-case-content-for-a-generated-website">the website use case</a> and <a href="../badges/">Status badges</a>. The MkDocs hook,
-<code>hooks/seal_banner.py</code>, reads only <code>.waxseals.yaml</code>: a person's seal, an edit since, or a generator's <code>derived</code> line. It does not read
+<code>hooks/seal_banner.py</code>, reads only the ledgers (the <code>.waxseals.yaml</code> files, the file's own folder first): a person's seal, an edit since, or a generator's <code>derived</code> line. It does not read
 <code>bower.yaml</code> or apply any glob.</p>
 <h2 id="limits">Limits<a class="headerlink" href="#limits" title="Link to this section">#</a></h2>
 <ul>
@@ -450,10 +541,10 @@ line only.</p>
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">
             
-              <a class="btn btn-outline-secondary" href="../formats/asciidoc/">&larr; AsciiDoc</a>
+              <a class="btn btn-outline-secondary" href="../fact-pack/">&larr; Fact pack</a>
             
             
-              <a class="btn btn-outline-secondary" href="../serve/">Serve &rarr;</a>
+              <a class="btn btn-outline-secondary" href="../decisions/INDEX/">Index &rarr;</a>
             
           </div>
         

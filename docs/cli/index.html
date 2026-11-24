@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -265,7 +343,7 @@
           </nav>
         
         <article><h1 id="command-line">Command line<a class="headerlink" href="#command-line" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:23:32Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:25:39Z</p>
 
 <p>Every tool is also a command: <code>bowerbird-mcp &lt;tool&gt; ...</code> (or <code>uvx bowerbird-mcp</code>, or <code>uv run bowerbird_mcp.py</code> from a
 checkout). The command line has all the tools; an MCP server offers only the ones its <a href="../guide/#roles-a-smaller-tool-list-per-agent">roles</a>
@@ -317,11 +395,37 @@ uv run bowerbird_mcp.py status    # from a checkout of the repo, in its folder</
 </tr>
 <tr>
 <td><code>seal-extensions</code></td>
-<td>nothing</td>
-<td><code>seal: {extensions: true, quorum: 2}</code>: several people seal one version, with a quorum</td>
+<td>nothing, it is in the wheel</td>
+<td><code>seal: {extensions: true, quorum: 2}</code>: several people seal one version, with a quorum; <code>seal: {extensions: true, count: true}</code>: how many people hold a file</td>
+</tr>
+<tr>
+<td><code>fact-pack</code></td>
+<td><code>tomli</code> on Python below 3.11 (the code is in the wheel)</td>
+<td>more kinds of <a href="../facts/">fact</a>: <code>key</code>, <code>git</code>, <code>until</code>, <code>manual</code>, <code>script</code> (<a href="../fact-pack/">the pack</a>)</td>
+</tr>
+<tr>
+<td><code>obsidian</code></td>
+<td>nothing, it is in the wheel</td>
+<td><code>format: obsidian</code>, an <a href="../formats/obsidian/">Obsidian vault</a> (wikilinks, aliases, inline tags)</td>
+</tr>
+<tr>
+<td><code>foam</code></td>
+<td>nothing, it is in the wheel</td>
+<td><code>format: foam</code>, a <a href="../formats/foam/">Foam workspace</a></td>
+</tr>
+<tr>
+<td><code>dendron</code></td>
+<td>nothing, it is in the wheel</td>
+<td><code>format: dendron</code>, a <a href="../formats/dendron/">Dendron workspace</a> (dotted names, hierarchies)</td>
+</tr>
+<tr>
+<td><code>logseq</code></td>
+<td>nothing, it is in the wheel</td>
+<td><code>format: logseq</code>, a <a href="../formats/logseq/">Logseq graph</a> (journals, namespaces)</td>
 </tr>
 </tbody>
 </table>
+<p>An add-on row is one module of the one <code>bowerbird-mcp</code> wheel: the code is always installed, the extra is only the name you ask for, and its own setting turns it on (<code>format: obsidian</code>, <code>seal: {extensions: true}</code>).</p>
 <p>Name one, or several, the same way each time:</p>
 <pre class="highlight"><code class="language-sh">uv tool install 'bowerbird-mcp[serve,semantic]'                   # installed: `bowerbird` now has them (run it again with other extras to add them)
 uvx --from 'bowerbird-mcp[serve,semantic]' bowerbird-mcp status   # no install: name them with --from, and the command after it
@@ -393,15 +497,15 @@ required arguments in order (<code>move a.md b.md</code>); on <code>set</code>, 
 <tbody>
 <tr>
 <td><code>create</code></td>
-<td><code>-p</code> path, <code>-A</code> apply, <code>-m</code> mcp, <code>-e</code> env, <code>-B</code> bundle, <code>-a</code> about, <code>-t</code> holds, <code>-u</code> user</td>
+<td><code>-p</code> path, <code>-A</code> apply, <code>-m</code> mcp, <code>-e</code> env, <code>-f</code> facts, <code>-B</code> bundle, <code>-a</code> about, <code>-t</code> holds, <code>-u</code> user</td>
 </tr>
 <tr>
 <td><code>seal</code></td>
-<td><code>-f</code> file, <code>-b</code> by, <code>-p</code> promote, <code>-d</code> decision, <code>-c</code> check, <code>-s</code> since, <code>-B</code> bundle</td>
+<td><code>-f</code> file, <code>-b</code> by, <code>-p</code> promote, <code>-d</code> decision, <code>-c</code> check, <code>-s</code> since, <code>-C</code> comment, <code>-B</code> bundle</td>
 </tr>
 <tr>
 <td><code>lint</code></td>
-<td><code>-s</code> scope, <code>-l</code> limit, <code>-b</code> baseline, <code>-S</code> since, <code>-a</code> all, <code>-f</code> file, <code>-i</code> ignore, <code>-B</code> bundle</td>
+<td><code>-s</code> scope, <code>-l</code> limit, <code>-o</code> offset, <code>-b</code> baseline, <code>-S</code> since, <code>-a</code> all, <code>-f</code> file, <code>-i</code> ignore, <code>-B</code> bundle</td>
 </tr>
 <tr>
 <td><code>search</code>, <code>passages</code></td>
@@ -409,7 +513,7 @@ required arguments in order (<code>move a.md b.md</code>); on <code>set</code>, 
 </tr>
 <tr>
 <td><code>list</code></td>
-<td><code>-t</code> type, <code>-g</code> tag, <code>-s</code> status, <code>-T</code> tier, <code>-S</code> stale, <code>-l</code> limit, <code>-B</code> bundle</td>
+<td><code>-t</code> type, <code>-g</code> tag, <code>-s</code> status, <code>-T</code> tier, <code>-S</code> stale, <code>-l</code> limit, <code>-o</code> offset, <code>-B</code> bundle</td>
 </tr>
 <tr>
 <td><code>status</code></td>

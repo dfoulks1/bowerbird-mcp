@@ -90,6 +90,26 @@
                        href="../formats/asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -214,6 +292,11 @@
       
     </li>
   
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#reporting-a-problem">Reporting a problem</a>
+      
+    </li>
+  
 </ul>
           </div>
         </aside>
@@ -228,15 +311,14 @@
           </nav>
         
         <article><h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:25:02Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:27:08Z</p>
 
 <h2 id="names">Names<a class="headerlink" href="#names" title="Link to this section">#</a></h2>
 <ul>
-<li><strong><code>warning: ... kbmcp.yaml is the old name of bower.yaml</code></strong> (or <code>KB_USER is the old name of BOWERBIRD_USER</code>). Before 2.2.0 the settings
-  file was <code>kbmcp.yaml</code>, the environment variables began <code>KB_</code>, the lint skip file was <code>kbmcp.nolint</code> and the index cache was <code>.kbmcp/</code>. The
-  old names still work, and the warning says what to rename: <code>git mv kbmcp.yaml bower.yaml</code>, <code>KB_X</code> to <code>BOWERBIRD_X</code> (in the environment or in
-  <code>.env</code>), <code>kbmcp.nolint</code> to <code>bower.nolint</code>. When both names exist, the new one is used. The old <code>.kbmcp/</code> cache folder can just be deleted.
-  A generated <code>index.md</code> written under the old <code>kb-index</code> markers is read as it was, and rewritten with the new markers the next time <code>index</code> runs.</li>
+<li><strong><code>error: ... kbmcp.yaml is no longer read</code></strong>. Before 2.2.0 the settings file was <code>kbmcp.yaml</code>, the environment variables began <code>KB_</code>, the lint skip file was
+  <code>kbmcp.nolint</code> and the index cache was <code>.kbmcp/</code>. 2.2.0 read both names; 2.3.0 reads only the new ones. Rename: <code>git mv kbmcp.yaml bower.yaml</code>, <code>KB_X</code> to
+  <code>BOWERBIRD_X</code> (in the environment or in <code>.env</code>), <code>kbmcp.nolint</code> to <code>bower.nolint</code>. The old <code>.kbmcp/</code> cache folder can be deleted. A generated <code>index.md</code>
+  under the old <code>kb-index</code> markers is no longer recognised: replace its marker comments with <code>bowerbird-index</code> ones (or delete the block) and run <code>index</code> again.</li>
 </ul>
 <h2 id="searching">Searching<a class="headerlink" href="#searching" title="Link to this section">#</a></h2>
 <ul>
@@ -253,9 +335,9 @@
 <ul>
 <li><strong><code>create holds=adr</code> did not change the format.</strong> <code>holds</code> only applies when there is no <code>bower.yaml</code> yet. On an existing
   collection, edit the <code>format:</code> line in <code>bower.yaml</code> and run <code>bowerbird-mcp reindex</code>.</li>
-<li><strong><code>seal takes exempt and exempt_status (lists of strings), extensions (true or false) and quorum</code>.</strong> <code>seal.require</code> is gone. Every file is
-  checked, so <code>bower.yaml</code> lists only the ones to leave out: <code>seal: {exempt: ["src/gen_*.py"]}</code>. <code>extensions</code> and <code>quorum</code> belong to the
-  <a href="../sealing/#several-signers-and-a-quorum-the-seal-extensions-extra">seal extensions</a>; a <code>quorum</code> above 1 needs <code>extensions: true</code>.</li>
+<li><strong><code>seal takes exempt and exempt_status (lists of strings), extensions (true or false), quorum and count (true or false)</code>.</strong> <code>seal.require</code> is gone. Every file is
+  checked, so <code>bower.yaml</code> lists only the ones to leave out: <code>seal: {exempt: ["src/gen_*.py"]}</code>. <code>extensions</code>, <code>quorum</code> and <code>count</code> belong to the
+  <a href="../sealing/#several-signers-and-a-quorum-the-seal-extensions-add-on">seal extensions</a>; a <code>quorum</code> above 1, or <code>count: true</code>, needs <code>extensions: true</code>.</li>
 <li><strong>My MCP server does not offer <code>seal</code>.</strong> If <code>roles:</code> in <code>bower.yaml</code> spells the roles out, <code>seal</code> has to be in the list.
   A file with no <code>roles:</code> line gets all five. Asking for a role that is left out (<code>--role seal</code>) refuses to start, with
   "role seal is off in bower.yaml".</li>
@@ -279,7 +361,17 @@
 <li><strong>Semantic search does not start (<code>needs the semantic extra</code>).</strong> It is an add-on: <code>uv tool install 'bowerbird-mcp[semantic]'</code>,
   or <code>uvx --from 'bowerbird-mcp[semantic]' bowerbird-mcp</code>; the one-file script needs <code>uv run --with fastembed bowerbird_mcp.py</code>.</li>
 <li><strong><code>uvx</code> runs an old build while you test local changes.</strong> Add <code>--no-cache</code>.</li>
-</ul></article>
+</ul>
+<h2 id="reporting-a-problem">Reporting a problem<a class="headerlink" href="#reporting-a-problem" title="Link to this section">#</a></h2>
+<p>Problems with Bowerbird, a format or these docs come to one person: write to <a href="mailto:dfoulks@voltpop.com">dfoulks@voltpop.com</a>, or <a href="https://github.com/dfoulks1/bowerbird-mcp/issues/new">open an issue</a> on GitHub and it
+reaches the same place. Include:</p>
+<ul>
+<li>the version (<code>bowerbird-mcp --version</code>) and the format (<code>format:</code> in <code>bower.yaml</code>), and the add-on you installed if any (<code>bowerbird-mcp[obsidian]</code>, <code>[fact-pack]</code>);</li>
+<li>what you ran, what you expected and what you got, with the output;</li>
+<li>the smallest file or two that show it. Do not send private notes or secrets: a made-up example does as well.</li>
+</ul>
+<p>A problem that could let the tool read or write outside its collection, run a command or leak a secret is a security problem: do not post it publicly. Use
+<a href="https://github.com/dfoulks1/bowerbird-mcp/blob/main/SECURITY.md">SECURITY.md</a> or write to the same address.</p></article>
         
           <hr class="my-5">
           <div class="d-flex justify-content-between gap-3">

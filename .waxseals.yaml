@@ -1,56 +1,37 @@
 # .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
 # an edit breaks them, git has the earlier ones. Commit it.
-- {file: BOWERBIRD.md, sha256: 40cdb02306657e2ccf771d6febb2faef9822f2cda253294cd2b7ba3e6f39584e, by: 'human:dfoulks', at: '2026-11-23T15:04:41Z', bowerbird: 2.2.0}
-- {file: CONTRIBUTING.md, sha256: f0e6b81aa3e2c7f61fa35a420a2e7a734ab25a8de63f8e7ddeda14af6c3cbac7, by: 'human:dfoulks', at: '2026-11-23T15:09:29Z', bowerbird: 2.2.0}
+- {file: BOWERBIRD.md, sha256: 7613c27c261a99f28dd067bb1e5a5bc38dd559f6e5f288bddedbd54f895a0e94, by: 'human:dfoulks', at: '2026-11-23T23:48:08Z', bowerbird: 2.3.0}
+- {file: CONTRIBUTING.md, sha256: 75ec20d37592ca58337dbe8a91b8949d1c03665f16b4ed949d2cb6c1f493fe8c, by: 'human:dfoulks', at: '2026-11-24T00:24:49Z', bowerbird: 2.3.0}
 - {file: LICENSE, sha256: 75efa07c4d2afb14d8226cf00b7763dd2ec1c5585a9dfe919881a3a3fef2ddac, by: 'human:dfoulks', at: '2026-11-20T13:38:59Z', bowerbird: 2.2.0}
 - {file: NOTICE, sha256: 0b42944ba49fcb6510b7c1a2e96149e21fee412ed4effa8d4cfdb79337b75a17, by: 'human:dfoulks', at: '2026-11-20T15:19:13Z', bowerbird: 2.2.0}
-- {file: README.md, sha256: f5d2f732bef6f9d00f80e7c4ca584f4045b9acb617b613bdd448a0af8ad4eb67, by: 'human:dfoulks', at: '2026-11-23T17:12:19Z', bowerbird: 2.2.0}
+- {file: README.md, sha256: 024e5df9b4a51fe926b9061b8777dc71f1cdc4200631dd977895ea378598a1bd, by: 'human:dfoulks', at: '2026-11-24T00:25:21Z', bowerbird: 2.3.0}
 - {file: SECURITY.md, sha256: 41624c8cedfddbd9ef0c8615e33136bb6e9d33e1aa55f91f2fe13cfb7f63eaf3, by: 'human:dfoulks', at: '2026-11-23T16:01:29Z', bowerbird: 2.2.0}
 - {file: TODO.md, sha256: cc11a95507cb86fb40e6dc4e2b76d0d0d43cf39d5341576a31ddf0ec23ce3e9f, by: 'human:dfoulks', at: '2026-11-23T13:20:40Z', bowerbird: 2.2.0}
-- {file: addons/dendron/bowerbird_dendron.py, sha256: d4a6e81fe4abf06f0870b8d5a91bfd1b156fc622642854cf46d696aacdd2ced2, by: 'human:dfoulks', at: '2026-11-23T15:20:18Z', bowerbird: 2.2.0}
 - {file: addons/foam/bowerbird_foam.py, sha256: 8428aa252a4edc57477044236678fa3bc1bdbfb3a20e8502e06660d0d486f71e, by: 'human:dfoulks', at: '2026-11-23T15:20:27Z', bowerbird: 2.2.0}
-- {file: addons/logseq/bowerbird_logseq.py, sha256: bff64091b8762b8d30d9461e645d787cb8afabf77cb87da6ddf2adfaedcfe1b8, by: 'human:dfoulks', at: '2026-11-23T15:20:35Z', bowerbird: 2.2.0}
 - {file: addons/obsidian/bowerbird_obsidian.py, sha256: 03e10be17f05faf275e5c026e8392734003eff0118872c88a7c72a96061cb667, by: 'human:dfoulks', at: '2026-11-23T15:20:43Z', bowerbird: 2.2.0}
-- {file: bowerbird_facts.py, sha256: 41348cf8adee757066a74b8f0a867059670b709d2bef7de06e7e19b39c2ac94d, by: 'human:dfoulks', at: '2026-11-23T17:31:51Z', bowerbird: 2.2.0}
+- {file: bowerbird_dendron.py, sha256: 91c43b5ab239491f1b4eaf93500526ff7b68c68a44760a6acedd2f11d18dee88, by: 'human:dfoulks', at: '2026-11-24T00:24:08Z', bowerbird: 2.3.0}
+- {file: bowerbird_fact_pack.py, sha256: 098652661d2208df2c9e88ec5a2f8b67d13f1b34ddbdff5d09e7ae73acb3c563, by: 'human:dfoulks', at: '2026-11-24T00:24:15Z', bowerbird: 2.3.0}
+- {file: bowerbird_facts.py, sha256: 0e63a6bc800c3904a58bdd238fa5b24d6162c8c7fba8a94e77c23f02d371712f, by: 'human:dfoulks', at: '2026-11-23T23:43:32Z', bowerbird: 2.3.0}
+- {file: bowerbird_foam.py, sha256: 8428aa252a4edc57477044236678fa3bc1bdbfb3a20e8502e06660d0d486f71e, by: 'human:dfoulks', at: '2026-11-24T00:24:21Z', bowerbird: 2.3.0}
 - {file: bowerbird_logo.py, sha256: 1f0d64c51f23f645faf2f977c5fe7bebb730efba188823b7192b60f273df1950, by: 'human:dfoulks', at: '2026-11-20T13:41:28Z', bowerbird: 2.2.0}
-- {file: bowerbird_mcp.py, sha256: fae71f5d6940fbc182965fc989ed705e654e4eac2cf14a742c5f9b2d959df710, by: 'human:dfoulks', at: '2026-11-23T17:32:06Z', bowerbird: 2.2.0}
-- {file: bowerbird_okf.py, sha256: 8841bc7f991a679d44949d5d11dfaa3ed0dbd23ffb040e8e5d6f51a3e3fb02d2, by: 'human:dfoulks', at: '2026-11-23T13:53:04Z', bowerbird: 2.2.0}
+- {file: bowerbird_logseq.py, sha256: 23c0d0fd0f1eab6ff6148225e9a7b15edc57dfc750c8257440a017048b26475b, by: 'human:dfoulks', at: '2026-11-24T00:24:28Z', bowerbird: 2.3.0}
+- {file: bowerbird_mcp.py, sha256: 8674e08d40b34ccd63b6f3820ec3d0fd09184321f18db6f124ad533cc985e6c4, by: 'human:dfoulks', at: '2026-11-24T00:25:00Z', bowerbird: 2.3.0}
+- {file: bowerbird_obsidian.py, sha256: 03e10be17f05faf275e5c026e8392734003eff0118872c88a7c72a96061cb667, by: 'human:dfoulks', at: '2026-11-24T00:24:33Z', bowerbird: 2.3.0}
+- {file: bowerbird_okf.py, sha256: 12bd0130dfc546cbdcc2987962a48b28ceb4c2df990e1e04aba81ac845196806, by: 'human:dfoulks', at: '2026-11-23T23:43:52Z', bowerbird: 2.3.0}
 - {file: bowerbird_seal.py, sha256: 2a6ae4aafc908a7bf375d3ef8011284c7f683caa7905f1c70a46b4a92415099b, by: 'human:dfoulks', at: '2026-11-20T16:06:16Z', bowerbird: 2.2.0}
-- {file: bowerbird_serve.py, sha256: e2e567b137c302fe71b2e0dbcdb931f22df4699c5520e95795d5412dc89c93d3, by: 'human:dfoulks', at: '2026-11-23T17:12:04Z', bowerbird: 2.2.0, comment: Updated to fix teh seal issue that arose after the distributed wax seal file change.}
-- {file: docs-src/agents.md, sha256: 9b1c98cdc9d14d5d0b8dfb83c4477db359c47113bd77d1eca73379fd90c3de47, by: 'human:dfoulks', at: '2026-11-20T17:23:18Z', bowerbird: 2.2.0}
-- {file: docs-src/badges.md, sha256: b7f40bddedbe7a0b37e9bfcfb6cd33fe5241261f025a1f3b0a2b8c11c85a969a, by: 'human:dfoulks', at: '2026-11-23T15:01:16Z', bowerbird: 2.2.0}
-- {file: docs-src/cli.md, sha256: b0f565457537253e60baecca958abc4e7dc65614e9a2ac2d57e7dee4dd049362, by: 'human:dfoulks', at: '2026-11-20T17:23:32Z', bowerbird: 2.2.0}
+- {file: bowerbird_seal_extensions.py, sha256: 0afb5ad2284e71dbb3a53f77f8032c5354fea9310a20b0443c62df0f4ec04738, by: 'human:dfoulks', at: '2026-11-24T00:24:42Z', bowerbird: 2.3.0}
+- {file: bowerbird_serve.py, sha256: 72bf1c4e870c36618af2a406fd8da863966c913fcda8d0f067531dd6b56e0cfc, by: 'human:dfoulks', at: '2026-11-23T23:43:25Z', bowerbird: 2.3.0}
 - {file: docs-src/contributing.md, sha256: 92089f0ecb0fa6079f14bb2e8bafb12beaf15c08878c8b69740f6aa00a3d9958, by: 'human:dfoulks', at: '2026-11-16T20:14:31Z', bowerbird: 2.0.0}
-- {file: docs-src/decisions/ADR-001-fact-kinds-core-and-pack.md, sha256: 01f310dab802439688925fae3e84a3661d764f2b2ab6cbcc1d2a8abc3a3325e0, by: 'human:dfoulks', at: '2026-11-23T17:06:57Z', bowerbird: 2.2.0, decision: accepted}
-- {file: docs-src/decisions/ADR-002-format-plugins.md, sha256: 5246c86965b8b7db52208818050e144405c8ace06dca1e16625bfeab2f501455, by: 'human:dfoulks', at: '2026-11-23T15:57:44Z', bowerbird: 2.2.0, decision: accepted}
-- {file: docs-src/formats.md, sha256: 3591e1a0a5c150a5368ba0a349138fe55725978ae569d9922a94600c511bcf1f, by: 'human:dfoulks', at: '2026-11-23T16:22:21Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/adr.md, sha256: 539141cc77874d698bdac5a80de0df7643c8ed29bda19932b2c0e4a4679233f6, by: 'human:dfoulks', at: '2026-11-20T17:26:05Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/asciidoc.md, sha256: 4ee86cedb2b630b4a196a92441893d12e83edb4fdabd9dca748fd21eda9f7988, by: 'human:dfoulks', at: '2026-11-20T17:26:12Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/dendron.md, sha256: 7d0059b4061ea24a07fe0ccabaac2986d393092b0a9ee0305beb7e65a2348d8e, by: 'human:dfoulks', at: '2026-11-23T16:00:11Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/foam.md, sha256: a0be44337e41707e7ae17f97e1c06f3a733076865acdc2ae83b386d8dfe5b2dc, by: 'human:dfoulks', at: '2026-11-23T16:00:03Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/logseq.md, sha256: 3a95d4bfdf0e9acef0b106db275e393b136572be0615ae0c0f3baf69f1534fa0, by: 'human:dfoulks', at: '2026-11-23T15:59:56Z', bowerbird: 2.2.0, decision: accepted}
-- {file: docs-src/formats/markdown.md, sha256: e5fb773106ae1147dcd0212a5257972f995460c3d6a88c64ec3845cc9336e132, by: 'human:dfoulks', at: '2026-11-20T17:26:21Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/obsidian.md, sha256: db0cc4d6433c403c1eacd4af6dcb82e88bf9de293ff70e8a163f7817e9f2bf7f, by: 'human:dfoulks', at: '2026-11-23T15:59:38Z', bowerbird: 2.2.0}
-- {file: docs-src/formats/okf.md, sha256: 868781a6d084abddb2fe75a9ef7decc465d9c3cb368f85152cca71fb8157f8d2, by: 'human:dfoulks', at: '2026-11-23T15:59:48Z', bowerbird: 2.2.0, decision: accepted}
-- {file: docs-src/formats/skos.md, sha256: f37354d97a22b8a19d96dcdbe4d7ab9e5de87316fb899d7d72861a82f19d273d, by: 'human:dfoulks', at: '2026-11-20T17:26:34Z', bowerbird: 2.2.0}
-- {file: docs-src/getting-started.md, sha256: 6a9483fbf7874810a8f2a8ad8c474b460b84dcb2a1410f101933a715c7987306, by: 'human:dfoulks', at: '2026-11-20T17:24:17Z', bowerbird: 2.2.0}
 - {file: docs-src/guide.md, sha256: 99c37a01e241a358d2f046e0b51497335cb6ef89eab111d3baac1b797d82fed0, by: 'human:dfoulks', at: '2026-11-17T16:28:25Z', bowerbird: 2.0.0}
-- {file: docs-src/index.md, sha256: 4a2b667b8b25aa664c73ca75917c99e488ff9e5428097bf2a4e385cdb0899407, by: 'human:dfoulks', at: '2026-11-20T16:05:20Z', bowerbird: 2.2.0}
 - {file: docs-src/prompts/00-context.md, sha256: a70ec1500a4ff8185d8f46997984286891b8a2bf07672d84e088c9f71ee0e568, by: 'human:dfoulks', at: '2026-11-18T14:39:27Z', bowerbird: 2.1.1}
 - {file: docs-src/prompts/01-ui-security.md, sha256: 26e2aa8e82889c0ae77f9ae3a3f9ea96686e150420598f14fd479135e02c2ed4, by: 'human:dfoulks', at: '2026-11-18T15:07:52Z', bowerbird: 2.1.1}
 - {file: docs-src/prompts/02-release-2.2.0.md, sha256: 3eeb897691b7e26918ce8d183334d628dd980d0ac2dce70ca0ada82fc950e174, by: 'human:dfoulks', at: '2026-11-23T13:27:08Z', bowerbird: 2.2.0, decision: accepted}
 - {file: docs-src/prompts/2026-11-23-adr-fact-kinds-NEXT.md, sha256: 15bb13655fadc74ba497ab82adf5df51018c5dc2ff24fda05033154a88a998fe, by: 'human:dfoulks', at: '2026-11-23T13:27:16Z', bowerbird: 2.2.0, decision: accepted}
-- {file: docs-src/releasing.md, sha256: 81b6bbf1f0d82e93284dca9958b374bfd2a54f6f8bf9fdbdbc69217210cef5c5, by: 'human:dfoulks', at: '2026-11-20T15:15:51Z', bowerbird: 2.2.0}
-- {file: docs-src/sealing.md, sha256: 535651fc63dfd72b01a8524e825e32c45b02b00568a706ae152245be3d7c8ab8, by: 'human:dfoulks', at: '2026-11-23T15:01:22Z', bowerbird: 2.2.0}
-- {file: docs-src/serve.md, sha256: 6fbd32757471ee3d0d294e437eea33262ab33864f98e2a76d1ce0d2270a7eb90, by: 'human:dfoulks', at: '2026-11-23T15:01:27Z', bowerbird: 2.2.0}
-- {file: docs-src/troubleshooting.md, sha256: 9ccebc0799250d826ea2d85e1e46e4292410ea016a429b77286c53be163e3159, by: 'human:dfoulks', at: '2026-11-23T16:22:50Z', bowerbird: 2.2.0}
 - {file: docs/, by: 'generator:mkdocs', at: '2026-11-20T17:05:48Z', bowerbird: 2.2.0, derived: mkdocs}
 - {file: docs_tools.py, sha256: c23818e214a9ef5862e4d11df537c17e514639f8bd74d0abec81ebaa048a58f5, by: 'human:dfoulks', at: '2026-11-20T17:22:03Z', bowerbird: 2.2.0}
 - {file: env.example, sha256: 315868e3ca2a87dfac49593fa2dc2b28b4bb7272a9ef4dc1ff920a6769f9cf65, by: 'human:dfoulks', at: '2026-11-20T16:06:42Z', bowerbird: 2.2.0}
-- {file: hooks/seal_banner.py, sha256: 119bb43059d4ec50b346a43596f70c176d57efbcb2a11dfa4aec9aabf2bb2577, by: 'human:dfoulks', at: '2026-11-20T17:23:02Z', bowerbird: 2.2.0}
-- {file: mkdocs.yml, sha256: 0399e5f61affb3319f98688d00adf7d40cf7eb15473db012635eba0e9d0c6984, by: 'human:dfoulks', at: '2026-11-23T17:12:13Z', bowerbird: 2.2.0}
-- {file: test_bowerbird_mcp.py, sha256: e6d8b8c8d6ff976882774c8d531d0c93d13b6a100d11f73c1e67ac846460a38c, by: 'human:dfoulks', at: '2026-11-20T17:34:32Z', bowerbird: 2.2.0}
+- {file: mkdocs.yml, sha256: ab5c0683912d892e0baaca8615c575d60c2c027fa049d370029bd97314df4c9a, by: 'human:dfoulks', at: '2026-11-23T23:48:14Z', bowerbird: 2.3.0}
+- {file: test_bowerbird_mcp.py, sha256: 8098fba9a4f80d85528caefbe7ba4e85d5dd059f466084eadc8fd302de9a7a2f, by: 'human:dfoulks', at: '2026-11-24T00:29:20Z', bowerbird: 2.3.0}
 - {file: theme/404.html, sha256: 483d4d95b9cb91bb1dbd812fbf794dde5836de2e193dd2aab9a30696ee5f822c, by: 'human:dfoulks', at: '2026-11-20T13:56:58Z', bowerbird: 2.2.0}
 - {file: theme/main.html, sha256: 7ccce21878e29f9f281212d40f37902a028593be9e8375e07ce8933242854150, by: 'human:dfoulks', at: '2026-11-20T13:57:04Z', bowerbird: 2.2.0}
 - {file: theme/partials/navbar.html, sha256: 38dda777b1fe7c5c7c4ac9dd278718c60fde414c2179557e92b81ba24a668cc6, by: 'human:dfoulks', at: '2026-11-20T13:57:16Z', bowerbird: 2.2.0}
-- {file: tools/QA.sh, sha256: e74f04d07cc10a0a468ac8090c807e90726ae627179687c90c00236cbb546fa7, by: 'human:dfoulks', at: '2026-11-20T17:22:53Z', bowerbird: 2.2.0}

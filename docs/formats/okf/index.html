@@ -90,6 +90,26 @@
                        href="../asciidoc/">AsciiDoc</a>
                   </li>
                 
+                  <li>
+                    <a class="dropdown-item "
+                       href="../obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../logseq/">Logseq</a>
+                  </li>
+                
               </ul>
             </li>
           
@@ -98,7 +118,65 @@
             <li class="nav-item">
               <a class="nav-link "
                  
+                 href="../../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../../fact-pack/">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
                  href="../../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
             </li>
           
         
@@ -240,7 +318,14 @@
   
     <li class="nav-item">
       <a class="nav-link py-1 px-0" href="#reviewing">Reviewing</a>
+      <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#keeping-reviews-and-facts-in-the-shared-files">Keeping reviews and facts in the shared files</a>
       
+    </li>
+  
+</ul>
     </li>
   
     <li class="nav-item">
@@ -272,7 +357,7 @@
           </nav>
         
         <article><h1 id="okf">OKF<a class="headerlink" href="#okf" title="Link to this section">#</a></h1>
-<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-20T17:26:29Z</p>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:30:45Z</p>
 
 <p><strong>Use it when</strong> the knowledge needs to say where it came from, who checked it and when it expires, especially when
 agents write part of it. <a href="#what-okf-is">Open Knowledge Format</a> is a Markdown convention for exactly that: each
@@ -399,64 +484,16 @@ sentence around it says how. A broken link is allowed by the format: it may simp
 (<code>status</code> lists the pages that links ask for and nobody has written). A citation is different: the claim in the text points
 at its entry in <code>sources</code> with a Markdown footnote (<code>[^pg]</code>). Links are for navigation, citations are for lineage.</p>
 <h3 id="facts-what-a-claim-rests-on-and-drift">Facts: what a claim rests on, and drift<a class="headerlink" href="#facts-what-a-claim-rests-on-and-drift" title="Link to this section">#</a></h3>
-<p>A <strong>fact</strong> is a claim together with where it came from, written so it can be checked again. Put the source and the words you
-relied on in a block, in any Markdown document (it works in every format, not only OKF):</p>
-<pre class="highlight"><code class="language-markdown">[fact.url](https://stackoverflow.com/questions/8072700/how-to-restart-jenkins-manually)
-
-(jenkins_url)/safeRestart - Allows all running jobs to complete. New jobs will remain in the queue to run after the restart is complete.
-
-(jenkins_url)/restart - Forces a restart without waiting for builds to complete.
-
-[fact.end]
-
-The ticket: [fact.mcp](jira INFRA-27707) is open [fact.end]</code></pre>
-<ul>
-<li><strong><code>[fact.&lt;kind&gt;](&lt;source&gt;) &lt;the claim&gt; [fact.end]</code></strong> is the whole form. The kind says what the source is, the source goes in parentheses
-  right after it (it ends at the first <code>)</code>, so write a <code>)</code> inside an address as <code>%29</code>), and the words up to <code>[fact.end]</code> are what is
-  checked: paste them from the page. A block holds one source and any number of claims, on one line or many. In a Markdown renderer
-  that knows nothing of facts, <code>fact.url</code> shows as a link to the source.</li>
-<li><strong><code>[fact.url](address)</code></strong> is a page: its words must still appear there.</li>
-<li><strong><code>[fact.&lt;name&gt;](key)</code></strong>, for a name the root <code>bower.yaml</code> declares under <code>facts: types:</code>, is a fact from one tool of an MCP server the collection
-  already has, so the source is just the key: <code>[fact.ticket](INFRA-27707) is open [fact.end]</code>. Only the root declares one (a page cannot add a kind,
-  or choose what runs), and <code>lint</code> flags a kind nobody declared.</li>
-<li><strong><code>[fact.mcp](server key)</code></strong> is the general form, a fact from an MCP tool, for example <code>[fact.mcp](jira INFRA-27707) is open [fact.end]</code>. Which tool to
-  call, with what, and which part of the result to watch is declared once in <code>bower.yaml</code>, under <code>facts</code> (see below).</li>
-<li>The kinds are a registry (<code>bowerbird_facts.FACT_TYPES</code>): <code>url</code> and <code>mcp</code> are registered, and a new kind is one <code>register(name, sample, valid)</code> call plus a <code>check</code> for
-  <code>factcheck --fetch</code>. A block with no <code>[fact.end]</code>, an end with no start, or an unknown kind is a <code>lint</code> error. Blocks inside code are ignored, so
-  examples like the one above are safe.</li>
-</ul>
-<p><strong>Checking.</strong> <code>factcheck</code> with no arguments lists every block and its state: <em>unchecked</em>, <em>checked</em> (with the date and how), or
-<em>drifted</em>. It runs nothing. <code>factcheck --fetch</code>, run by a person at a terminal, shows what it will fetch or call, asks, and
-then compares each block with a fresh result:</p>
-<ul>
-<li>a <strong>page</strong> must still hold the block's words. Whitespace, case, backticks and emphasis are ignored: it is the content that is
-  compared, not the shape. With <code>semantic: true</code> and the <code>semantic</code> extra, a page that no longer says it word for word but still
-  means it counts too, scored against <code>min_similarity</code> (the same settings as semantic search), and the result says "similar meaning"
-  instead of "same words";</li>
-<li>an <strong>MCP call</strong> (only one declared under <code>facts</code>) must still return the value it did. The first check records that value.</li>
-</ul>
-<pre class="highlight"><code class="language-yaml"># bower.yaml, at the collection root: the only calls factcheck may make
-facts:
-  mcp:
-    jira: {tool: get_issue, arg: issue_key, watch: fields.status.name}
-  types:   # optional: a kind of fact for one tool, so the source is just the key
-    ticket: {server: jira, tool: get_issue, arg: issue_key, watch: fields.status.name}</code></pre>
-<p>The document supplies only the key (<code>INFRA-27707</code>), never the tool, so a page cannot make <code>factcheck</code> call something it was not
-told to. The server itself comes from <code>.mcp.json</code>. <code>--fetch</code> is a person's command: over MCP it is refused.</p>
-<p><strong>State is kept beside the document</strong>, in a <code>.facts.yaml</code> (commit it, as you do <code>.waxseals.yaml</code>). It holds the last check of each
-block. The document is never changed by a check, so a check that finds nothing wrong does not disturb a human's review of it.
-Edit the words of a block and it is a new fact, unchecked until it is checked.</p>
-<p><strong>Drift breaks the seal.</strong> A block that has drifted ends every <a href="../../sealing/">review</a> of that file made before it, and <code>seal check</code>
-reports <code>a cited fact drifted after it was reviewed</code>. Correct the claim and have a person review the file again: a review made after
-the drift holds. A check that passes does not undo a drift.</p>
-<p><strong>The docs build</strong> shows each block as a quotation with its source and its state (not yet checked, checked on a date, or drifted).</p>
-<p><strong>Moving between the two records.</strong> A concept's reviews and sources can live in its frontmatter (<code>verified</code>, <code>sources</code>) or beside it
-(<code>.waxseals.yaml</code>, <code>.facts.yaml</code>); <a href="../../cli/#moving-an-okf-concepts-history-okf-export-and-okf-import"><code>okf export</code> and <code>okf import</code></a> move them
-between the two, previewing first.</p>
-<p><strong>For an agent</strong>, <code>fact</code> records a fact as a <code>sources</code> entry in the frontmatter (a call as <code>via: {server, tool, args}</code>, and
-<code>result</code>, what it returned, as a <code>fact_sha256</code>), prints the footnote marker for the claim, and <code>factcheck file=... id=... result=...</code>
-compares a result an agent got by replaying the call with it. Same result: the check is noted in <code>.facts.yaml</code>. A different one is a
-drift. An agent runs no <code>--fetch</code>.</p>
+<p>The grammar, the kinds, the checks and the settings of facts are the same in every format, so they live on the <a href="../../facts/">Facts</a> page. A concept may hold fact blocks like any
+Markdown document, and a bundle's blocks are read, checked and shown the same way. What is OKF's is the older record, in the frontmatter, and how it moves.</p>
+<p><strong>The <code>sources</code> form.</strong> <code>fact</code> with a <code>resource</code> and no <code>claim</code> records a fact as an entry of the concept's frontmatter <code>sources</code> (§5.1) and prints the footnote marker for the claim,
+<code>[^rollback]</code>; its definition is appended to the body. A call that made the result is recorded as <code>via: {server, tool, args}</code>, and <code>result</code>, what it returned, as a <code>fact_sha256</code>.
+<code>factcheck</code> with no arguments lists the entries that are due, each with <code>cites</code>, the lines whose claims rest on it: a <code>calls</code> list to replay (run each yourself, reading its <code>args</code> first) and a
+<code>manual</code> list to open. <code>factcheck file=... id=... result=...</code> compares a result you got by replaying the call with the recorded one. Same: the check is noted in <code>.facts.yaml</code>. A different one is a drift,
+and it ends every <a href="../../sealing/">review</a> of the concept made before it. An agent may run this; the entries in <code>manual</code> have no call to replay, so a person opens them.</p>
+<p><strong>Moving between the two records.</strong> A concept's reviews and sources can live in its frontmatter (<code>verified</code>, <code>sources</code>) or beside it (<code>.waxseals.yaml</code>, <code>.facts.yaml</code>).
+<a href="../../cli/#moving-an-okf-concepts-history-okf-export-and-okf-import"><code>okf export</code> and <code>okf import</code></a> move them between the two, previewing first. Export puts each source's last check into
+<code>.facts.yaml</code>. Import updates a <code>sources</code> entry from its check and adds the fact blocks that file records as sources. Drift stays in <code>.facts.yaml</code>: frontmatter has no place for it.</p>
 <h3 id="bundles-indexmd-and-logmd">Bundles, <code>index.md</code> and <code>log.md</code><a class="headerlink" href="#bundles-indexmd-and-logmd" title="Link to this section">#</a></h3>
 <p>A <strong>bundle</strong> is a folder of concepts, with subfolders as you like. Two filenames are reserved at any level:</p>
 <ul>
@@ -484,7 +521,13 @@ fix it, and <code>bowerbird-mcp fix apply=true</code> repairs the mechanical one
 <h2 id="reviewing">Reviewing<a class="headerlink" href="#reviewing" title="Link to this section">#</a></h2>
 <p><code>bowerbird-mcp seal</code> writes a <code>verified</code> entry into the concept itself, with a <code>sha256</code> of the note. The trust tier
 comes only from who verified: nobody means <em>unverified</em>, a script or agent means <em>machine-confirmed</em>, and a person
-means <em>human-reviewed</em>. Hits show the tier and whether the note has gone stale. See The tiers are explained <a href="#trust-tiers">above</a>.</p>
+means <em>human-reviewed</em>. Hits show the tier and whether the note has gone stale. The tiers are explained <a href="#trust-tiers">above</a>.</p>
+<h3 id="keeping-reviews-and-facts-in-the-shared-files">Keeping reviews and facts in the shared files<a class="headerlink" href="#keeping-reviews-and-facts-in-the-shared-files" title="Link to this section">#</a></h3>
+<p>Every other format keeps reviews in <code>.waxseals.yaml</code> and facts as <code>[fact.*]</code> blocks. OKF can too: set it in the root <code>bower.yaml</code>.</p>
+<pre class="highlight"><code class="language-yaml">okf: {records: files}</code></pre>
+<p>Then <code>seal</code> writes the ledger (and <code>promote</code> still moves a draft to stable), <code>fact</code> writes blocks, and every tool reads them there; a <code>verified</code> left in the frontmatter is ignored.
+Run <code>bowerbird-mcp okf export --apply</code> first, to move the reviews and checks the frontmatter holds into the files (it previews until <code>--apply</code>; a terminal only, an agent cannot run it).
+<code>okf import --apply</code> writes them back into the frontmatter when a bundle ships on its own for readers that expect <code>verified</code>. The default stays <code>frontmatter</code> in 2.3; ADR-004 plans to flip it to <code>files</code> in a later release (3.0 is the recommendation).</p>
 <h2 id="why-it-is-good">Why it is good<a class="headerlink" href="#why-it-is-good" title="Link to this section">#</a></h2>
 <p>These are the properties that follow from the format itself.</p>
 <ul>

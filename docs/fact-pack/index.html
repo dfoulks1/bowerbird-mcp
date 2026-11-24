@@ -1,0 +1,480 @@
+
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fact pack · Bowerbird</title>
+  <link rel="icon" href="../img/favicon.ico" sizes="32x32">
+  <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fact pack · Bowerbird">
+  <meta property="og:description" content="An MCP server and command line for Open Knowledge Format (OKF) v0.2 collections, and search over Markdown, ADR and SKOS folders, for agents and people alike.">
+  <meta property="og:image" content="https://bowerbird.voltpop.com/img/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/pygments.css"><link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+  
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-semibold" href="..">
+      <img src="../img/logo-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-light"><img src="../img/logo-dark-v2.svg" alt="" height="32" class="me-2 align-text-bottom logo-dark">Bowerbird
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#site-nav" aria-controls="site-nav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="site-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="..">Home</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../getting-started/">Getting started</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Formats
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/">Overview</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/markdown/">Markdown</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/adr/">ADR</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/okf/">OKF</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/skos/">SKOS</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/asciidoc/">AsciiDoc</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/obsidian/">Obsidian</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/foam/">Foam</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/dendron/">Dendron</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../formats/logseq/">Logseq</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../facts/">Facts</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link active"
+                 aria-current="page"
+                 href="./">Fact pack</a>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../sealing/">Sealing</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Decisions
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/INDEX/">Index</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-001-fact-kinds-core-and-pack/">ADR-001: fact kinds</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-002-format-plugins/">ADR-002: format plugins</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-003-fact-block-grammar/">ADR-003: fact grammar</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-004-okf-records-in-shared-files/">ADR-004: OKF records</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../decisions/ADR-005-seal-extensions-addon/">ADR-005: seal extensions</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../serve/">Serve</a>
+            </li>
+          
+        
+          
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle "
+                 href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Docs
+              </a>
+              <ul class="dropdown-menu">
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../guide/">Guide</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../cli/">Command line</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../agents/">Agent rules</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../badges/">Status badges</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../tools/">Tools</a>
+                  </li>
+                
+                  <li>
+                    <a class="dropdown-item "
+                       href="../troubleshooting/">Troubleshooting</a>
+                  </li>
+                
+              </ul>
+            </li>
+          
+        
+          
+            <li class="nav-item">
+              <a class="nav-link "
+                 
+                 href="../contributing/">Contributing</a>
+            </li>
+          
+        
+      </ul>
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/dfoulks1/bowerbird-mcp"
+               target="_blank" rel="noopener noreferrer">
+              <i class="bi bi-github"></i> GitHub
+            </a>
+          </li>
+        
+        <li class="nav-item d-flex align-items-center">
+          <button class="btn btn-sm btn-outline-secondary ms-lg-2" id="theme-toggle"
+                  type="button" title="Toggle light/dark" aria-label="Toggle theme">
+            <i class="bi bi-circle-half"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <div class="container-fluid px-3 px-lg-4">
+    <div class="docs-grid with-toc">
+      
+        <aside class="d-none d-lg-block docs-toc">
+          <div class="position-sticky py-5" style="top: 3.5rem; max-height: calc(100vh - 3.5rem); overflow-y: auto;">
+            <h6 class="text-uppercase small text-body-secondary fw-semibold mb-3">On this page</h6>
+            <ul class="nav flex-column docs-toc-list">
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#install">Install</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#the-five-kinds">The five kinds</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#what-an-agent-can-run">What an agent can run</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#tested-against">Tested against</a>
+      
+    </li>
+  
+    <li class="nav-item">
+      <a class="nav-link py-1 px-0" href="#report-a-problem">Report a problem</a>
+      
+    </li>
+  
+</ul>
+          </div>
+        </aside>
+      
+      <main class="py-5 docs-content">
+        
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+              <li class="breadcrumb-item"><a href="..">Home</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Fact pack</li>
+            </ol>
+          </nav>
+        
+        <article><h1 id="the-fact-pack">The fact pack<a class="headerlink" href="#the-fact-pack" title="Link to this section">#</a></h1>
+<p class="seal-badge" data-state="reviewed">AI Generated, Human Reviewed at: 2026-11-24T00:27:17Z</p>
+
+<p><strong>Use it when</strong> a claim rests on something other than a web page, a file or another page of the collection: a value in a config file, a tag in git, a date, a
+command's output, or something only a person can say.</p>
+<p><code>bowerbird-mcp</code> has four kinds of <a href="../facts/">fact</a>: <code>url</code>, <code>mcp</code>, <code>file</code> and <code>internal</code>. The pack adds five. It ships in the same package
+(<code>bowerbird_fact_pack.py</code>), so what runs a command stays off until the root <code>bower.yaml</code> declares a script, and a person answers <code>y</code> to the plan.</p>
+<h2 id="install">Install<a class="headerlink" href="#install" title="Link to this section">#</a></h2>
+<pre class="highlight"><code class="language-sh">pip install 'bowerbird-mcp[fact-pack]'        # or: uvx --from 'bowerbird-mcp[fact-pack]' bowerbird-mcp ...</code></pre>
+<p>The extra adds nothing but <code>tomli</code> on Python below 3.11 (to read TOML); the code is in the wheel, and Bowerbird registers it as it starts. If it cannot load (a damaged install), a page that uses one of its kinds is a <code>lint</code> error that says what to install, and the docs
+build still shows the block from its recorded state.</p>
+<h2 id="the-five-kinds">The five kinds<a class="headerlink" href="#the-five-kinds" title="Link to this section">#</a></h2>
+<p>Each is a block like any other, <code>[fact.KIND]{metadata}(source) the claim [fact.end]</code> (the grammar is on the <a href="../facts/">Facts</a> page), on one line or many. A check records its result in <code>.facts.yaml</code> beside the document, and the day as <code>last_checked</code> in the block.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Source</th>
+<th>Holds while</th>
+<th>First check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>key</code></td>
+<td><code>pyproject.toml project.version</code></td>
+<td>the value at that path in the file is what it was</td>
+<td>records the value</td>
+</tr>
+<tr>
+<td><code>git</code></td>
+<td><code>tag v2.3.0</code> or <code>file main docs/x.md</code></td>
+<td>the tag, or the file at that revision, is what it was</td>
+<td>records the commit, or the file's blob</td>
+</tr>
+<tr>
+<td><code>until</code></td>
+<td><code>2026-12-31</code></td>
+<td>today is on or before the date</td>
+<td>nothing to record</td>
+</tr>
+<tr>
+<td><code>manual</code></td>
+<td><code>ops standup</code> (who or where it came from)</td>
+<td>a person says it still holds</td>
+<td>asks the person</td>
+</tr>
+<tr>
+<td><code>script</code></td>
+<td><code>uvver</code> or <code>latest v2</code> (a name, then optionally one key)</td>
+<td>the command's output is what it was</td>
+<td>records the output</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>key</code>.</strong> The file is a JSON, YAML or TOML file, found as for <code>file</code>: absolute, <code>~/</code>, or relative to the document's folder. The path into it is dotted, with a number for a list item
+(<code>servers.0.host</code>). The value is compared as text, and a number or list is written as JSON. TOML needs Python 3.11, or <code>tomli</code>, which the pack requires on 3.10. A missing file or key is a
+drift.</p>
+<p><strong><code>git</code>.</strong> <code>tag NAME</code> is the commit the tag points at; <code>file REVISION PATH</code> is the file's blob at that revision (<code>main</code>, a tag, a commit), with the path from the repository's root. The repository is the one around the
+document. A tag that moved or was deleted, or a file that changed, is a drift. A name or revision cannot start with <code>-</code>. The command that runs is always <code>git rev-parse</code>.</p>
+<p><strong><code>until</code>.</strong> A claim with an end date: a freeze, a deadline, a promise. Nothing is read. Once the date passes it drifts, and editing the date makes a new fact.</p>
+<p><strong><code>manual</code>.</strong> What no machine can read. <code>factcheck --fetch</code>, run by a person at a terminal, shows the source and the claim and asks <code>Still true? [y/N]</code>; no is a drift. An agent cannot
+answer it, so its run skips a <code>manual</code> fact (it is reported as skipped, and nothing is recorded). Nothing forces a re-check: set <code>facts: {manual_days: 90}</code> in <code>bower.yaml</code> and a fact confirmed in the last 90 days is skipped, without it the question is asked each time.</p>
+<p><strong><code>script</code>.</strong> A command's output. The command is declared once, in the <strong>root</strong> <code>bower.yaml</code>, as an argument list that is run with no shell:</p>
+<pre class="highlight"><code class="language-yaml">facts:
+  scripts:
+    uvver: {cmd: [uv, --version]}
+    latest: {cmd: [git, describe, --tags, "{key}"], timeout: 10}   # 30 seconds unless `timeout` says otherwise</code></pre>
+<p>A page names the script and may give one key (<code>[fact.script](latest main) ...</code>), which replaces <code>{key}</code> in the arguments. The key is one word of letters, digits and <code>_ . / : @ = + -</code>, and it
+cannot start with <code>-</code>, so it cannot become a second argument or a shell command; anything else is not a fact. A page can never name a command, and a script in a nested <code>bower.yaml</code> is
+ignored. The command runs with the collection root as its working directory. A person at a terminal is shown the command by <code>--fetch</code> and asked first (<code>factcheck id=</code> shows it and asks too); an agent runs it without being asked, and the command comes back with the result. A command that exits non-zero is skipped, not a drift. Its output is kept in <code>.facts.yaml</code>, so a command that prints a secret writes it to a committed file.</p>
+<p><strong>Read the plan before you answer <code>y</code>.</strong> A script runs with your privileges, and a collection you did not write can declare one in its root <code>bower.yaml</code>.</p>
+<h2 id="what-an-agent-can-run">What an agent can run<a class="headerlink" href="#what-an-agent-can-run" title="Link to this section">#</a></h2>
+<p>An agent may check every kind except <code>manual</code>: <code>factcheck file=... id=...</code> with no result runs one fact, and <code>factcheck fetch=true</code> all of them, with no prompt, and the check is recorded. A <code>script</code> runs
+only if the root <code>bower.yaml</code> declares it, and a page cannot name a command. A <code>manual</code> fact asks a person, so an agent's run skips it.</p>
+<h2 id="tested-against">Tested against<a class="headerlink" href="#tested-against" title="Link to this section">#</a></h2>
+<p>Made-up files in a temporary folder on Linux with Python 3.10, by the test suite (<code>test_bowerbird_mcp.py</code>):</p>
+<ul>
+<li><strong><code>key</code>:</strong> a JSON file, then the same file changed (a drift that names both values), a missing key, a missing file, and a YAML file.</li>
+<li><strong><code>git</code>:</strong> a throwaway repository with a tag, the tag moved with <code>git tag -f</code>, a tag that does not exist, and a file at <code>HEAD</code> before and after a new commit.</li>
+<li><strong><code>until</code>:</strong> a date far ahead and a date long past; and <code>soon</code> rejected as a source.</li>
+<li><strong><code>manual</code>:</strong> with no terminal (an error), with a terminal answering <code>y</code> and then <code>n</code>, and with <code>manual_days: 30</code> right after a yes (skipped).</li>
+<li><strong><code>script</code>:</strong> an undeclared script (skipped), <code>cat {key}</code> before and after the file changed, a failing command (skipped), a key with shell characters or a leading <code>-</code> (not a fact), and a
+  declaration with an empty or non-list command, a zero timeout, or a bad name (refused when <code>bower.yaml</code> loads).</li>
+</ul>
+<p>Not tested: TOML on Python 3.10 without <code>tomli</code>, Windows, a repository with a shallow clone, a command that prints a lot, or any real configuration of yours.</p>
+<h2 id="report-a-problem">Report a problem<a class="headerlink" href="#report-a-problem" title="Link to this section">#</a></h2>
+<p>A kind that checked wrong, a drift that should not be, or a command that should not have run: <a href="https://github.com/dfoulks1/bowerbird-mcp/issues/new">open an issue</a> or write to <a href="mailto:dfoulks@voltpop.com">dfoulks@voltpop.com</a>. Give the
+kind, the version (<code>bowerbird-mcp --version</code>) and the smallest file that shows it, never a private one. More on <a href="../troubleshooting/#reporting-a-problem">reporting a problem</a>.</p></article>
+        
+          <hr class="my-5">
+          <div class="d-flex justify-content-between gap-3">
+            
+              <a class="btn btn-outline-secondary" href="../facts/">&larr; Facts</a>
+            
+            
+              <a class="btn btn-outline-secondary" href="../sealing/">Sealing &rarr;</a>
+            
+          </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top mt-4 py-3">
+    <div class="container-fluid small text-muted d-flex flex-wrap justify-content-between gap-2">
+      <span>Bowerbird · Apache-2.0 · built under the ASF generative-tooling guidelines · docs AI-generated, under human review</span>
+      <span>Built with MkDocs + Bootstrap 5.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    (function () {
+      // Restore saved theme before paint-sensitive work.
+      var root = document.documentElement;
+      var saved = localStorage.getItem('docs-theme');
+      if (saved) root.setAttribute('data-bs-theme', saved);
+
+      // Make Markdown tables look like Bootstrap tables.
+      document.querySelectorAll('.docs-content table').forEach(function (t) {
+        t.classList.add('table', 'table-sm', 'table-striped', 'table-bordered', 'align-middle');
+        if (!t.parentElement.classList.contains('table-responsive')) {
+          var wrap = document.createElement('div');
+          wrap.className = 'table-responsive';
+          t.parentNode.insertBefore(wrap, t);
+          wrap.appendChild(t);
+        }
+      });
+
+      // A Copy button on every listing.
+      document.querySelectorAll('.docs-content pre').forEach(function (pre) {
+        if (pre.classList.contains('mermaid')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-sm btn-light copy-btn';
+        btn.textContent = 'Copy';
+        btn.addEventListener('click', function () {
+          var code = pre.querySelector('code') || pre;
+          navigator.clipboard.writeText(code.innerText.replace(/\n$/, '')).then(function () {
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+          });
+        });
+        pre.classList.add('has-copy');
+        pre.appendChild(btn);
+      });
+
+      // Theme toggle (reload keeps mermaid in sync with the new theme).
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-bs-theme', next);
+        localStorage.setItem('docs-theme', next);
+        location.reload();
+      });
+
+      // Render mermaid: superfences emits <pre class="mermaid"><code>…</code></pre>.
+      if (window.mermaid) {
+        var dark = root.getAttribute('data-bs-theme') === 'dark';
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+        document.querySelectorAll('pre.mermaid').forEach(function (pre) {
+          var code = pre.querySelector('code');
+          if (code) pre.textContent = code.textContent;
+        });
+        try { mermaid.run({ querySelector: 'pre.mermaid' }); } catch (e) {}
+      }
+    })();
+  </script>
+</body>
+</html>

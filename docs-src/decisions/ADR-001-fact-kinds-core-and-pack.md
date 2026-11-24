@@ -1,8 +1,8 @@
 ---
 status: accepted
-status-note: accepted by dfoulks on 2026-11-23, in the seal dialog
+status-note: accepted by dfoulks on 2026-11-24, in the seal dialog
 ratified-by: dfoulks
-ratified-on: "2026-11-23"
+ratified-on: "2026-11-24"
 owner: dfoulks
 kind: architecture
 built: landed
@@ -118,6 +118,7 @@ Drivers:
 - 2026-11-23: ratified by dfoulks, as `decision: accepted` in the seal dialog (ledger entry at 2026-11-23T13:26Z). Earlier values, word for word: `status: proposed`, `status-note: "drafted 2026-11-23 from the owner's answers; awaiting ratification"`. The header was updated here because the dialog records the decision in `.waxseals.yaml` only, not in the ADR header.
 - 2026-11-23: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: accepted`, `status-note: "ratified by dfoulks 2026-11-23, as accepted in the seal dialog (decision: accepted in .waxseals.yaml)"`.
 - 2026-11-23: amended, at the owner's request (see the last section): packaging changed to one wheel; the ruled text is unchanged. No header value changed.
+- 2026-11-24: accepted by dfoulks, in the seal dialog. Earlier values, word for word: `status: accepted`, `status-note: "accepted by dfoulks on 2026-11-23, in the seal dialog"`.
 
 ## Amendment — 2026-11-23, dfoulks
 

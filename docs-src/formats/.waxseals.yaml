@@ -1,0 +1,11 @@
+# .waxseals.yaml: the review of each file (`seal`): the latest, or with seal.extensions every person's seal of its current version;
+# an edit breaks them, git has the earlier ones. Commit it.
+- {file: adr.md, sha256: 52382273e8d6a5c78b2827de89a48db11612ead80c1eb3e34a03c2ecbf3b8976, by: 'human:dfoulks', at: '2026-11-24T00:30:04Z', bowerbird: 2.3.0}
+- {file: asciidoc.md, sha256: e7355426b4bc277f7f3cd6a15914a6e61d3333813249e5731907e66295a97169, by: 'human:dfoulks', at: '2026-11-24T00:30:10Z', bowerbird: 2.3.0}
+- {file: dendron.md, sha256: 77d52a96a77176e2fe612af2e8f1a4fed8200c9da82d2e74987c4faeae4c079a, by: 'human:dfoulks', at: '2026-11-24T00:30:16Z', bowerbird: 2.3.0}
+- {file: foam.md, sha256: 6a8f04f280fb26ed53a712d221675759db5d6dc48f09e692ec2487aca888d689, by: 'human:dfoulks', at: '2026-11-24T00:30:21Z', bowerbird: 2.3.0}
+- {file: logseq.md, sha256: d34952b9a424694589d3d91d5f48a445143e3d0e6b2e1900b4b8989273ec4ac2, by: 'human:dfoulks', at: '2026-11-24T00:30:27Z', bowerbird: 2.3.0}
+- {file: markdown.md, sha256: 533a9739315835f30868d0fcdfe39ffc282d6321f4ef4be9bdd79f804e69f06d, by: 'human:dfoulks', at: '2026-11-24T00:30:33Z', bowerbird: 2.3.0}
+- {file: obsidian.md, sha256: 5f1b0b5cba3eedde132bdff177e5cdda55001f2fe103531fc7dc0623272345d6, by: 'human:dfoulks', at: '2026-11-24T00:30:38Z', bowerbird: 2.3.0}
+- {file: okf.md, sha256: d5f828efc180edae6561649cc91f24c93ca672dbcf5597a871b1d9ee4b3b9679, by: 'human:dfoulks', at: '2026-11-24T00:30:45Z', bowerbird: 2.3.0}
+- {file: skos.md, sha256: a3d7f3e2eacfa1738d55036e52ce942e94c3107ca02b1c0b030061904cdf5644, by: 'human:dfoulks', at: '2026-11-24T00:30:50Z', bowerbird: 2.3.0}
